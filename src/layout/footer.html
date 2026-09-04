@@ -1,0 +1,136 @@
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function setMode(mode) {
+            document.getElementById('btn-mode-normal').className = mode === 'normal' 
+                ? 'px-3 py-1 rounded text-sm font-bold bg-blue-500 text-white transition-colors shadow-lg' 
+                : 'px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors';
+            
+            document.getElementById('btn-mode-wtf').className = mode === 'wtf' 
+                ? 'px-3 py-1 rounded text-sm font-bold bg-rose-500 text-white transition-colors shadow-[0_0_10px_rgba(244,63,94,0.5)]' 
+                : 'px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors';
+            
+            const aside = document.querySelector('aside');
+            const headerMain = document.querySelector('main header');
+            const questionsContainer = document.getElementById('questions-container');
+            const wtfContainer = document.getElementById('wtf-container');
+            
+            if (mode === 'wtf') {
+                document.body.classList.add('wtf-mode');
+                if (aside) aside.style.display = 'none';
+                if (headerMain) headerMain.style.display = 'none';
+                if (questionsContainer) questionsContainer.style.display = 'none';
+                if (wtfContainer) wtfContainer.classList.remove('hidden');
+                
+                // Remove the URL hash to avoid scrolling down to a hidden question
+                history.pushState("", document.title, window.location.pathname + window.location.search);
+                window.scrollTo(0, 0);
+            } else {
+                document.body.classList.remove('wtf-mode');
+                if (aside) aside.style.display = '';
+                if (headerMain) headerMain.style.display = '';
+                if (questionsContainer) questionsContainer.style.display = '';
+                if (wtfContainer) wtfContainer.classList.add('hidden');
+            }
+        }
+
+        function setTheme(theme) {
+            const body = document.body;
+            body.classList.remove('theme-dark', 'theme-light', 'theme-notebook', 'theme-terminal');
+            body.classList.add('theme-' + theme);
+            
+            // Just some visual feedback on buttons
+            document.querySelectorAll('[id^="theme-"]').forEach(btn => {
+                btn.classList.remove('outline', 'outline-2', 'outline-amber-500', 'outline-blue-500', 'outline-green-500');
+            });
+            
+            if (theme === 'dark') document.getElementById('theme-dark')?.classList.add('outline', 'outline-2', 'outline-amber-500');
+            if (theme === 'light') document.getElementById('theme-light')?.classList.add('outline', 'outline-2', 'outline-blue-500');
+            if (theme === 'terminal') document.getElementById('theme-terminal')?.classList.add('outline', 'outline-2', 'outline-green-500');
+            
+            document.getElementById('btn-theme-dark').className = theme === 'dark' ? 'px-3 py-1 rounded text-sm font-bold bg-slate-600 text-white transition-colors' : 'px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors';
+            document.getElementById('btn-theme-light').className = theme === 'light' ? 'px-3 py-1 rounded text-sm font-bold bg-slate-600 text-white transition-colors' : 'px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors';
+            document.getElementById('btn-theme-notebook').className = theme === 'notebook' ? 'px-3 py-1 rounded text-sm font-bold bg-slate-600 text-white transition-colors' : 'px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors';
+        }
+
+        // Initialize theme and mode
+        setTheme('dark');
+        
+        // Setup intersection observer for TOC highlighting and mobile drawer
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+            const mobileDrawer = document.getElementById("mobile-drawer");
+            const closeDrawerBtn = document.getElementById("close-drawer-btn");
+            const drawerOverlay = document.getElementById("drawer-overlay");
+            
+            function toggleDrawer() {
+                const isClosed = mobileDrawer.classList.contains("-translate-x-full");
+                if (isClosed) {
+                    mobileDrawer.classList.remove("-translate-x-full");
+                    if (drawerOverlay) {
+                        drawerOverlay.classList.remove("hidden");
+                        // Timeout allows display:block to apply before animating opacity
+                        setTimeout(() => drawerOverlay.classList.remove("opacity-0"), 10);
+                    }
+                    document.body.style.overflow = "hidden"; // Prevent background scrolling
+                } else {
+                    mobileDrawer.classList.add("-translate-x-full");
+                    if (drawerOverlay) {
+                        drawerOverlay.classList.add("opacity-0");
+                        setTimeout(() => drawerOverlay.classList.add("hidden"), 300); // Wait for transition
+                    }
+                    document.body.style.overflow = "";
+                }
+            }
+
+            if (mobileMenuBtn && mobileDrawer) {
+                mobileMenuBtn.addEventListener("click", toggleDrawer);
+            }
+            if (closeDrawerBtn && mobileDrawer) {
+                closeDrawerBtn.addEventListener("click", toggleDrawer);
+            }
+            if (drawerOverlay) {
+                drawerOverlay.addEventListener("click", toggleDrawer);
+            }
+            
+            // Close on link click
+            document.querySelectorAll("#mobile-drawer a").forEach(link => {
+                link.addEventListener("click", () => {
+                    if (mobileDrawer && !mobileDrawer.classList.contains("-translate-x-full")) {
+                        toggleDrawer();
+                    }
+                });
+            });
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-10% 0px -70% 0px',
+                threshold: 0
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !document.body.classList.contains('wtf-mode')) {
+                        // Highlight active TOC link logic can go here
+                        const id = entry.target.id;
+                        document.querySelectorAll('aside a').forEach(link => {
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('bg-slate-800', 'border-l-4', 'border-blue-500', 'font-bold');
+                            } else {
+                                link.classList.remove('bg-slate-800', 'border-l-4', 'border-blue-500', 'font-bold');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('section[id^="question-"], section[id="proof-algorithms"]').forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

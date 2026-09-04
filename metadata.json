@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix: ExamPrep Reader",
+  "description": "Удобная web-читалка для подготовки к экзаменам с возможностью экспорта в PDF.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

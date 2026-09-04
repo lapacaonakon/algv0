@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пособие по алгебре: От пиццы к предикатам</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
+        @reference "./src/index.css";
+        .math-font { font-family: 'Fira Code', monospace; }
+        .uno-card {
+            width: 70px; height: 105px; border-radius: 8px; border: 4px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5); position: relative; display: flex;
+            align-items: center; justify-content: center; font-weight: 900; font-size: 2.2rem;
+            color: white; overflow: hidden; flex-shrink: 0;
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            font-family: 'Arial Black', Impact, sans-serif;
+        }
+        .uno-card::before, .uno-card::after {
+            content: attr(data-val); position: absolute; font-size: 0.8rem;
+            text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; z-index: 3; color: white;
+        }
+        .uno-card::before { top: 2px; left: 4px; }
+        .uno-card::after { bottom: 2px; right: 4px; transform: rotate(180deg); }
+        .uno-card.mini { width: 45px !important; height: 65px !important; border-width: 2px; font-size: 1.2rem !important; }
+        .uno-card.mini::before, .uno-card.mini::after { font-size: 0.6rem; top: 1px; left: 2px; right: 2px; bottom: 1px; }
+
+        /* Global formula scroll settings */
+        .formula-scroll { 
+            overflow-x: auto; 
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch; 
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+        .formula-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        
+        mjx-container {
+            max-width: 100% !important;
+        }
+        mjx-container[display="true"] {
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-width: 100%;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        mjx-container[display="true"]::-webkit-scrollbar {
+            display: none;
+        }
+        
+        @media (max-width: 640px) {
+            html { font-size: 13px; }
+            
+            .uno-card { width: 40px; height: 60px; font-size: 1.2rem; border-width: 1px; border-radius: 6px; }
+            .uno-card::before, .uno-card::after { font-size: 0.5rem; }
+            .uno-card::before { top: 1px; left: 2px; }
+            .uno-card::after { bottom: 1px; right: 2px; }
+            
+            .uno-card.mini { width: 28px !important; height: 40px !important; border-width: 1px; font-size: 0.8rem !important; border-radius: 4px; }
+            .uno-card.mini::before, .uno-card.mini::after { font-size: 0.4rem; top: 1px; left: 2px; right: 2px; bottom: 1px; }
+            
+            .uno-equation .text-2xl { font-size: 1.2rem !important; }
+            .uno-equation.gap-4 { gap: 0.5rem !important; }
+            
+            /* Allow horizontal scroll for equations instead of vertical wrapping */
+            .formula-scroll { flex-wrap: nowrap !important; white-space: nowrap; justify-content: flex-start !important; padding-bottom: 0px; }
+        }
+        .uno-inner {
+            position: absolute; width: 110%; height: 75%; background-color: white;
+            border-radius: 50%; transform: rotate(-30deg); z-index: 1;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+        .uno-val { position: relative; z-index: 2; }
+        .card-red { background-color: #e52521; } .card-red .uno-val { color: #e52521; }
+        .card-blue { background-color: #004dcf; } .card-blue .uno-val { color: #004dcf; }
+        .card-green { background-color: #339e35; } .card-green .uno-val { color: #339e35; }
+        .card-yellow { background-color: #ffc400; } .card-yellow .uno-val { color: #ffc400; }
+        .card-black { background-color: #222; } .card-black .uno-val { color: #fff; text-shadow: 1px 1px 0 #000; }
+        .card-black::before, .card-black::after { text-shadow: 1px 1px 0 #000; }
+        .info-block { @apply bg-slate-800/80 border-l-4 p-5 rounded-r-lg mb-6 shadow-md; }
+        .info-title { @apply font-bold mb-2 flex items-center gap-2; }
+        
+        /* Визуализация (Аналогии) */
+        .analogy-block { @apply bg-slate-900 border-2 border-dashed rounded-xl p-6 relative mt-6 shadow-inner flex flex-col md:flex-row items-center gap-6; }
+        .analogy-badge { @apply absolute -top-3 left-4 bg-slate-700 text-slate-200 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-widest border border-slate-500 shadow-md flex items-center gap-2 z-10; }
+        .img-placeholder { @apply flex flex-col items-center justify-center bg-slate-800 border border-slate-600 rounded-lg p-4 text-center shrink-0 shadow-lg w-full md:w-auto; }
+        .img-caption { @apply font-mono text-sm mt-4 font-bold bg-slate-950 px-4 py-2 rounded-lg w-full border border-slate-700; }
+
+        /* THEME OVERRIDES */
+        body.theme-light {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+        }
+        body.theme-light .bg-slate-900, body.theme-light .bg-slate-950 { background-color: #f1f5f9 !important; }
+        body.theme-light .bg-slate-800 { background-color: #ffffff !important; border-color: #e2e8f0 !important; }
+        body.theme-light .bg-slate-700, body.theme-light .bg-slate-700\/50 { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; }
+        body.theme-light .text-slate-200, body.theme-light .text-slate-300, body.theme-light .text-white { color: #0f172a !important; }
+        body.theme-light .text-slate-400 { color: #475569 !important; }
+        body.theme-light .border-slate-600, body.theme-light .border-slate-700 { border-color: #cbd5e1 !important; }
+        body.theme-light .border-slate-500 { border-color: #94a3b8 !important; }
+        body.theme-light #top-controls { background-color: #ffffff !important; border-color: #e2e8f0 !important; }
+
+        body.theme-notebook {
+            background-color: #fcf8eb !important; /* light yellow-paper */
+            color: #3b2818 !important; /* brown ink */
+            background-image: repeating-linear-gradient(transparent, transparent 27px, #93c5fd 28px) !important;
+            background-attachment: local !important;
+            font-family: "Comic Sans MS", "Caveat", "Segoe Print", cursive, sans-serif !important;
+        }
+        body.theme-notebook .bg-slate-900, body.theme-notebook .bg-slate-950, body.theme-notebook .bg-slate-800, body.theme-notebook .bg-slate-700 { 
+            background-color: rgba(255, 255, 255, 0.7) !important; 
+            border-color: #cbd5e1 !important; 
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+        }
+        body.theme-notebook .text-slate-200, body.theme-notebook .text-slate-300, body.theme-notebook .text-white { color: #3b2818 !important; }
+        body.theme-notebook .text-slate-400 { color: #57402c !important; }
+        body.theme-notebook .border-slate-600, body.theme-notebook .border-slate-700, body.theme-notebook .border-slate-500 { border-color: #94a3b8 !important; }
+        body.theme-notebook .font-mono { font-family: "Courier New", Courier, monospace !important; font-weight: bold; }
+        body.theme-notebook #top-controls { background-color: #fef3c7 !important; border-color: #fcd34d !important; }
+
+        
+        /* CREEPY BLINKING */
+        @keyframes creepy-blink {
+            0%, 95%, 98%, 100% { transform: scaleY(1); }
+            96.5% { transform: scaleY(0.1); }
+        }
+        .creepy-eye {
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: creepy-blink 4s infinite;
+        }
+        .creepy-eye-alt {
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: creepy-blink 5.2s infinite;
+            animation-delay: 1.5s;
+        }
+        .creepy-emoji {
+            display: inline-block;
+            transform-origin: center;
+            animation: creepy-blink 3.8s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 font-sans leading-relaxed pb-20 theme-dark">
+
+    <div class="sticky top-0 z-50 w-full bg-slate-950/90 backdrop-blur-md border-b border-slate-800 p-3 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 transition-colors duration-300" id="top-controls">
+        <div class="flex items-center gap-3">
+            <span class="text-sm font-bold uppercase tracking-wider text-slate-400">Вид:</span>
+            <div class="bg-slate-800 p-1 rounded-lg flex gap-1">
+                <button onclick="setMode('normal')" id="btn-mode-normal" class="px-3 py-1 rounded text-sm font-bold bg-blue-500 text-white transition-colors">Список тем</button>
+                <button onclick="setMode('wtf')" id="btn-mode-wtf" class="px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">WTF MOD</button>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-sm font-bold uppercase tracking-wider text-slate-400">Тема:</span>
+            <div class="bg-slate-800 p-1 rounded-lg flex gap-1">
+                <button onclick="setTheme('dark')" id="btn-theme-dark" class="px-3 py-1 rounded text-sm font-bold bg-slate-600 text-white transition-colors">Темная</button>
+                <button onclick="setTheme('light')" id="btn-theme-light" class="px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">Светлая</button>
+                <button onclick="setTheme('notebook')" id="btn-theme-notebook" class="px-3 py-1 rounded text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">Ноут</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОПРЕДЕЛЕНИЕ МАРКЕРОВ SVG -->
+    <svg width="0" height="0" class="absolute">
+        <defs>
+            <marker id="arrow-yellow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#fcd34d" />
+            </marker>
+            <marker id="arrow-orange" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#f97316" />
+            </marker>
+            <marker id="arrow-pink" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#f472b6" />
+            </marker>
+            <marker id="arrow-cyan" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#2dd4bf" />
+            </marker>
+            <marker id="arrow-indigo" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#818cf8" />
+            </marker>
+            <marker id="arrow-lime" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#a3e635" />
+            </marker>
+            <marker id="arrow-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#4ade80" />
+            </marker>
+
+            <!-- ЛЕГО БЛОКИ -->
+            <g id="lego-yellow">
+                <rect x="0" y="0" width="40" height="20" fill="#eab308" stroke="#854d0e" stroke-width="1.5" rx="2" />
+                <rect x="6" y="-5" width="8" height="6" fill="#eab308" stroke="#854d0e" stroke-width="1.5" rx="1" />
+                <rect x="26" y="-5" width="8" height="6" fill="#eab308" stroke="#854d0e" stroke-width="1.5" rx="1" />
+                <line x1="2" y1="2" x2="38" y2="2" stroke="#fef08a" stroke-width="1.5"/>
+            </g>
+            <g id="lego-red">
+                <rect x="0" y="0" width="40" height="20" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5" rx="2" />
+                <rect x="6" y="-5" width="8" height="6" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5" rx="1" />
+                <rect x="26" y="-5" width="8" height="6" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5" rx="1" />
+                <line x1="2" y1="2" x2="38" y2="2" stroke="#fca5a5" stroke-width="1.5"/>
+            </g>
+            <g id="lego-rem">
+                <rect x="0" y="0" width="40" height="10" fill="#3b82f6" stroke="#1e3a8a" stroke-width="1.5" rx="2" />
+                <rect x="6" y="-5" width="8" height="6" fill="#3b82f6" stroke="#1e3a8a" stroke-width="1.5" rx="1" />
+                <rect x="26" y="-5" width="8" height="6" fill="#3b82f6" stroke="#1e3a8a" stroke-width="1.5" rx="1" />
+                <line x1="2" y1="2" x2="38" y2="2" stroke="#93c5fd" stroke-width="1.5"/>
+            </g>
+            <!-- МЯСОРУБКА -->
+            <g id="meat-grinder">
+                <path d="M 10 40 L 15 20 Q 25 15 35 20 L 40 40 Z" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+                <rect x="5" y="40" width="40" height="20" rx="3" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+                <!-- Ручка -->
+                <path d="M 45 50 Q 60 50 60 30 L 75 30" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="75" cy="30" r="4" fill="#334155"/>
+                <!-- Выход -->
+                <path d="M 5 45 L -5 45 L -5 55 L 5 55 Z" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+                <circle cx="25" cy="50" r="15" fill="#f43f5e" opacity="0.3"/>
+            </g>
+            <g id="lego-green">
+                <rect x="0" y="10" width="20" height="15" fill="#10b981" stroke="#047857" stroke-width="1"/>
+                <rect x="3" y="5" width="14" height="5" fill="#34d399" stroke="#047857" stroke-width="1"/>
+            </g>
+            <g id="lego-white">
+                <rect x="0" y="0" width="40" height="20" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" rx="2" />
+                <rect x="6" y="-5" width="8" height="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" rx="1" />
+                <rect x="26" y="-5" width="8" height="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" rx="1" />
+                <line x1="0" y1="2" x2="40" y2="2" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+                <text x="20" y="14" fill="#475569" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">1</text>
+            </g>
+        </defs>
+    </svg>
+
+    <!-- Мобильная кнопка меню (Гамбургер) -->
+    <button id="mobile-menu-btn" class="lg:hidden fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-2xl shadow-blue-500/50 z-50 hover:bg-blue-500 transition-transform hover:scale-110 active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+    
+    <!-- Затемнение фона на мобилках при открытом меню -->
+    <div id="drawer-overlay" class="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity opacity-0"></div>
+
+    <div class="max-w-7xl mx-auto mt-10 px-4 flex flex-col lg:flex-row gap-8 relative" id="main-container">
+        
+        <!-- Левое меню (Оглавление) -->
+        <aside id="mobile-drawer" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-700 shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:bg-transparent lg:border-none lg:shadow-none lg:block lg:w-72 lg:shrink-0 lg:z-auto self-start">
+            <div class="h-full flex flex-col p-6 overflow-y-auto lg:p-0 lg:sticky lg:top-10 lg:bg-slate-800/80 lg:backdrop-blur-sm lg:p-6 lg:rounded-2xl lg:border lg:border-slate-700 lg:shadow-xl max-h-screen lg:max-h-[90vh]">
+                <div class="flex justify-between items-center mb-6 lg:mb-6">
+                    <h3 class="font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 uppercase tracking-wider text-sm">
+                        Содержание
+                    </h3>
+                    <button id="close-drawer-btn" class="lg:hidden text-slate-400 hover:text-white p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <nav class="space-y-3 text-sm font-medium text-slate-400">
+                    
+                    <details class="group" open>
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-1" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-blue-500 pl-3 font-bold text-blue-300">
+                        1. Алгебраические структуры
+                    </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                        <a href="#section-1-1" class="block hover:text-slate-200">1.1 Бинарная операция</a>
+                        <a href="#section-1-2" class="block hover:text-slate-200">1.2 Группа</a>
+                        <a href="#section-1-3" class="block hover:text-slate-200">1.3 Кольцо</a>
+                        <a href="#section-1-4" class="block hover:text-slate-200">1.4 Поле</a>
+                    </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-2" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-indigo-500 pl-3 font-bold text-indigo-300">
+                        2. Комплексные числа
+                    </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                        <a href="#section-2-1" class="block hover:text-slate-200">2.1 Определение</a>
+                        <a href="#section-2-2" class="block hover:text-slate-200">2.2 Сопряжение</a>
+                        <a href="#section-2-3" class="block hover:text-slate-200">2.3 Доказательство поля</a>
+                    </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-3" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-teal-500 pl-3 font-bold text-teal-300">
+                        3. Тригонометрическая форма
+                    </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                        <a href="#section-3-1" class="block hover:text-slate-200">3.1 Формула</a>
+                        <a href="#section-3-2" class="block hover:text-slate-200">3.2 Умножение и Деление</a>
+                        <a href="#section-3-3" class="block hover:text-slate-200">3.3 Доказательство умножения</a>
+                        <a href="#section-3-4" class="block hover:text-slate-200">3.4 Неравенство треугольника</a>
+                    </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-4" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-amber-500 pl-3 font-bold text-amber-300">
+                        4. Степени и корни
+                    </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                        <a href="#q4-def" class="block hover:text-slate-200">4.1 Определение корня</a>
+                        <a href="#q4-moivre" class="block hover:text-slate-200">4.2 Формула Муавра</a>
+                        <a href="#q4-root" class="block hover:text-slate-200">4.3 Вывод формулы корня</a>
+                        <a href="#q4-count" class="block hover:text-slate-200">4.4 Количество корней</a>
+                    </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-5" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-fuchsia-500 pl-3 font-bold text-fuchsia-300">
+                        5. Группа корней из единицы
+                    </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                        <a href="#q5-def" class="block hover:text-slate-200">5.1 Определение множества</a>
+                        <a href="#q5-group" class="block hover:text-slate-200">5.2 Доказательство (Группа)</a>
+                        <a href="#q5-prim" class="block hover:text-slate-200">5.3 Первообразный корень</a>
+                        <a href="#q5-crit" class="block hover:text-slate-200">5.4 Критерий (НОД)</a>
+                        <a href="#q5-cyclic" class="block hover:text-slate-200">5.5 Теорема о цикличности</a>
+                    </div>
+                    </details>
+
+                
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-6" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-lime-500 pl-3 font-bold text-lime-300">
+                        6. Делимость, НОД и Евклид
+                    </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                        <a href="#q6-1" class="block hover:text-slate-200">6.1 Делимость</a>
+                        <a href="#q6-2" class="block hover:text-slate-200">6.2 Теорема о делении с остатком</a>
+                        <a href="#q6-3" class="block hover:text-slate-200">6.3 Наибольший общий делитель</a>
+                        <a href="#q6-4" class="block hover:text-slate-200">6.4 Алгоритм Евклида</a>
+                        <a href="#q6-5" class="block hover:text-slate-200">6.5 Доказательство</a>
+                        <a href="#q6-6" class="block hover:text-slate-200">6.6 Тождество Безу</a>
+                    </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-7" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-pink-500 pl-3 font-bold text-pink-300">
+                                7. Взаимно простые числа
+                            </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                            <a href="#q7-1" class="block hover:text-slate-200">7.1 Определение</a>
+                            <a href="#q7-2" class="block hover:text-slate-200">7.2 Критерий (Мудак Безу)</a>
+                            <a href="#q7-3" class="block hover:text-slate-200">7.3 Свойство 1 (Разделение куч)</a>
+                            <a href="#q7-4" class="block hover:text-slate-200">7.4 Свойство 2 (Неприкасаемый)</a>
+                            <a href="#q7-5" class="block hover:text-slate-200 text-amber-400 font-bold">7.5 ХАК-РЕФЛЕКСЫ ДЛЯ ЭКЗАМЕНА</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-8" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-violet-500 pl-3 font-bold text-violet-300">
+                                8. Сравнимость и Поля Вычетов
+                            </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                            <a href="#q8-1" class="block hover:text-slate-200">8.1 Опр: Сравнимость</a>
+                            <a href="#q8-2" class="block hover:text-slate-200">8.2 Док-во: Свойства операций</a>
+                            <a href="#q8-3" class="block hover:text-slate-200">8.3 Опр: Кольцо вычетов</a>
+                            <a href="#q8-4" class="block hover:text-slate-200">8.4 Опр: Делители нуля</a>
+                            <a href="#q8-5" class="block hover:text-slate-200">8.5 Опр: Характеристика поля</a>
+                            <a href="#q8-6" class="block hover:text-slate-200">8.6 Док-во: Критерий целостности</a>
+                            <a href="#q8-7" class="block hover:text-slate-200">8.7 Док-во: Критерий поля</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-9" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-green-500 pl-3 font-bold text-green-400">
+                                9. Кольцо многочленов
+                            </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                            <a href="#q9-1" class="block hover:text-slate-200">9.1 Определение многочлена</a>
+                            <a href="#q9-2" class="block hover:text-slate-200">9.2 Степень многочлена</a>
+                            <a href="#q9-3" class="block hover:text-slate-200">9.3 Свойство степени (Хоррор)</a>
+                            <a href="#q9-4" class="block hover:text-slate-200 text-rose-400 font-bold">9.4 Теорема о целостности</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-10" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-rose-500 pl-3 font-bold text-rose-400">
+                                10. Делимость и Схема Горнера
+                            </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                            <a href="#q10-1" class="block hover:text-slate-200">10.1 Определение делимости</a>
+                            <a href="#q10-2" class="block hover:text-slate-200">10.2 Деление с остатком</a>
+                            <a href="#q10-3" class="block hover:text-slate-200 text-amber-400 font-bold">10.3 Свойства делимости (Р.Т.Л)</a>
+                            <a href="#q10-4" class="block hover:text-slate-200">10.4 Схема Горнера</a>
+                            <a href="#q10-5" class="block hover:text-slate-200">10.5 Док-во схемы Горнера</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-11" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-cyan-500 pl-3 font-bold text-cyan-400">
+                                11. НОД и НОК многочленов. (Змеиные Пиксели)
+                            </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                            <a href="#q11-1" class="block hover:text-slate-200">11.1 Определение НОД и НОК многочленов</a>
+                            <a href="#q11-2" class="block hover:text-slate-200 text-teal-400 font-bold">11.2 Теорема о существовании и единственности НОД</a>
+                            <a href="#q11-3" class="block hover:text-slate-200 text-amber-400 font-bold">11.3 ГЕОМЕТРИЯ ЕВКЛИДА (ЗОЛОТАЯ СПИРАЛЬ)</a>
+                            <a href="#q11-4" class="block hover:text-slate-200 text-rose-400 font-bold">11.4 Выражение НОД (Мудак Безу возвращается!)</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-12" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-blue-500 pl-3 font-bold text-blue-400">
+                                12. Взаимно простые многочлены
+                            </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                            <a href="#q12-1" class="block hover:text-slate-200">12.1 Определение</a>
+                            <a href="#q12-2" class="block hover:text-slate-200">12.2 Критерий (Хак Безу для многочленов)</a>
+                            <a href="#q12-3" class="block hover:text-slate-200 text-purple-400 font-bold">12.3 Свойства (Склеивание и разделение)</a>
+                        </div>
+                    </details>
+                
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-13" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-emerald-500 pl-3 font-bold text-emerald-400">
+                                13. Корни многочленов. Теорема Безу
+                            </a>
+                        </summary>
+                        <div class="pl-6 space-y-2 text-xs">
+                            <a href="#q13-1" class="block hover:text-slate-200">13.1 Определение корня</a>
+                            <a href="#q13-2" class="block hover:text-slate-200 text-amber-400 font-bold">13.2 Теорема Безу</a>
+                            <a href="#q13-3" class="block hover:text-slate-200 text-rose-400 font-bold">13.3 Следствия из теоремы Безу</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-14" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-fuchsia-500 pl-3 font-bold text-fuchsia-400">
+                                14. Кратность корня. Количество корней.
+                            </a>
+                        </summary>
+                        <div class="pl-6 mt-2 space-y-2 text-[10px] sm:text-xs">
+                            <a href="#q14-1" class="block text-slate-400 hover:text-white transition-colors">1. Определение кратности</a>
+                            <a href="#q14-2" class="block text-slate-400 hover:text-white transition-colors">2. Эквивалентность</a>
+                            <a href="#q14-3" class="block text-slate-400 hover:text-white transition-colors">3. Теорема о количестве (Σk ≤ deg)</a>
+                            <a href="#q14-4" class="block px-2 py-1 rounded bg-rose-900/40 text-rose-300 font-bold hover:bg-rose-900 transition-colors border border-rose-500/30">💥 Контрпример: Кватернионы</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-15" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-cyan-500 pl-3 font-bold text-cyan-400">
+                                15. Производная. Критерий кратности корня.
+                            </a>
+                        </summary>
+                        <div class="pl-6 mt-2 space-y-2 text-[10px] sm:text-xs">
+                            <a href="#q15-1" class="block text-slate-400 hover:text-white transition-colors">1. Определение</a>
+                            <a href="#q15-2" class="block text-slate-400 hover:text-white transition-colors">2. Свойства</a>
+                            <a href="#q15-3" class="block text-slate-400 hover:text-white transition-colors">3. Критерий кратности</a>
+                            <a href="#q15-4" class="block text-slate-400 hover:text-white transition-colors">4. Доказательство</a>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary class="list-none cursor-pointer">
+                            <a href="#question-16" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 pl-3 font-bold text-red-400">
+                                16. Неприводимые многочлены
+                            </a>
+                        </summary>
+                        <div class="pl-6 mt-2 space-y-2 text-[10px] sm:text-xs">
+                            <a href="#q16-1" class="block text-slate-400 hover:text-white transition-colors">1. Определение</a>
+                            <a href="#q16-2" class="block text-slate-400 hover:text-white transition-colors">2. Утверждения о НОД</a>
+                            <a href="#q16-3" class="block text-slate-400 hover:text-white transition-colors">3. Свойство неприводимого</a>
+                        </div>
+                    </details>
+
+                    <div class="mt-4 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest pl-3">Неприводимость и Корни</div>
+                    <a href="#question-17" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-teal-500 pl-3 text-slate-400">
+                        <span class="font-bold text-teal-500">17.</span> Неприводимость над Z и Q
+                    </a>
+                    <a href="#question-18" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-blue-500 pl-3 text-slate-400">
+                        <span class="font-bold text-blue-500">18.</span> Факториальность
+                    </a>
+                    <a href="#question-19" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-emerald-500 pl-3 text-slate-400">
+                        <span class="font-bold text-emerald-500">19.</span> Критерий Эйзенштейна
+                    </a>
+                    <a href="#question-20" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-rose-500 pl-3 text-slate-400">
+                        <span class="font-bold text-rose-500">20.</span> Основная теорема алгебры
+                    </a>
+                    <a href="#question-21" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-indigo-500 pl-3 text-slate-400">
+                        <span class="font-bold text-indigo-500">21.</span> Сопряженные корни
+                    </a>
+                    <a href="#question-22" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-fuchsia-500 pl-3 text-slate-400">
+                        <span class="font-bold text-fuchsia-500">22.</span> Разложение над R
+                    </a>
+
+                    <a href="#proof-algorithms" class="block hover:text-white transition-colors border-l-2 border-transparent hover:border-red-500 pl-3 mt-4 text-red-500 font-bold mb-4">
+                        ⚠️ Ликбез: Алгоритмы выживания
+                    </a>
+                
+                </nav>
+                <script>
+                    document.querySelectorAll('details.group').forEach(detail => {
+                        detail.addEventListener('toggle', (e) => {
+                            if (detail.open) {
+                                document.querySelectorAll('details.group').forEach(other => {
+                                    if (other !== detail) {
+                                        other.removeAttribute('open');
+                                    }
+                                });
+                            }
+                        });
+                    });
+
+                    // Scroll spy logic
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const sections = document.querySelectorAll('section[id^="question-"], div[id^="section-"], div[id^="q4-"], div[id^="q5-"], div[id^="q6-"], div[id^="q7-"], div[id^="q8-"], div[id^="q9-"], div[id^="q10-"], div[id^="q11-"], div[id^="q12-"], div[id^="q13-"], div[id^="q14-"], div[id^="q15-"], div[id^="q16-"]');
+                        let isScrolling = false;
+
+                        document.querySelectorAll('.group a').forEach(link => {
+                            link.addEventListener('click', () => {
+                                isScrolling = true;
+                                setTimeout(() => isScrolling = false, 1000);
+                            });
+                        });
+
+                        const observer = new IntersectionObserver((entries) => {
+                            if (isScrolling) return;
+                            
+                            let visibleId = null;
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    visibleId = entry.target.id;
+                                    
+                                    // Highlight active sublink
+                                    document.querySelectorAll('nav a').forEach(a => {
+                                        a.style.fontWeight = 'normal';
+                                        if (a.href.endsWith('#' + visibleId)) {
+                                            a.style.fontWeight = 'bold';
+                                        }
+                                    });
+
+                                    // Open the parent details
+                                    const correspondingLink = document.querySelector('nav a[href="#' + visibleId + '"]');
+                                    if (correspondingLink) {
+                                        const details = correspondingLink.closest('details');
+                                        if (details && !details.open) {
+                                            details.open = true;
+                                            document.querySelectorAll('details.group').forEach(other => {
+                                                if (other !== details) {
+                                                    other.removeAttribute('open');
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        }, {
+                            root: null,
+                            rootMargin: '-10% 0px -70% 0px',
+                            threshold: [0, 0.5]
+                        });
+
+                        sections.forEach(section => {
+                            observer.observe(section);
+                        });
+                    });
+                    
+                    function fallbackModal(contentRaw, title) {
+                        const modal = document.createElement('div');
+                        modal.style.position = 'fixed';
+                        modal.style.top = '0';
+                        modal.style.left = '0';
+                        modal.style.width = '100vw';
+                        modal.style.height = '100vh';
+                        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                        modal.style.zIndex = '99999';
+                        modal.style.display = 'flex';
+                        modal.style.flexDirection = 'column';
+                        modal.style.alignItems = 'center';
+                        modal.style.justifyContent = 'center';
+                        
+                        const box = document.createElement('div');
+                        box.style.width = '80%';
+                        box.style.height = '80%';
+                        box.style.backgroundColor = '#1e293b';
+                        box.style.padding = '20px';
+                        box.style.borderRadius = '10px';
+                        box.style.display = 'flex';
+                        box.style.flexDirection = 'column';
+                        box.style.color = '#fff';
+                        
+                        const header = document.createElement('h3');
+                        header.innerText = 'Экспорт в ' + title;
+                        header.style.marginBottom = '10px';
+                        
+                        const subHeader = document.createElement('p');
+                        subHeader.innerText = 'Из-за песочницы скачивание недоступно напрямую. Скопируйте текст ниже, или откройте приложение веб-студии в новой вкладке (через меню) для скачивания.';
+                        subHeader.style.marginBottom = '10px';
+                        subHeader.style.color = '#f87171';
+                        subHeader.style.fontSize = '0.9rem';
+                        
+                        const textarea = document.createElement('textarea');
+                        textarea.value = contentRaw;
+                        textarea.style.flex = '1';
+                        textarea.style.width = '100%';
+                        textarea.style.color = '#000';
+                        textarea.style.padding = '10px';
+                        textarea.style.fontFamily = 'monospace';
+                        
+                        const btnContainer = document.createElement('div');
+                        btnContainer.style.display = 'flex';
+                        btnContainer.style.gap = '10px';
+                        btnContainer.style.marginTop = '10px';
+
+                        const copyBtn = document.createElement('button');
+                        copyBtn.innerText = 'Копировать';
+                        copyBtn.style.padding = '10px';
+                        copyBtn.style.backgroundColor = '#3b82f6';
+                        copyBtn.style.color = '#fff';
+                        copyBtn.style.border = 'none';
+                        copyBtn.style.borderRadius = '5px';
+                        copyBtn.style.cursor = 'pointer';
+                        copyBtn.onclick = () => {
+                            if (navigator.clipboard) {
+                                navigator.clipboard.writeText(contentRaw);
+                                copyBtn.innerText = 'Скопировано!';
+                            } else {
+                                textarea.select();
+                                document.execCommand('copy');
+                                copyBtn.innerText = 'Скопировано!';
+                            }
+                            setTimeout(() => copyBtn.innerText = 'Копировать', 2000);
+                        };
+
+                        const closeBtn = document.createElement('button');
+                        closeBtn.innerText = 'Закрыть';
+                        closeBtn.style.padding = '10px';
+                        closeBtn.style.backgroundColor = '#ef4444';
+                        closeBtn.style.color = '#fff';
+                        closeBtn.style.border = 'none';
+                        closeBtn.style.borderRadius = '5px';
+                        closeBtn.style.cursor = 'pointer';
+                        closeBtn.onclick = () => modal.remove();
+                        
+                        box.appendChild(header);
+                        box.appendChild(subHeader);
+                        if (title !== 'PDF') {
+                            box.appendChild(textarea);
+                            btnContainer.appendChild(copyBtn);
+                        }
+                        btnContainer.appendChild(closeBtn);
+                        box.appendChild(btnContainer);
+                        modal.appendChild(box);
+                        document.body.appendChild(modal);
+                    }
+                    
+                    function downloadMD() {
+                        let clone = document.querySelector('main').cloneNode(true);
+                        
+                        // Smart markdown parsing based on tags
+                        
+                        // Smart markdown parsing based on tags
+                        clone.querySelectorAll('h2').forEach(el => el.textContent = '\n## ' + el.textContent.trim() + '\n');
+                        clone.querySelectorAll('h3').forEach(el => el.textContent = '\n### ' + el.textContent.trim() + '\n');
+                        clone.querySelectorAll('.analogy-badge').forEach(el => el.textContent = '\n**' + el.textContent.trim() + '**\n');
+                        clone.querySelectorAll('li').forEach(el => el.textContent = '- ' + el.textContent.trim() + '\n');
+                        clone.querySelectorAll('svg').forEach(el => {
+                            let caption = '';
+                            if (el.nextElementSibling && el.nextElementSibling.classList.contains('img-caption')) {
+                                caption = el.nextElementSibling.textContent.trim();
+                            }
+                            el.textContent = '\n\n[ Иллюстрация: ' + (caption || 'Схема / График') + ' ]\n\n';
+                        });
+                        clone.querySelectorAll('.img-caption').forEach(el => el.remove());
+                        
+                        let text = clone.innerText;
+                        text = text.replace(/\n{3,}/g, '\n\n'); // remove excessive newlines
+                        
+                        if (window !== window.top) {
+                            fallbackModal(text, 'Markdown');
+                            return;
+                        }
+                        const blob = new Blob([text], { type: 'text/markdown' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'vyisshaya_algebra.md';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                    
+                    function setTheme(theme) {
+                    
+                        const body = document.body;
+                        body.classList.remove('bg-slate-900', 'bg-white', 'bg-black', 'text-slate-200', 'text-slate-900', 'text-green-500');
+                        
+                        document.getElementById('theme-dark').classList.remove('outline', 'outline-2', 'outline-amber-500');
+                        document.getElementById('theme-light').classList.remove('outline', 'outline-2', 'outline-amber-500');
+                        document.getElementById('theme-terminal').classList.remove('outline', 'outline-2', 'outline-amber-500');
+                        
+                        let oldStyle = document.getElementById('theme-style');
+                        if (oldStyle) oldStyle.remove();
+                        const style = document.createElement('style');
+                        style.id = 'theme-style';
+
+                        if (theme === 'dark') {
+                            body.classList.add('bg-slate-900', 'text-slate-200');
+                            document.getElementById('theme-dark').classList.add('outline', 'outline-2', 'outline-amber-500');
+                        } else if (theme === 'light') {
+                            body.classList.add('bg-white', 'text-slate-900');
+                            document.getElementById('theme-light').classList.add('outline', 'outline-2', 'outline-amber-500');
+                            style.innerHTML = `
+                                
+                                body.bg-white section h2, body.bg-white section h3 { color: #1e293b !important; }
+                                body.bg-white main { color: #334155; }
+                                body.bg-white main p { color: #475569; }
+                                /* Universal text colors */
+                                body.bg-white .text-slate-200, 
+                                body.bg-white .text-slate-300, 
+                                body.bg-white .text-slate-400,
+                                body.bg-white [class*="text-slate-"] { color: #475569 !important; }
+                                
+                                /* Specific backgrounds */
+                                body.bg-white aside > div,
+                                body.bg-white [class*="bg-slate-8"] { background-color: #f8fafc !important; border-color: #cbd5e1 !important; }
+                                body.bg-white [class*="bg-slate-7"] { background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; }
+                                body.bg-white [class*="bg-slate-9"],
+                                body.bg-white .analogy-block,
+                                body.bg-white .img-placeholder,
+                                body.bg-white .info-block { background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; }
+                                
+                                body.bg-white .analogy-badge { background-color: #e2e8f0 !important; color: #0f172a !important; border-color: #94a3b8 !important; }
+                                body.bg-white .img-caption { background-color: #e2e8f0 !important; color: #0f172a !important; }
+                                
+                                /* Tweak card blocks */
+                                body.bg-white .card-red, body.bg-white .card-black { box-shadow: none !important; }
+                                
+                                body.bg-white aside { background-color: #f8fafc !important; border-right-color: #cbd5e1 !important; color: #334155 !important; }
+                                body.bg-white .text-white { color: #0f172a !important; }
+                                
+                                /* Ensure active links and math formulas stay readable */
+                                body.bg-white aside a.text-blue-400 { color: #2563eb !important; }
+                                body.bg-white aside a.text-indigo-400 { color: #4f46e5 !important; }
+                                body.bg-white aside a.text-teal-400 { color: #0d9488 !important; }
+                                body.bg-white aside a.text-amber-400 { color: #d97706 !important; }
+                                body.bg-white aside a.text-fuchsia-400 { color: #c026d3 !important; }
+                                body.bg-white aside a.text-lime-300 { color: #65a30d !important; }
+                                body.bg-white aside a:hover { color: #0f172a !important; }
+                                
+                                body.bg-white table tr.text-indigo-300 { color: #4338ca !important; }
+                                body.bg-white table tr.text-slate-500 { color: #64748b !important; }
+                                body.bg-white .text-teal-300 { color: #0f766e !important; }
+                                body.bg-white .text-rose-400 { color: #e11d48 !important; }
+                                body.bg-white .text-emerald-400 { color: #059669 !important; }
+                                body.bg-white .text-cyan-400 { color: #0891b2 !important; }
+                                body.bg-white .text-amber-300 { color: #d97706 !important; }
+                                body.bg-white .text-fuchsia-300 { color: #c026d3 !important; }
+                                body.bg-white .text-lime-400 { color: #65a30d !important; }
+                                body.bg-white .text-blue-300 { color: #2563eb !important; }
+                                body.bg-white .text-green-400 { color: #16a34a !important; }
+                                body.bg-white .text-indigo-400 { color: #4f46e5 !important; }
+
+                            `;
+                        } else if (theme === 'terminal') {
+                            body.classList.add('bg-black', 'text-green-500');
+                            document.getElementById('theme-terminal').classList.add('outline', 'outline-2', 'outline-amber-500');
+                            style.innerHTML = `
+                                body.bg-black .bg-slate-700\\/50, body.bg-black .bg-slate-800, body.bg-black .bg-slate-900, body.bg-black .bg-slate-950 {
+                                    background-color: transparent !important; 
+                                }
+                                body.bg-black section h2, body.bg-black section h3, body.bg-black p, body.bg-black span, body.bg-black div, body.bg-black button {
+                                    color: #4ade80 !important;
+                                    border-color: #22c55e !important;
+                                    font-family: monospace !important;
+                                }
+                                body.bg-black svg path, body.bg-black svg rect {
+                                    stroke: #22c55e !important;
+                                    fill: transparent !important;
+                                }
+                            `;
+                        }
+                        
+                        document.head.appendChild(style);
+                    }
+                </script>
+
+
+
+                <!-- ФИКСИРОВАННЫЕ БЛОКИ: СМЕНА ТЕМЫ И ЭКСПОРТ -->
+                <div class="mt-8 flex flex-col gap-4 border-t border-slate-700 pt-6">
+                    <!-- Кнопки Конвертации / Экспорта -->
+                    <div class="flex flex-col gap-2">
+                        <div class="text-xs text-slate-400 font-bold uppercase mb-1">Экспорт</div>
+                        <button onclick="downloadWord()" class="bg-blue-600/80 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all border border-blue-500">
+                            <span>📄</span> Word
+                        </button>
+                        <a href="algebra.pdf" target="_blank" class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all border border-rose-500">
+                            <span>📕</span> PDF
+                        </a>
+                        <button onclick="downloadMD()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all border border-slate-600">
+                            <span>📝</span> Markdown
+                        </button>
+                        <button onclick="downloadHTML()" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all border border-emerald-500">
+                            <span>🌐</span> HTML
+                        </button>
+                    </div>
+
+                    <!-- Смена темы -->
+                    <div>
+                        <div class="text-xs text-slate-400 font-bold uppercase mb-2">Тема</div>
+                        <div class="flex items-center gap-2">
+                            <button id="theme-dark" onclick="setTheme('dark')" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-amber-300 hover:text-white hover:bg-slate-600 transition-all border border-slate-600 outline outline-2 outline-amber-500" title="Темная тема">🌙</button>
+                            <button id="theme-light" onclick="setTheme('light')" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-amber-50 hover:text-white hover:bg-slate-600 transition-all border border-slate-600" title="Светлая тема">☀️</button>
+                            <button id="theme-terminal" onclick="setTheme('terminal')" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-green-400 hover:text-white hover:bg-slate-600 transition-all border border-slate-600" title="Режим терминала">💻</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Основной контент -->
+        <main class="flex-1 bg-slate-800 p-4 sm:p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden text-sm sm:text-base min-w-0">
+            <header class="text-center mb-12 border-b border-slate-700 pb-8">
+                <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-4">
+                    ВЫСШАЯ АЛГЕБРА
+                </h1>
+                <p class="text-slate-400 italic text-lg">Конспект для подготовки к экзамену</p>
+                
+                <!-- Print Table of Contents -->
+                <div class="hidden print:block mt-8 text-left border border-slate-300 p-6 rounded text-black bg-white" style="page-break-after: always;">
+                    <h2 class="font-bold text-xl mb-4">Оглавление:</h2>
+                    <ul class="text-base space-y-2">
+                        <li><a href="#question-1">1. Алгебраические структуры</a></li>
+                        <li><a href="#question-2">2. Комплексные числа (Алгебраическая форма)</a></li>
+                        <li><a href="#question-3">3. Тригонометрическая форма</a></li>
+                        <li><a href="#question-4">4. Степени и корни из комплексного числа</a></li>
+                        <li><a href="#question-5">5. Группа корней из единицы</a></li>
+                        <li><a href="#question-6">6. Делимость. Деление с остатком в Z</a></li>
+                        <li><a href="#question-7">7. Алгоритм Евклида. НОД и НОК (Z)</a></li>
+                        <li><a href="#question-8">8. Классы вычетов. Поля Zp</a></li>
+                        <li><a href="#question-9">9. Кольцо многочленов</a></li>
+                        <li><a href="#question-10">10. Деление с остатком. Алгоритм Евклида для многочленов</a></li>
+                        <li><a href="#question-11">11. Факториальность кольца. Неприводимые многочлены</a></li>
+                        <li><a href="#question-12">12. НОД и НОК многочленов</a></li>
+                        <li><a href="#question-13">13. Корни. Теорема Безу. Схема Горнера</a></li>
+                        <li><a href="#question-14">14. Кратность корня. Количество корней</a></li>
+                        <li><a href="#question-15">15. Формальная производная. Анализ корней</a></li>
+                        <li><a href="#question-17">17. Неприводимые над Z и Q</a></li>
+                        <li><a href="#question-18">18. Теорема о факториальности</a></li>
+                        <li><a href="#question-19">19. Критерий Эйзенштейна</a></li>
+                        <li><a href="#question-20">20. Основная теорема алгебры</a></li>
+                        <li><a href="#question-21">21. Комплексно сопряженные корни</a></li>
+                        <li><a href="#question-22">22. Неприводимые многочлены над R</a></li>
+                    </ul>
+                </div>
+            </header>
+
+            <!-- ================= WTF CONTAINER ================= -->
+            <div id="wtf-container" class="hidden">
+                <h2 class="text-3xl font-black text-center text-rose-500 mb-8 dropdown-glow">ТАБЛИЦА АНАЛОГИЙ (WTF MODE)</h2>
+                
+                <div class="overflow-x-auto w-full pb-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800">
+                    <div class="grid grid-cols-3 gap-4 min-w-[800px] lg:min-w-0">
+                        <!-- Column headers -->
+                        <div class="bg-yellow-900/40 border border-yellow-500/50 p-2 text-center font-bold text-yellow-400 rounded-t-lg">Поля и кольца, целые числа</div>
+                        <div class="bg-orange-900/40 border border-orange-500/50 p-2 text-center font-bold text-orange-400 rounded-t-lg">Кольцо полиномов</div>
+                        <div class="bg-cyan-900/40 border border-cyan-500/50 p-2 text-center font-bold text-cyan-400 rounded-t-lg">Комплексные числа</div>
+
+                    <!-- Row 1: База -->
+                    <a href="#question-1" onclick="setMode('normal'); location.href='#question-1';" class="block bg-slate-800 p-4 border-l-4 border-yellow-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-yellow-500/70 mb-1">Понятия структур</div>
+                        <div class="font-bold text-slate-200">1. Алгебраические структуры</div>
+                    </a>
+                    <a href="#question-9" onclick="setMode('normal'); location.href='#question-9';" class="block bg-slate-800 p-4 border-l-4 border-orange-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-orange-500/70 mb-1">Определение многочлена</div>
+                        <div class="font-bold text-slate-200">9. Кольцо многочленов</div>
+                    </a>
+                    <a href="#question-2" onclick="setMode('normal'); location.href='#question-2';" class="block bg-slate-800 p-4 border-l-4 border-cyan-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-cyan-500/70 mb-1">Базовые свойства</div>
+                        <div class="font-bold text-slate-200">2. Комплексные числа (Алг. форма)</div>
+                    </a>
+
+                    <!-- Row 2: Базовые операции / Евклид -->
+                    <a href="#question-6" onclick="setMode('normal'); location.href='#question-6';" class="block bg-slate-800 p-4 border-l-4 border-yellow-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-yellow-500/70 mb-1">Деление с остатком</div>
+                        <div class="font-bold text-slate-200">6. Делимость. Деление с остатком в Z</div>
+                    </a>
+                    <a href="#question-10" onclick="setMode('normal'); location.href='#question-10';" class="block bg-slate-800 p-4 border-l-4 border-orange-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-orange-500/70 mb-1">Деление с остатком</div>
+                        <div class="font-bold text-slate-200">10. Деление с остатком. Алгоритм Евклида</div>
+                    </a>
+                    <a href="#question-3" onclick="setMode('normal'); location.href='#question-3';" class="block bg-slate-800 p-4 border-l-4 border-cyan-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-cyan-500/70 mb-1">Операции в другой форме</div>
+                        <div class="font-bold text-slate-200">3. Тригонометрическая форма</div>
+                    </a>
+
+                    <!-- Row 3: НОД и НОК / Алгоритм Евклида -->
+                    <a href="#question-7" onclick="setMode('normal'); location.href='#question-7';" class="block bg-slate-800 p-4 border-l-4 border-yellow-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-yellow-500/70 mb-1">Структура делителей</div>
+                        <div class="font-bold text-slate-200">7. Алгоритм Евклида. НОД и НОК (Z)</div>
+                    </a>
+                    <a href="#question-12" onclick="setMode('normal'); location.href='#question-12';" class="block bg-slate-800 p-4 border-l-4 border-orange-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-orange-500/70 mb-1">Структура делителей</div>
+                        <div class="font-bold text-slate-200">12. НОД и НОК многочленов</div>
+                    </a>
+                    <!-- Empty 3rd row cell -->
+                    <div class="hidden md:block"></div>
+
+                    <!-- Row 4: Факторизация / Структура -->
+                    <a href="#question-8" onclick="setMode('normal'); location.href='#question-8';" class="block bg-slate-800 p-4 border-l-4 border-yellow-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-yellow-500/70 mb-1">Структура. Вычеты</div>
+                        <div class="font-bold text-slate-200">8. Классы вычетов. Поля Zp</div>
+                    </a>
+                    <a href="#question-11" onclick="setMode('normal'); location.href='#question-11';" class="block bg-slate-800 p-4 border-l-4 border-orange-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-orange-500/70 mb-1">Структура. Разложение</div>
+                        <div class="font-bold text-slate-200">11. Факториальность кольца. Неприводимые мн.</div>
+                    </a>
+                    <a href="#question-5" onclick="setMode('normal'); location.href='#question-5';" class="block bg-slate-800 p-4 border-l-4 border-cyan-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-cyan-500/70 mb-1">Структура. Корни из 1</div>
+                        <div class="font-bold text-slate-200">5. Группа корней из единицы</div>
+                    </a>
+
+                    <!-- Row 5: Корни / Уравнения -->
+                    <div class="hidden md:block"></div>
+                    <a href="#question-13" onclick="setMode('normal'); location.href='#question-13';" class="block bg-slate-800 p-4 border-l-4 border-orange-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-orange-500/70 mb-1">Корни и значения</div>
+                        <div class="font-bold text-slate-200">13. Корни. Теорема Безу. Схема Горнера</div>
+                    </a>
+                    <a href="#question-4" onclick="setMode('normal'); location.href='#question-4';" class="block bg-slate-800 p-4 border-l-4 border-cyan-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-cyan-500/70 mb-1">Корни и значения</div>
+                        <div class="font-bold text-slate-200">4. Степени и корни из компл. числа</div>
+                    </a>
+
+                    <!-- Row 6: Кратность -->
+                    <div class="hidden md:block"></div>
+                    <a href="#question-14" onclick="setMode('normal'); location.href='#question-14';" class="block bg-slate-800 p-4 border-l-4 border-orange-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-orange-500/70 mb-1">Кратность</div>
+                        <div class="font-bold text-slate-200">14. Кратность корня. Количество корней</div>
+                    </a>
+                    <div class="hidden md:block"></div>
+
+                    <!-- Row 7: Производная -->
+                    <div class="hidden md:block"></div>
+                    <a href="#question-15" onclick="setMode('normal'); location.href='#question-15';" class="block bg-slate-800 p-4 border-l-4 border-orange-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-orange-500/70 mb-1">Производная</div>
+                        <div class="font-bold text-slate-200">15. Формальная производная. Анализ корней</div>
+                    </a>
+                    <div class="hidden md:block"></div>
+
+                    <!-- КЛАСТЕР 3: НЕПРИВОДИМОСТЬ -->
+                    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-emerald-400 font-bold uppercase tracking-widest text-xs mt-4 mb-2 border-b border-emerald-500/30 pb-2">Кластер 3: Неприводимость</div>
+                    
+                    <a href="#question-17" onclick="setMode('normal'); location.href='#question-17';" class="block bg-slate-800 p-4 border-l-4 border-teal-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-teal-500/70 mb-1">Лемма Гаусса</div>
+                        <div class="font-bold text-slate-200">17. Неприводимые над Z и Q</div>
+                    </a>
+                    <a href="#question-18" onclick="setMode('normal'); location.href='#question-18';" class="block bg-slate-800 p-4 border-l-4 border-blue-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-blue-500/70 mb-1">Разложение змей</div>
+                        <div class="font-bold text-slate-200">18. Теорема о факториальности</div>
+                    </a>
+                    <a href="#question-19" onclick="setMode('normal'); location.href='#question-19';" class="block bg-slate-800 p-4 border-l-4 border-emerald-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-emerald-500/70 mb-1">Яд $p$ и $p^2$</div>
+                        <div class="font-bold text-slate-200">19. Критерий Эйзенштейна</div>
+                    </a>
+
+                    <a href="#question-20" onclick="setMode('normal'); location.href='#question-20';" class="block bg-slate-800 p-4 border-l-4 border-rose-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-rose-500/70 mb-1">Мясорубка C</div>
+                        <div class="font-bold text-slate-200">20. Основная теорема алгебры</div>
+                    </a>
+                    <a href="#question-21" onclick="setMode('normal'); location.href='#question-21';" class="block bg-slate-800 p-4 border-l-4 border-indigo-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-indigo-500/70 mb-1">Мёртвые близнецы</div>
+                        <div class="font-bold text-slate-200">21. Комплексно сопряженные корни</div>
+                    </a>
+                    <a href="#question-22" onclick="setMode('normal'); location.href='#question-22';" class="block bg-slate-800 p-4 border-l-4 border-fuchsia-500 hover:bg-slate-700 transition">
+                        <div class="text-xs text-fuchsia-500/70 mb-1">Близнецы в квадрате</div>
+                        <div class="font-bold text-slate-200">22. Неприводимые многочлены над R</div>
+                    </a>
+
+                    <!-- КЛАСТЕР 4: АЛГОРИТМЫ ВЫЖИВАНИЯ -->
+                    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-red-500 font-bold uppercase tracking-widest text-xs mt-8 mb-2 border-b border-red-500/30 pb-2">Кластер 4: Алгоритмы выживания</div>
+                    
+                    <a href="#proof-algorithms" onclick="setMode('normal'); location.href='#proof-algorithms';" class="block col-span-1 md:col-span-3 bg-red-900/20 p-4 border-l-4 border-red-500 hover:bg-red-900/40 transition">
+                        <div class="text-xs text-red-500/70 mb-1">Скрипты доказательств и проверок</div>
+                        <div class="font-bold text-slate-200">⚠️ Ликбез: Алгоритмы выживания</div>
+                    </a>
+                </div>
+                </div>
+
+                <!-- ЛИКБЕЗ SECTION INSERTED HERE -->
+                <section id="proof-algorithms" class="mt-20 mb-20 scroll-mt-10">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-red-500/20 p-3 rounded-lg mr-4 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-3xl pr-4 border-r-4 border-red-500 text-red-400 font-bold mb-0">Ликбез: Алгоритмы выживания</h2>
+                    </div>
+
+                    <div class="prose prose-invert max-w-none text-slate-300 space-y-6">
+                        <p class="text-lg">
+                            Хватит тупить. Доказательство — это не озарение, это тупой скрипт. Ты здесь не для того, чтобы понимать, ты здесь для того, чтобы жать на кнопки. Вот жесткие инструкции по скриптам, доказухам и проверкам. 
+                        </p>
+
+                        <h2 class="text-2xl font-bold border-b border-slate-700 pb-2 text-white mt-8 mb-4">Часть 1: Скрипты доказательств (Меметика)</h2>
+
+                        <!-- Прямое -->
+                        <div class="bg-slate-800/80 p-6 rounded-xl border-l-4 border-l-blue-500 border border-slate-700">
+                            <h3 class="text-xl text-blue-400 font-bold mb-2">1. Мясорубка (Прямое доказательство)</h3>
+                            <p class="text-sm text-slate-400 mb-2">Свойство транзитивности, делимости. Тупая подстановка.</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-300 font-mono text-sm">
+                                <li><span class="text-white">Засунь мясо:</span> Вскрой Дано по определению ($a \vdots b \rightarrow a = bk$).</li>
+                                <li><span class="text-white">Крути ручку:</span> Подставь одно в другое. Без фантазии.</li>
+                                <li><span class="text-white">Выплюнь фарш:</span> Вынеси за скобки мусор, назови его новой буквой $m$. Готово.</li>
+                            </ul>
+                        </div>
+
+                        <!-- От противного -->
+                        <div class="bg-slate-800/80 p-6 rounded-xl border-l-4 border-l-fuchsia-500 border border-slate-700">
+                            <h3 class="text-xl text-fuchsia-400 font-bold mb-2">2. Шизофрения (От противного)</h3>
+                            <p class="text-sm text-slate-400 mb-2">Иррациональность $\sqrt{2}$, бесконечность простых чисел.</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-300 font-mono text-sm">
+                                <li><span class="text-white">Поверь в голоса:</span> Допусти, что теорема врет. Напиши противоположное.</li>
+                                <li><span class="text-white">Твори дичь:</span> Иди по логике этого бреда (сокращай "несократимую" дробь и т.д.).</li>
+                                <li><span class="text-white">Слови санитаров:</span> Упрись в стену ($1=0$, четное=нечетное). Сделай вид, что так и задумано: "Ой, противоречие, теорема верна".</li>
+                            </ul>
+                        </div>
+
+                        <!-- Единственность -->
+                        <div class="bg-slate-800/80 p-6 rounded-xl border-l-4 border-l-emerald-500 border border-slate-700">
+                            <h3 class="text-xl text-emerald-400 font-bold mb-2">3. Бойцовский клуб (Единственность)</h3>
+                            <p class="text-sm text-slate-400 mb-2">Теорема о делении с остатком, разложение на множители.</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-300 font-mono text-sm">
+                                <li><span class="text-white">Дединсайд:</span> Создай альтер-эго. Пусть есть ДВА ответа ($q_1, r_1$ и $q_2, r_2$).</li>
+                                <li><span class="text-white">Столкни лбами:</span> Приравняй их друг к другу.</li>
+                                <li><span class="text-white">Докажи, что ты один:</span> Изолируй переменные, перенеси в одну сторону. За счет ограничений (размер остатка) докажи, что разность = 0. Альтер-эго мертво.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Индукция -->
+                        <div class="bg-slate-800/80 p-6 rounded-xl border-l-4 border-l-yellow-500 border border-slate-700">
+                            <h3 class="text-xl text-yellow-400 font-bold mb-2">4. Индукционная плита (Математическая индукция)</h3>
+                            <p class="text-sm text-slate-400 mb-2">Формулы зависимости от $n$, теорема Безу для многочленов.</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-300 font-mono text-sm">
+                                <li><span class="text-white text-yellow-300">Зажарь одного (1):</span> Подставь $n=1$. Покажи, что не взорвалось.</li>
+                                <li><span class="text-white text-yellow-300">Брось карася (k):</span> Напиши фразу "Пусть верно для $k$". Просто перепиши формулу с буквой $k$.</li>
+                                <li><span class="text-white text-yellow-300">k+1 сам сварится:</span> Возьми уравнение для $k+1$, оторви кусок $k$, замени его на жареного карася из предыдущего шага. Немного алгебры, и готово.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Двойная делимость -->
+                        <div class="bg-slate-800/80 p-6 rounded-xl border-l-4 border-l-orange-500 border border-slate-700">
+                            <h3 class="text-xl text-orange-400 font-bold mb-2">5. Царь горы (Двойная делимость для НОД)</h3>
+                            <p class="text-sm text-slate-400 mb-2">Леммы о НОД, алгоритм Евклида.</p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-300 font-mono text-sm">
+                                <li><span class="text-white">Залезь на гору:</span> Докажи, что твой $d$ делит $a$ и $b$ (поднимаясь снизу вверх по уравнениям).</li>
+                                <li><span class="text-white">Скинь конкурента:</span> Пусть есть другой претендент $\delta$. Спускайся сверху вниз, показывая, что $\delta \vdots r_i$.</li>
+                                <li><span class="text-white">Победа:</span> В итоге $\delta$ делит твой $d$. Кто на кого делится, тот и лох. Твой $d$ больше.</li>
+                            </ul>
+                        </div>
+
+
+                        <h2 class="text-2xl font-bold border-b border-slate-700 pb-2 text-white mt-12 mb-4">Часть 2: Скрипты проверок (Алгоритмы экзекуции)</h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-800 p-4 border border-slate-700 rounded-lg">
+                                <h4 class="text-red-400 font-bold mb-2">1. Горнер-терминатор (Проверка на корень)</h4>
+                                <p class="text-sm text-slate-300 mb-2">Ищешь корень многочлена? Схема Горнера.</p>
+                                <p class="text-xs font-mono text-slate-400">Сносишь башку (коэффициент), умножаешь на корень, складываешь со следующим. Если в конце 0 — пациент мертв (это корень). Не ноль — жив (остаток от деления по Безу).</p>
+                            </div>
+                            
+                            <div class="bg-slate-800 p-4 border border-slate-700 rounded-lg">
+                                <h4 class="text-red-400 font-bold mb-2">2. Живодерня (Кратность корня)</h4>
+                                <p class="text-sm text-slate-300 mb-2">Нужно узнать кратность корня $c$?</p>
+                                <p class="text-xs font-mono text-slate-400">Сдирай шкуру (бери производную $f'(x)$, $f''(x)$), подставляй $c$. Пока получается 0 — корень жив. Как только не ноль — сдох. Количество содранных шкур (производных, давших 0) = кратность корня минус один.</p>
+                            </div>
+
+                            <div class="bg-slate-800 p-4 border border-slate-700 rounded-lg">
+                                <h4 class="text-red-400 font-bold mb-2">3. Фейс-контроль (Критерий Эйзенштейна)</h4>
+                                <p class="text-sm text-slate-300 mb-2">Проверка на неприводимость над $\mathbb{Q}$.</p>
+                                <p class="text-xs font-mono text-slate-400">Найди простое вышибалу $p$. Он должен докопаться до всех коэффициентов (они делятся на $p$), кроме старшего (его он боится). А младший не должен делиться на $p^2$. Сошлось? Многочлен не разложить.</p>
+                            </div>
+
+                            <div class="bg-slate-800 p-4 border border-slate-700 rounded-lg">
+                                <h4 class="text-red-400 font-bold mb-2">4. Сдвиг по фазе (Замена x = y+1)</h4>
+                                <p class="text-sm text-slate-300 mb-2">Эйзенштейн не работает?</p>
+                                <p class="text-xs font-mono text-slate-400">Сломай систему. Введи $x = y+1$. Разложи биномы, собери заново. Чаще всего после этого Фейс-контроль $p$ заработает на новом многочлене. Если неприводим новый — неприводим и старый.</p>
+                            </div>
+                        </div>
+
+
+                        <h2 class="text-2xl font-bold border-b border-slate-700 pb-2 text-white mt-12 mb-4">Часть 3: Как угадать свойства (Правила экстрасенса)</h2>
+                        <p class="text-sm text-slate-400 mb-4">Если от тебя хотят перечислить свойства какой-то херни (операции, кольца, отношения), а ты их не помнишь. Юзай базовые паттерны, кроме очевидного "Руби Тварей Легко" (Рефлексивность, Транзитивность, Линейность) для делимости.</p>
+
+                        <ul class="space-y-4 pb-10">
+                            <li class="bg-slate-800/50 p-4 rounded-lg border flex items-start gap-3">
+                                <span class="text-2xl">🔄</span>
+                                <div>
+                                    <h4 class="text-cyan-300 font-bold">Правило "Рокировки" (Коммутативность/Симметричность)</h4>
+                                    <p class="text-sm text-slate-300">У тебя есть два объекта? Поменяй их местами. Изменилось? <br>
+                                    <code class="text-xs text-orange-300">$a+b = b+a$, $a \equiv b \iff b \equiv a$</code>.</p>
+                                </div>
+                            </li>
+
+                            <li class="bg-slate-800/50 p-4 rounded-lg border flex items-start gap-3">
+                                <span class="text-2xl">🚂</span>
+                                <div>
+                                    <h4 class="text-cyan-300 font-bold">Правило "Многоножки" (Ассоциативность/Транзитивность)</h4>
+                                    <p class="text-sm text-slate-300">У тебя есть три объекта? Выстрой их паровозиком. Сначала спарь первых двух, потом последних. <br>
+                                    <code class="text-xs text-orange-300">$(a+b)+c = a+(b+c)$, $a|b$ и $b|c \implies a|c$</code>.</p>
+                                </div>
+                            </li>
+
+                            <li class="bg-slate-800/50 p-4 rounded-lg border flex items-start gap-3">
+                                <span class="text-2xl">🫥</span>
+                                <div>
+                                    <h4 class="text-cyan-300 font-bold">Правило "Ничтожества" (Нейтральный/Нулевой элемент)</h4>
+                                    <p class="text-sm text-slate-300">Всегда ищи того, кто ничего не делает. Пихай ноль или единицу. Если есть сложение — есть ноль. Если есть умножение — есть единица. <br>
+                                    <code class="text-xs text-orange-300">$a+0 = a$, $a \cdot 1 = a$</code>.</p>
+                                </div>
+                            </li>
+
+                            <li class="bg-slate-800/50 p-4 rounded-lg border flex items-start gap-3">
+                                <span class="text-2xl">⚔️</span>
+                                <div>
+                                    <h4 class="text-cyan-300 font-bold">Правило "Групповухи" (Дистрибутивность)</h4>
+                                    <p class="text-sm text-slate-300">Если у тебя есть ДВЕ разные операции (например, $\cdot$ и $+$). Заставь их драться. Умножение всегда врывается в скобки со сложением.<br>
+                                    <code class="text-xs text-orange-300">$a \cdot (b+c) = a \cdot b + a \cdot c$</code>.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+
+            <div id="questions-container">
+            <!-- ================= ВОПРОС 1 ================= -->
+            
