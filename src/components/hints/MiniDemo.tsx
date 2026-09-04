@@ -4,12 +4,13 @@ import {
   AmortizedDemo, DsuDemo, HeapDemo, NpDemo, PrefixSumDemo, QueueDemo, SegmentTreeDemo,
   SparseTableDemo, StackDemo, SuffixLinkDemo, TrieBfsDemo, TrieDemo, PrefixFunctionDemo, DpDemo,
 } from "./demosStruct";
+import { ComponentsDemo, CoordCompressDemo, FloydDemo, GraphBasicsDemo } from "./demosExtra";
 
 export type DemoKind =
   | "bfs" | "dfs" | "heap" | "stack" | "queue" | "dsu" | "trie" | "trie-bfs"
   | "suffix-link" | "toposort" | "relax" | "prefix-sum" | "sparse-table"
   | "segment-tree" | "bridge" | "articulation" | "mst" | "amortized" | "np" | "scc"
-  | "prefix-function" | "dp";
+  | "prefix-function" | "dp" | "floyd" | "components" | "graph" | "coord-compress";
 
 const REGISTRY: Record<DemoKind, React.FC> = {
   bfs: BfsDemo,
@@ -34,6 +35,10 @@ const REGISTRY: Record<DemoKind, React.FC> = {
   scc: SccDemo,
   "prefix-function": PrefixFunctionDemo,
   dp: DpDemo,
+  floyd: FloydDemo,
+  components: ComponentsDemo,
+  graph: GraphBasicsDemo,
+  "coord-compress": CoordCompressDemo,
 };
 
 export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {

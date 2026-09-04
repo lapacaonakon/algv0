@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "audit:content": "node scripts/audit-coverage.mjs",
+    "audit:terms": "node scripts/audit-terms.mjs",
     "export:txt": "node scripts/export/collect-code.mjs",
     "export:png": "node scripts/export/render-pages.mjs",
     "export:pdf": "node scripts/export/build-pdf.mjs",

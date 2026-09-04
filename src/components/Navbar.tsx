@@ -45,7 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Cpu className="w-4 h-4" /> Симулятор
+            <Cpu className="w-4 h-4" /> Тренажёры
           </button>
           <a
             id="download-pdf-btn"

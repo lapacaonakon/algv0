@@ -6,7 +6,7 @@ import { MobileToc } from "./components/MobileToc";
 import { ChapterView } from "./components/ChapterView";
 import { ChapterNav } from "./components/ChapterNav";
 import { SimulatorModal } from "./components/hints/SimulatorModal";
-import { Simulator } from "./components/Simulator";
+import { SimulatorHub } from "./components/SimulatorHub";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
@@ -96,8 +96,14 @@ export default function App() {
           </div>
         </>
       ) : (
-        <main className="p-4 md:p-8 lg:p-12 max-w-5xl mx-auto">
-          <Simulator />
+        <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
+          <SimulatorHub
+            onOpen={setModalVizId}
+            onGoChapter={(id) => {
+              setActiveTab("guide");
+              goTo(id);
+            }}
+          />
         </main>
       )}
 

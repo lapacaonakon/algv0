@@ -24,6 +24,7 @@ import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
 import { WaterfallAnimationWidget } from "./WaterfallAnimationWidget";
 import ChapterImage from "./ChapterImage";
+import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
 
@@ -134,6 +135,11 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     ),
   },
   intro: { title: "Мнемокарточки", Component: MnemonicCards },
+  "everyday-basics": {
+    title: "Бытовой тренажёр: стек, очередь, куча",
+    hint: "Тарелки, очередь в столовой и мешок гипотез — три базовые структуры на житейских примерах.",
+    Component: Simulator,
+  },
 };
 
 export const getViz = (id?: string): VizEntry | undefined => (id ? VIZ_REGISTRY[id] : undefined);
