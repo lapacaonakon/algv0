@@ -162,3 +162,13 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Индикатор длительности кадра в пошаговых визуализациях */
+@keyframes demoProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}

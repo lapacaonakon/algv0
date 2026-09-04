@@ -1,16 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 /** Общие примитивы для мини-визуализаций подсказок. */
 export const W = 260;
 export const H = 130;
 
+/**
+ * Общий множитель скорости. Кадры были слишком короткими: глаз не успевал
+ * заметить, что именно переехало, и анимация читалась как рывок.
+ */
+export const SPEED = 2.1;
+
+/** Длительность переезда узлов. Должна быть заметно меньше шага, но не мгновенной. */
+export const MOVE_MS = 800;
+export const EASE = "cubic-bezier(.34,.01,.2,1)";
+export const MOVE = `all ${MOVE_MS}ms ${EASE}`;
+
+/** Наведение на карточку ставит анимацию на паузу — можно рассмотреть кадр. */
+export const DemoPauseContext = createContext(false);
+
 export function useLoop(steps: number, ms = 900) {
   const [step, setStep] = useState(0);
+  const paused = useContext(DemoPauseContext);
+  const period = Math.round(ms * SPEED);
+
   useEffect(() => {
-    if (steps <= 1) return;
-    const t = setInterval(() => setStep((s) => (s + 1) % steps), ms);
+    if (steps <= 1 || paused) return;
+    const t = setInterval(() => setStep((s) => (s + 1) % steps), period);
     return () => clearInterval(t);
-  }, [steps, ms]);
+  }, [steps, period, paused]);
+
   return step;
 }
 
@@ -26,14 +44,24 @@ export const C = {
   edge: "#475569",
 };
 
-export const Svg: React.FC<{ children: React.ReactNode; caption?: string }> = ({ children, caption }) => (
-  <div className="w-full">
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img">
-      {children}
-    </svg>
-    {caption && <div className="text-[10px] text-slate-400 text-center mt-1 leading-tight px-1">{caption}</div>}
-  </div>
-);
+export const Svg: React.FC<{ children: React.ReactNode; caption?: string }> = ({ children, caption }) => {
+  const paused = useContext(DemoPauseContext);
+  return (
+    <div className="w-full">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img">
+        {children}
+      </svg>
+      {caption && (
+        <div className="text-[10px] text-slate-400 text-center mt-1 leading-tight px-1 min-h-[2.2em] flex items-center justify-center">
+          {caption}
+        </div>
+      )}
+      <div className="text-[9px] text-slate-600 text-center leading-none">
+        {paused ? "пауза — курсор на карточке" : "наведи на карточку, чтобы поставить на паузу"}
+      </div>
+    </div>
+  );
+};
 
 export const Node: React.FC<{
   x: number;
@@ -43,8 +71,8 @@ export const Node: React.FC<{
   label?: string | number;
   stroke?: string;
 }> = ({ x, y, r = 13, fill, label, stroke }) => (
-  <g style={{ transition: "all .35s ease" }}>
-    <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke ?? C.idleStroke} strokeWidth={1.5} />
+  <g style={{ transition: MOVE }}>
+    <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke ?? C.idleStroke} strokeWidth={1.5} style={{ transition: MOVE }} />
     {label !== undefined && (
       <text x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight="700" fill="#fff">
         {label}
@@ -68,6 +96,6 @@ export const Edge: React.FC<{
     stroke={color}
     strokeWidth={width}
     strokeDasharray={dashed ? "4 3" : undefined}
-    style={{ transition: "stroke .35s ease" }}
+    style={{ transition: MOVE }}
   />
 );

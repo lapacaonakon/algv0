@@ -20,6 +20,7 @@ import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
 import { SegmentTreeVisualizer } from "./SegmentTreeVisualizer";
 import { SplayTreeViz } from "./SplayTreeViz";
 import { SplayRotationsViz } from "./SplayRotationsViz";
+import { SplayRotationSandbox } from "./SplayRotationSandbox";
 import { StackViz } from "./StackViz";
 import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
@@ -28,6 +29,14 @@ import ChapterImage from "./ChapterImage";
 import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
+
+/** Разбор поворота и песочница всегда идут парой: посмотрел — сразу повтори сам. */
+const SplayRotationsPair: React.FC = () => (
+  <div className="grid gap-5 xl:grid-cols-2 items-start">
+    <SplayRotationsViz />
+    <SplayRotationSandbox />
+  </div>
+);
 
 export interface VizEntry {
   /** Заголовок панели/модалки. */
@@ -88,15 +97,15 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     hint: "Сверху — разбор всех трёх поворотов (Zig, Zig-Zig, Zig-Zag), снизу — живое дерево.",
     Component: () => (
       <div className="space-y-10">
-        <SplayRotationsViz />
+        <SplayRotationsPair />
         <SplayTreeViz />
       </div>
     ),
   },
   "splay-rotations": {
     title: "Splay: Zig, Zig-Zig и Zig-Zag по шагам",
-    hint: "Три случая поворота с покадровой анимацией и подписью, что и в каком порядке крутится.",
-    Component: SplayRotationsViz,
+    hint: "Слева — покадровый разбор поворота, справа — песочница, где то же самое делаешь сам.",
+    Component: () => <SplayRotationsPair />,
   },
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
   "top-sort": { title: "Топологическая сортировка", Component: TopologicalSortViz },

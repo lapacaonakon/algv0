@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { DemoPauseContext } from "./demoKit";
 import { ArticulationDemo, BfsDemo, BridgeDemo, DfsDemo, MstDemo, RelaxDemo, SccDemo, ToposortDemo } from "./demosGraph";
 import {
   AmortizedDemo, DsuDemo, HeapDemo, NpDemo, PrefixSumDemo, QueueDemo, SegmentTreeDemo,
@@ -49,11 +50,18 @@ const REGISTRY: Record<DemoKind, React.FC> = {
 };
 
 export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {
+  const [paused, setPaused] = useState(false);
   const Cmp = REGISTRY[kind];
   if (!Cmp) return null;
   return (
-    <div className="bg-slate-950/70 rounded-lg border border-slate-800 p-2">
-      <Cmp />
-    </div>
+    <DemoPauseContext.Provider value={paused}>
+      <div
+        className="bg-slate-950/70 rounded-lg border border-slate-800 p-2"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        <Cmp />
+      </div>
+    </DemoPauseContext.Provider>
   );
 };

@@ -1,5 +1,5 @@
 import React from "react";
-import { C, Edge, Node, Svg, useLoop } from "./demoKit";
+import { C, Edge, MOVE, Node, Svg, useLoop } from "./demoKit";
 
 /** Флойд: внешний цикл по «разрешённой» промежуточной вершине k. */
 export const FloydDemo: React.FC = () => {
@@ -171,7 +171,7 @@ const SplayFrames: React.FC<{
   frames: { pos: Record<string, Pt>; edges: [string, string][] }[];
   captions: string[];
   ms?: number;
-}> = ({ frames, captions, ms = 1400 }) => {
+}> = ({ frames, captions, ms = 1500 }) => {
   const step = useLoop(frames.length, ms);
   const f = frames[step];
   const color = (id: string) =>
@@ -188,11 +188,11 @@ const SplayFrames: React.FC<{
           y2={f.pos[b][1]}
           stroke={C.edge}
           strokeWidth={1.8}
-          style={{ transition: "all .45s ease" }}
+          style={{ transition: MOVE }}
         />
       ))}
       {Object.entries(f.pos).map(([id, [x, y]]) => (
-        <g key={id} style={{ transform: `translate(${x}px, ${y}px)`, transition: "transform .45s ease" }}>
+        <g key={id} style={{ transform: `translate(${x}px, ${y}px)`, transition: MOVE }}>
           <circle r={13} fill={color(id)} stroke={C.idleStroke} strokeWidth={1.5} />
           <text textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight="700" fill="#fff">
             {id}
