@@ -3,10 +3,7 @@ import {
   Play,
   Pause,
   RotateCcw,
-  ArrowRight,
   Layers,
-  Shuffle,
-  Check,
 } from "lucide-react";
 
 interface GNode {

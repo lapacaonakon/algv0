@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }

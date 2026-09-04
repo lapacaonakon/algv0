@@ -1,130 +1,108 @@
-import { useState } from 'react';
-import { chapters } from './data/content';
-import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
-import { Simulator } from './components/Simulator';
-import { KruskalSimulator } from './components/KruskalSimulator';
-import { SegmentTreeVisualizer } from './components/SegmentTreeVisualizer';
-import { DPVisualizer } from './components/DPVisualizer';
-import { SparseTableViz } from './components/visualizers/SparseTableViz';
-import MnemonicCards from './components/MnemonicCards';
-import { StackViz } from './components/StackViz';
-import { QueueViz } from './components/QueueViz';
-import { HeapViz } from './components/HeapViz';
-import { WaterfallAnimationWidget } from './components/WaterfallAnimationWidget';
-import DijkstraViz from './components/DijkstraViz';
-import BfsViz from './components/BfsViz';
-import BellmanFordViz from './components/BellmanFordViz';
-import FloydViz from './components/FloydViz';
-import ChapterImage from './components/ChapterImage';
-import { SalmonAutomatonWidget } from './components/SalmonAutomatonWidget';
-
-// New simulators
-import { EulerSimulator } from './components/EulerSimulator';
-import { DfsBridgesSimulator } from './components/DfsBridgesSimulator';
-import { ArticulationPointsViz } from './components/ArticulationPointsViz';
-import { PlanarityDemo } from './components/PlanarityDemo';
-import { GraphTraversalViz } from './components/GraphTraversalViz';
-import { StringAlgorithmsViz } from './components/StringAlgorithmsViz';
-import { JohnsonViz } from './components/JohnsonViz';
-import { SplayTreeViz } from './components/SplayTreeViz';
-import { KosarajuViz } from './components/KosarajuViz';
-import { TopologicalSortViz } from './components/TopologicalSortViz';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { chapters } from "./data/content";
+import { Navbar } from "./components/Navbar";
+import { Sidebar } from "./components/Sidebar";
+import { MobileToc } from "./components/MobileToc";
+import { ChapterView } from "./components/ChapterView";
+import { ChapterNav } from "./components/ChapterNav";
+import { SimulatorModal } from "./components/hints/SimulatorModal";
+import { Simulator } from "./components/Simulator";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'guide' | 'simulator'>('guide');
+  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
+  const [modalVizId, setModalVizId] = useState<string | null>(null);
 
-  const activeChapter = chapters.find(c => c.id === activeChapterId) || chapters[0];
+  const index = Math.max(
+    0,
+    chapters.findIndex((c) => c.id === activeChapterId)
+  );
+  const activeChapter = chapters[index] ?? chapters[0];
+  const prev = index > 0 ? chapters[index - 1] : undefined;
+  const next = index < chapters.length - 1 ? chapters[index + 1] : undefined;
+
+  const goTo = useCallback((id: string) => {
+    setActiveChapterId(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Стрелки ← → листают темы (как на обучающих сайтах)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowRight" && next) goTo(next.id);
+      if (e.key === "ArrowLeft" && prev) goTo(prev.id);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goTo, next, prev]);
+
+  const progress = useMemo(() => ((index + 1) / chapters.length) * 100, [index]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      {activeTab === 'guide' ? (
-        <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
-          {/* Sidebar */}
-          <div className="lg:w-80 flex-shrink-0 w-full border-b lg:border-b-0 lg:border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] overflow-y-auto">
-             <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={setActiveChapterId} />
-          </div>
-          
-          {/* Main content */}
-          <main id="main-content" className="flex-1 p-4 md:p-8 lg:p-12 min-w-0 max-w-5xl mx-auto w-full">
-             
-             <div className="prose prose-invert max-w-none mb-8"
-                  dangerouslySetInnerHTML={{ __html: activeChapter.content }} />
 
-             {/* Specialized interactives */}
-             <div className="mt-8">
-               {activeChapter.id === 'euler-path-vs-cycle' && <EulerSimulator />}
-               {activeChapter.id === 'bridges-code' && <DfsBridgesSimulator />}
-               {activeChapter.id === 'graph-articulation' && <ArticulationPointsViz />}
-               {activeChapter.id === 'planarity-euler-formula' && <PlanarityDemo />}
-               {activeChapter.id === 'graph-dfs-bfs' && <GraphTraversalViz />}
-               
-               {activeChapter.id === 'stack-dfs' && <StackViz />}
-               {activeChapter.id === 'queue-bfs' && (
-                 <div className="space-y-12">
-                   <QueueViz />
-                   <BfsViz />
-                 </div>
-               )}
-               {activeChapter.id === 'heap-beam-search' && <HeapViz />}
-               
-               {activeChapter.id === 'intro' && <MnemonicCards />}
-               {activeChapter.id === 'dijkstra' && (
-                 <>
-                   <ChapterImage vizType="dijkstra" />
-                   <DijkstraViz />
-                 </>
-               )}
-               {activeChapter.id === 'bellman-ford' && (
-                 <>
-                   <ChapterImage vizType="bellman-ford" />
-                   <BellmanFordViz />
-                 </>
-               )}
-               {activeChapter.id === 'floyd' && (
-                 <>
-                   <ChapterImage vizType="floyd" />
-                   <FloydViz />
-                 </>
-               )}
-               {activeChapter.id === 'johnson-algo' && (
-                 <JohnsonViz />
-               )}
-               
-               {activeChapter.id === 'aho-corasick' && (
-                 <div className="space-y-12">
-                   <WaterfallAnimationWidget />
-                   <SalmonAutomatonWidget />
-                 </div>
-               )}
-               
-               {activeChapter.id === 'mst-kruskal' && <KruskalSimulator />}
-               {activeChapter.id === 'mst-prima' && <KruskalSimulator />}
-               {activeChapter.id === 'mst-boruvka' && <KruskalSimulator />}
-               
-               {activeChapter.id === 'string-kmp' && <StringAlgorithmsViz defaultMode="kmp" />}
-               {activeChapter.id === 'string-z-func' && <StringAlgorithmsViz defaultMode="z" />}
-               
-               {activeChapter.id === 'segment-trees' && <SegmentTreeVisualizer />}
-               {activeChapter.id === 'sparse-table' && <SparseTableViz />}
-               {activeChapter.id === 'dynamic-programming' && <DPVisualizer />}
-               {activeChapter.id === 'splay-tree' && <SplayTreeViz />}
-               {activeChapter.id === 'scc-kosaraju' && <KosarajuViz />}
-               {activeChapter.id === 'top-sort' && <TopologicalSortViz />}
-             </div>
-             
-          </main>
-        </div>
+      {activeTab === "guide" ? (
+        <>
+          <MobileToc
+            selectedChapterId={activeChapterId}
+            setSelectedChapterId={goTo}
+            currentTitle={activeChapter.title}
+            index={index}
+            total={chapters.length}
+          />
+
+          <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
+            {/* Сайдбар только на десктопе — на мобильном он в шторке */}
+            <div className="hidden lg:block lg:w-80 shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
+              <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
+            </div>
+
+            <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
+              {/* Шапка главы с быстрыми переходами */}
+              <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
+                    {activeChapter.category || "Универсальное пособие"}
+                  </div>
+                  <h2 className="text-base sm:text-xl font-extrabold text-white leading-tight truncate">
+                    {activeChapter.title}
+                  </h2>
+                </div>
+                <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
+              </div>
+
+              <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                <div
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <ChapterView
+                key={activeChapter.id}
+                chapter={activeChapter}
+                prev={prev}
+                next={next}
+                index={index}
+                total={chapters.length}
+                onGo={goTo}
+                onOpenSimulator={setModalVizId}
+              />
+            </main>
+          </div>
+        </>
       ) : (
         <main className="p-4 md:p-8 lg:p-12 max-w-5xl mx-auto">
-           <Simulator />
+          <Simulator />
         </main>
       )}
-      
-      {/* Footer */}
+
+      <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />
+
       <footer className="p-8 text-center text-slate-600 text-xs border-t border-slate-900 mt-12 bg-slate-950">
         © 2026 Universal Educational Guide. Интерактивные визуализации алгоритмов.
       </footer>

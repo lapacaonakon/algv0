@@ -27,8 +27,10 @@ await build({
 
 const { chapters } = await import(`file://${bundle}`);
 
-const app = fs.readFileSync(path.join(ROOT, "src/App.tsx"), "utf8");
-const vizIds = new Set([...app.matchAll(/activeChapter\.id === ['"]([^'"]+)['"]/g)].map((m) => m[1]));
+// Список интерактивов берём из реестра визуализаторов
+const registry = fs.readFileSync(path.join(ROOT, "src/components/vizRegistry.tsx"), "utf8");
+const registryBody = registry.slice(registry.indexOf("VIZ_REGISTRY: Record<string, VizEntry> = {"));
+const vizIds = new Set([...registryBody.matchAll(/^\s{2}"?([a-z0-9-]+)"?:\s*\{/gim)].map((m) => m[1]));
 
 const rows = chapters.map((c) => {
   const html = c.content ?? "";

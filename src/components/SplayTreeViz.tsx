@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import {
-  Play,
   RotateCcw,
   HelpCircle,
-  ArrowRight,
   BookOpen,
 } from "lucide-react";
 
@@ -189,6 +187,7 @@ export const SplayTreeViz: React.FC = () => {
     setLog(steps);
   };
 
+  // @ts-expect-error зарезервировано под кнопку вставки
   const handleInsert = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseInt(inputValue);
@@ -286,7 +285,7 @@ export const SplayTreeViz: React.FC = () => {
         key={`n-${node.key}`}
         className="cursor-pointer group"
         onClick={() => handleSplay(node.key)}
-        title={`Кликните, чтобы выполнить Splay(${node.key})`}
+        data-title={`Кликните, чтобы выполнить Splay(${node.key})`}
       >
         <circle
           cx={node.x}

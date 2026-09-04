@@ -95,6 +95,7 @@ export const WaterfallAnimationWidget: React.FC = () => {
     let logMsg = `[Символ '${char}'] `;
 
     let jumpType: 'normal' | 'fail' | null = null;
+    void jumpType;
     let originalCurr = curr;
 
     if (TRIE_TRANSITIONS[curr][char] !== undefined) {

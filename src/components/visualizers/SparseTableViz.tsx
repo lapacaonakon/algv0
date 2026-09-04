@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
-  Pause,
   RotateCcw,
   ChevronRight,
   ChevronLeft,
@@ -74,23 +73,23 @@ export const SparseTableViz: React.FC = () => {
   const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("1d");
 
   return (
-    <div className="w-full bg-slate-950 p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden font-sans">
-      <div className="flex gap-4 mb-6 border-b border-slate-800 pb-4 overflow-x-auto whitespace-nowrap">
+    <div className="w-full bg-slate-950 p-3 sm:p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl font-sans">
+      <div className="flex gap-2 sm:gap-4 mb-5 border-b border-slate-800 pb-4 overflow-x-auto whitespace-nowrap no-scrollbar">
         <button
           onClick={() => setTab("1d")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${tab === "1d" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shrink-0 transition-colors ${tab === "1d" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
         >
           1. Сворачивание 1D
         </button>
         <button
           onClick={() => setTab("2d_build")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${tab === "2d_build" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shrink-0 transition-colors ${tab === "2d_build" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
         >
           2. Сворачивание 2D (Построение)
         </button>
         <button
           onClick={() => setTab("2d_query")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${tab === "2d_query" ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shrink-0 transition-colors ${tab === "2d_query" ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
         >
           3. Запрос 2D (Формула)
         </button>
@@ -111,6 +110,7 @@ export const SparseTableViz: React.FC = () => {
 
 const Viz1D: React.FC = () => {
   const [step, setStep] = useState(0);
+  const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
 
   // Total steps: we animate computing each element for j=1, j=2, j=3.
   const computeSteps: { i: number; j: number }[] = [];
@@ -121,9 +121,10 @@ const Viz1D: React.FC = () => {
   }
 
   const maxStep = computeSteps.length;
+  const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between bg-slate-900 p-4 rounded-xl border border-slate-800">
         <div>
           <h3 className="text-lg font-bold text-indigo-400 mb-1">
@@ -157,23 +158,65 @@ const Viz1D: React.FC = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="inline-block bg-slate-900 p-6 rounded-xl border border-slate-800 pb-20">
-          <div className="grid grid-cols-[auto_repeat(4,_minmax(60px,_1fr))] gap-4 items-start">
+      <div className="bg-slate-900 rounded-xl border border-slate-800 p-3 sm:p-4">
+        <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">Исходный массив</div>
+        <div className="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1">
+          {arr1D.map((v, idx) => {
+            const inCover = !!covered && idx >= covered.from && idx <= covered.to;
+            return (
+              <div key={idx} className="flex flex-col items-center shrink-0">
+                <div
+                  className={`flex items-center justify-center rounded-md font-mono font-bold transition-all duration-150 w-[clamp(26px,8vw,44px)] h-[clamp(26px,8vw,44px)] text-[clamp(10px,2.8vw,14px)] ${
+                    inCover ? "bg-indigo-500 text-white ring-2 ring-indigo-300" : "bg-slate-800 text-slate-300"
+                  }`}
+                >
+                  {v}
+                </div>
+                <span className="text-[9px] text-slate-600 mt-0.5 font-mono">{idx}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-2 text-xs min-h-[36px]">
+          {hover && covered ? (
+            <p className="text-slate-300">
+              <b className="text-sky-400">
+                ST[{hover.i}][{hover.j}] = {st1D[hover.i][hover.j]}
+              </b>{" "}
+              — это минимум на отрезке{" "}
+              <span className="font-mono text-sky-300">
+                [{covered.from}, {covered.to}]
+              </span>{" "}
+              длины 2^{hover.j} = {1 << hover.j}:{" "}
+              <span className="font-mono text-slate-400">
+                min({arr1D.slice(covered.from, covered.to + 1).join(", ")})
+              </span>
+            </p>
+          ) : (
+            <p className="text-slate-500">
+              Наведите курсор (или тапните) на любое число в таблице ниже — подсветится отрезок, за который оно отвечает.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto pb-2">
+        <div className="inline-block min-w-full bg-slate-900 p-3 sm:p-5 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-[auto_repeat(4,minmax(50px,1fr))] gap-x-2 gap-y-2 sm:gap-x-4 items-start">
             {/* Headers */}
             <div className="text-slate-500 font-mono text-sm self-end pb-2">
               i \ j
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^0 (L=1)
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^1 (L=2)
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^2 (L=4)
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^3 (L=8)
             </div>
 
@@ -219,18 +262,21 @@ const Viz1D: React.FC = () => {
                   return (
                     <div key={j} className="relative flex justify-center">
                       {!isValid ? (
-                        <div className="w-12 h-12 flex items-center justify-center opacity-0">
-                          -
-                        </div>
+                        <div className="w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)]" />
                       ) : (
                         <motion.div
+                          onMouseEnter={() => isVisible && setHover({ i, j })}
+                          onMouseLeave={() => setHover(null)}
+                          onClick={() => isVisible && setHover(hover && hover.i === i && hover.j === j ? null : { i, j })}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{
                             opacity: isVisible ? 1 : 0,
                             scale: isVisible ? 1 : 0.8,
                           }}
-                          className={`w-12 h-12 flex items-center justify-center rounded-lg text-lg font-bold transition-colors ${
-                            isActive
+                          className={`w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)] flex items-center justify-center rounded-lg text-[clamp(11px,3vw,17px)] font-bold transition-colors cursor-pointer ${
+                            hover && hover.i === i && hover.j === j
+                              ? "bg-sky-500 text-white ring-4 ring-sky-400/50 z-10"
+                              : isActive
                               ? "bg-indigo-500 text-white ring-4 ring-indigo-400 ring-opacity-50 z-10"
                               : isSrc1
                                 ? "bg-emerald-500 text-white ring-2 ring-emerald-400 z-10"
@@ -327,7 +373,7 @@ const Viz2DBuild: React.FC = () => {
 
   return (
     <div className="flex flex-col xl:flex-row gap-6">
-      <div className="flex-1 bg-slate-900 p-6 rounded-xl border border-slate-800 flex flex-col items-center max-w-full overflow-hidden">
+      <div className="flex-1 min-w-0 bg-slate-900 p-3 sm:p-6 rounded-xl border border-slate-800 flex flex-col items-center max-w-full">
         <h3 className="text-xl font-bold text-indigo-400 mb-2">Промежуточные матрицы</h3>
         <p className="text-sm text-slate-400 mb-6 text-center max-w-[400px]">
           Для наглядности показываем только <b className="text-indigo-300">квадратные блоки</b>.
@@ -347,7 +393,7 @@ const Viz2DBuild: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex flex-col items-center gap-4 w-full h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="flex flex-col items-center gap-4 w-full max-h-[70vh] sm:h-[600px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
           {[...Array(k + 1)].map((_, i) => k - i).map((step, idx) => {
              const stepL = 1 << step;
              const stepSize = 8 - stepL + 1;
@@ -361,7 +407,8 @@ const Viz2DBuild: React.FC = () => {
                      <span>Матрица блоков {stepL}x{stepL}</span>
                      <span className={`text-[10px] font-mono font-normal mt-1 border px-1.5 py-0.5 rounded ${isCurr ? 'bg-indigo-900/40 border-indigo-800/40 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>ST[][][{step}][{step}]</span>
                    </h4>
-                   <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner overflow-x-auto max-w-full ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 shadow-[0_0_25px_rgba(99,102,241,0.05)] relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, 1fr)`}}>
+                   <div className="max-w-full overflow-x-auto">
+                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 shadow-[0_0_25px_rgba(99,102,241,0.05)] relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
                      {Array.from({length: stepSize * stepSize}).map((_, idx) => {
                         const r = Math.floor(idx / stepSize);
                         const c = idx % stepSize;
@@ -404,12 +451,13 @@ const Viz2DBuild: React.FC = () => {
                                    else setLocked({r, c});
                                }
                             }}
-                            className={`flex items-center justify-center font-mono rounded border min-w-[28px] min-h-[28px] shrink-0 ${highlightClass} ${zIndex} ${isCurr ? 'w-10 h-10 md:w-9 md:h-9 text-sm' : 'w-8 h-8 text-[11px]'}`}
+                            className={`flex items-center justify-center font-mono rounded border shrink-0 ${highlightClass} ${zIndex} ${isCurr ? 'w-[clamp(24px,6.5vw,38px)] h-[clamp(24px,6.5vw,38px)] text-[clamp(9px,2.4vw,13px)]' : 'w-[clamp(20px,5.2vw,30px)] h-[clamp(20px,5.2vw,30px)] text-[clamp(8px,2vw,11px)]'}`}
                           >
                             {ST2D[r][c][step][step]}
                           </div>
                         );
                      })}
+                     </div>
                    </div>
                  </div>
                </React.Fragment>
@@ -418,8 +466,8 @@ const Viz2DBuild: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col gap-4">
-        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 h-full flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col gap-4">
+        <div className="bg-slate-900 p-4 sm:p-6 rounded-xl border border-slate-800 h-full flex flex-col">
           <h3 className="text-lg font-bold text-slate-300 mb-6 flex items-center gap-2">Код построения и формула</h3>
           {k === 0 ? (
              <div className="text-slate-400 text-sm leading-relaxed font-sans mt-4">
@@ -519,19 +567,19 @@ const Viz2DQuery: React.FC = () => {
 
     return (
         <div className="flex flex-col xl:flex-row gap-6">
-            <div className="flex-1 bg-slate-900 p-6 rounded-xl border border-slate-800 flex flex-col xl:max-w-md h-full">
+            <div className="flex-1 min-w-0 bg-slate-900 p-3 sm:p-6 rounded-xl border border-slate-800 flex flex-col xl:max-w-md h-full">
                <h3 className="text-xl font-bold text-rose-400 mb-2">Запрос на прямоугольнике</h3>
                <p className="text-slate-400 text-[13px] mb-4 border-b border-slate-800 pb-4">Изменяйте координаты поиска (r1, c1 - левый верх, r2, c2 - правый низ).</p>
                
                <div className="flex flex-col items-center justify-center flex-1">
-                  <div className="grid grid-cols-[repeat(8,1fr)] gap-[2px] bg-[#0a0f1e] p-2 rounded-xl border border-slate-800 relative shadow-inner overflow-x-auto max-w-full">
+                  <div className="grid grid-cols-[repeat(8,max-content)] gap-[2px] bg-[#0a0f1e] p-2 rounded-xl border border-slate-800 relative shadow-inner w-max max-w-full">
                      {Array.from({length: 64}).map((_, idx) => {
                          const r = Math.floor(idx / 8);
                          const c = idx % 8;
                          const isInQuery = r >= r1 && r <= r2 && c >= c1 && c <= c2;
 
                          return (
-                            <div key={idx} className={`w-8 h-8 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center rounded text-[11px] sm:text-xs font-mono transition-all duration-300 ${isInQuery ? 'bg-rose-900/40 text-rose-200 border-rose-500/50 border scale-105 z-10' : 'bg-slate-800/60 text-slate-500'}`}>
+                            <div key={idx} className={`w-[clamp(24px,7vw,40px)] h-[clamp(24px,7vw,40px)] shrink-0 flex items-center justify-center rounded text-[clamp(9px,2.4vw,12px)] font-mono transition-all duration-300 ${isInQuery ? 'bg-rose-900/40 text-rose-200 border-rose-500/50 border scale-105 z-10' : 'bg-slate-800/60 text-slate-500'}`}>
                                {val2D[r][c]}
                             </div>
                          )

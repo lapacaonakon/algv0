@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, RotateCcw, StepForward } from 'lucide-react';
 
 const NODES = [
@@ -129,6 +129,7 @@ export default function BfsViz() {
     setStepIdx(prev => Math.min(prev + 1, STEPS.length - 1));
   }, []);
 
+  // @ts-expect-error зарезервировано под кнопку «назад»
   const handlePrev = useCallback(() => {
     setStepIdx(prev => Math.max(prev - 1, 0));
   }, []);
@@ -205,6 +206,7 @@ export default function BfsViz() {
               let fill = '#1e293b'; // slate-800
               let stroke = '#475569'; // slate-600
               let scale = 1;
+              void scale;
 
               if (isCurrent) {
                 fill = '#3b82f6'; // blue-500

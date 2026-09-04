@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            04.09.2026, 21:22:14
-Файлов исходного кода:     61
-Суммарный объём кода:      855.6 KB
+Дата генерации:            04.09.2026, 21:52:24
+Файлов исходного кода:     74
+Суммарный объём кода:      954.5 KB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -59,73 +59,86 @@
 
   # Ядро приложения
    10. src/App.tsx
-   11. src/index.css
-   12. src/main.tsx
-   13. src/types.ts
-   14. src/vite-env.d.ts
+   11. src/hooks/useTermHints.ts
+   12. src/index.css
+   13. src/main.tsx
+   14. src/types.ts
+   15. src/vite-env.d.ts
 
   # Контент и данные пособия
-   15. src/data/additionalTickets.ts
-   16. src/data/content_temp.ts
-   17. src/data/content.ts
-   18. src/data/graphContent.ts
-   19. src/data/quizzes.ts
+   16. src/data/additionalTickets.ts
+   17. src/data/content_temp.ts
+   18. src/data/content.ts
+   19. src/data/glossary.ts
+   20. src/data/graphContent.ts
+   21. src/data/quizzes.ts
 
   # Билеты (учебный контент)
-   20. src/data/tickets/ticket1_5.ts
-   21. src/data/tickets/ticket14_20.ts
-   22. src/data/tickets/ticket21_24.ts
-   23. src/data/tickets/ticket6_13.ts
+   22. src/data/tickets/ticket1_5.ts
+   23. src/data/tickets/ticket14_20.ts
+   24. src/data/tickets/ticket21_24.ts
+   25. src/data/tickets/ticket6_13.ts
 
   # Интерактивные компоненты и симуляторы
-   24. src/components/ArticulationPointsViz.tsx
-   25. src/components/BellmanFordViz.tsx
-   26. src/components/BfsViz.tsx
-   27. src/components/ChapterImage.tsx
-   28. src/components/DfsBridgesSimulator.tsx
-   29. src/components/DijkstraViz.tsx
-   30. src/components/DPVisualizer.tsx
-   31. src/components/EulerSimulator.tsx
-   32. src/components/ExpressQuiz.tsx
-   33. src/components/FloydViz.tsx
-   34. src/components/GraphTraversalViz.tsx
-   35. src/components/HeapViz.tsx
-   36. src/components/JohnsonViz.tsx
-   37. src/components/KosarajuViz.tsx
-   38. src/components/KruskalSimulator.tsx
-   39. src/components/MnemonicCards.tsx
-   40. src/components/Navbar.tsx
-   41. src/components/PlanarityDemo.tsx
-   42. src/components/QueueViz.tsx
-   43. src/components/SalmonAutomatonWidget.tsx
-   44. src/components/SegmentTreeVisualizer.tsx
-   45. src/components/Sidebar.tsx
-   46. src/components/Simulator.tsx
-   47. src/components/SplayTreeViz.tsx
-   48. src/components/StackViz.tsx
-   49. src/components/StringAlgorithmsViz.tsx
-   50. src/components/TopologicalSortViz.tsx
-   51. src/components/WaterfallAnimationWidget.tsx
+   26. src/components/ArticulationPointsViz.tsx
+   27. src/components/BellmanFordViz.tsx
+   28. src/components/BfsViz.tsx
+   29. src/components/ChapterImage.tsx
+   30. src/components/ChapterNav.tsx
+   31. src/components/ChapterView.tsx
+   32. src/components/DfsBridgesSimulator.tsx
+   33. src/components/DijkstraViz.tsx
+   34. src/components/DPVisualizer.tsx
+   35. src/components/EulerSimulator.tsx
+   36. src/components/ExpressQuiz.tsx
+   37. src/components/FloydViz.tsx
+   38. src/components/GraphTraversalViz.tsx
+   39. src/components/HeapViz.tsx
+   40. src/components/hints/demoKit.tsx
+   41. src/components/hints/demosGraph.tsx
+   42. src/components/hints/demosStruct.tsx
+   43. src/components/hints/MiniDemo.tsx
+   44. src/components/hints/SimulatorModal.tsx
+   45. src/components/hints/TermPopover.tsx
+   46. src/components/JohnsonViz.tsx
+   47. src/components/KosarajuViz.tsx
+   48. src/components/KruskalSimulator.tsx
+   49. src/components/MnemonicCards.tsx
+   50. src/components/MobileToc.tsx
+   51. src/components/Navbar.tsx
+   52. src/components/PlanarityDemo.tsx
+   53. src/components/QueueViz.tsx
+   54. src/components/SalmonAutomatonWidget.tsx
+   55. src/components/SegmentTreeVisualizer.tsx
+   56. src/components/Sidebar.tsx
+   57. src/components/Simulator.tsx
+   58. src/components/SplayTreeViz.tsx
+   59. src/components/StackViz.tsx
+   60. src/components/StringAlgorithmsViz.tsx
+   61. src/components/TopologicalSortViz.tsx
+   62. src/components/vizRegistry.tsx
+   63. src/components/WaterfallAnimationWidget.tsx
 
   # Визуализаторы (вложенные)
-   52. src/components/visualizers/SparseTableViz.tsx
+   64. src/components/visualizers/PrefixSumViz.tsx
+   65. src/components/visualizers/SparseTableViz.tsx
 
   # HTML-разметка (layout)
-   53. src/layout/footer.html
-   54. src/layout/header.html
+   66. src/layout/footer.html
+   67. src/layout/header.html
 
   # Утилиты
-   55. src/utils/cn.ts
+   68. src/utils/cn.ts
 
   # Скрипты сборки и экспорта
-   56. scripts/audit-coverage.mjs
-   57. scripts/export/build-pdf.mjs
-   58. scripts/export/collect-code.mjs
-   59. scripts/export/common.mjs
-   60. scripts/export/render-pages.mjs
+   69. scripts/audit-coverage.mjs
+   70. scripts/export/build-pdf.mjs
+   71. scripts/export/collect-code.mjs
+   72. scripts/export/common.mjs
+   73. scripts/export/render-pages.mjs
 
   # CI / автоматизация
-   61. .github/workflows/rebuild-pdf.yml
+   74. .github/workflows/rebuild-pdf.yml
 
 
 ==========================================================================================================================================
@@ -133,7 +146,7 @@
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 1/61: AGENTS.md
+ФАЙЛ 1/74: AGENTS.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 12 | РАЗМЕР: 728 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -151,7 +164,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 2/61: GEMINI.md
+ФАЙЛ 2/74: GEMINI.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 16 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -173,7 +186,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 3/61: index.html
+ФАЙЛ 3/74: index.html
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 13 | РАЗМЕР: 527 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -192,7 +205,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 4/61: metadata.json
+ФАЙЛ 4/74: metadata.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 8 | РАЗМЕР: 310 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -207,7 +220,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 5/61: package.json
+ФАЙЛ 5/74: package.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 39 | РАЗМЕР: 1.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -252,8 +265,8 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 6/61: README.md
-КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 101 | РАЗМЕР: 6.3 KB
+ФАЙЛ 6/74: README.md
+КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 115 | РАЗМЕР: 7.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 # algv0 — Универсальное пособие по алгоритмам и структурам данных
@@ -309,6 +322,20 @@ node scripts/audit-coverage.mjs --md   # markdown-таблица
 
 Актуальный отчёт: [`TOPICS_AUDIT.md`](./TOPICS_AUDIT.md).
 
+## Как устроен интерфейс
+
+* **Содержание** — на десктопе боковая панель с поиском и группировкой по разделам,
+  на телефоне — липкая строка «Содержание · N из M» и выдвижная шторка.
+* **Переходы между темами** — кнопки «Назад / Вперёд» в шапке и крупные карточки
+  «Предыдущая / Следующая тема» под текстом; на клавиатуре работают стрелки ← →.
+* **Всплывающие подсказки по терминам** — текст главы автоматически размечается:
+  известные термины (BFS, куча, бор, суффиксная ссылка, релаксация, DSU, …)
+  подчёркиваются, а по наведению/тапу показывается карточка с объяснением на пальцах,
+  мини-анимацией и кнопкой «Показать симулятор» (симулятор открывается модалкой прямо из текста).
+  Словарь — `src/data/glossary.ts`, мини-анимации — `src/components/hints/`.
+* **Реестр интерактивов** — `src/components/vizRegistry.tsx`: один источник правды
+  и для панели под главой, и для модалки из подсказки.
+
 ## Структура
 
 ```
@@ -359,8 +386,8 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 7/61: TOPICS_AUDIT.md
-КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 105 | РАЗМЕР: 8.0 KB
+ФАЙЛ 7/74: TOPICS_AUDIT.md
+КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 106 | РАЗМЕР: 8.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 # Аудит покрытия тем: где нет «объяснения на пальцах» и 2D
@@ -418,10 +445,11 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 ## 🔵 Уровень 4. Есть аналогия, но НЕТ 2D-визуализации (только текст)
 
+> ✅ Закрыто: «5. Двумерная матрица префиксных сумм» получила визуализатор `PrefixSumViz` с подсветкой при наведении.
+
 | Глава | id | Чего не хватает |
 | --- | --- | --- |
 | 3. Декартово дерево (Treap) | `treap` | Нет ни визуализатора, ни SVG — а тема без картинки не читается (ключ + приоритет, split/merge). |
-| 5. Двумерная матрица префиксных сумм | `prefix-sums-2d` | Просится анимация «прямоугольник = A − B − C + D» на сетке. |
 | 8. Графы. Компоненты связности | `graph-components` | Нет схемы «несколько островов». |
 | 24. Классы сложности, сведение задач | `complexity-classes` | Нет диаграммы вложенности P ⊆ NP ⊆ PSPACE и стрелок сведения. |
 
@@ -434,7 +462,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 | 2 | 2. Двумерная разреженная матрица (Sparse Table) | 2 | ✅ | — | — |
 | 3 | 3. Декартово дерево (Treap) | 2 | — | — | — |
 | 4 | 4. Splay-дерево | 2 | ✅ | — | — |
-| 5 | 5. Двумерная матрица префиксных сумм | 1 | — | — | — |
+| 5 | 5. Двумерная матрица префиксных сумм | 1 | ✅ | — | — |
 | — | Планарность: K5, K3,3 и формула Эйлера | — | ✅ | — | — |
 | 6 | 6. Графы. Представление, DFS, BFS | 4 | ✅ | — | — |
 | 8 | 8. Графы. Компоненты связности | 1 | — | — | — |
@@ -470,7 +498,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 8/61: tsconfig.json
+ФАЙЛ 8/74: tsconfig.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 32 | РАЗМЕР: 681 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -508,7 +536,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 9/61: vite.config.ts
+ФАЙЛ 9/74: vite.config.ts
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 33 | РАЗМЕР: 853 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -551,137 +579,115 @@ export default defineConfig({
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 10/61: src/App.tsx
-КАТЕГОРИЯ: Ядро приложения | СТРОК: 134 | РАЗМЕР: 6.2 KB
+ФАЙЛ 10/74: src/App.tsx
+КАТЕГОРИЯ: Ядро приложения | СТРОК: 112 | РАЗМЕР: 4.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { useState } from 'react';
-import { chapters } from './data/content';
-import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
-import { Simulator } from './components/Simulator';
-import { KruskalSimulator } from './components/KruskalSimulator';
-import { SegmentTreeVisualizer } from './components/SegmentTreeVisualizer';
-import { DPVisualizer } from './components/DPVisualizer';
-import { SparseTableViz } from './components/visualizers/SparseTableViz';
-import MnemonicCards from './components/MnemonicCards';
-import { StackViz } from './components/StackViz';
-import { QueueViz } from './components/QueueViz';
-import { HeapViz } from './components/HeapViz';
-import { WaterfallAnimationWidget } from './components/WaterfallAnimationWidget';
-import DijkstraViz from './components/DijkstraViz';
-import BfsViz from './components/BfsViz';
-import BellmanFordViz from './components/BellmanFordViz';
-import FloydViz from './components/FloydViz';
-import ChapterImage from './components/ChapterImage';
-import { SalmonAutomatonWidget } from './components/SalmonAutomatonWidget';
-
-// New simulators
-import { EulerSimulator } from './components/EulerSimulator';
-import { DfsBridgesSimulator } from './components/DfsBridgesSimulator';
-import { ArticulationPointsViz } from './components/ArticulationPointsViz';
-import { PlanarityDemo } from './components/PlanarityDemo';
-import { GraphTraversalViz } from './components/GraphTraversalViz';
-import { StringAlgorithmsViz } from './components/StringAlgorithmsViz';
-import { JohnsonViz } from './components/JohnsonViz';
-import { SplayTreeViz } from './components/SplayTreeViz';
-import { KosarajuViz } from './components/KosarajuViz';
-import { TopologicalSortViz } from './components/TopologicalSortViz';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { chapters } from "./data/content";
+import { Navbar } from "./components/Navbar";
+import { Sidebar } from "./components/Sidebar";
+import { MobileToc } from "./components/MobileToc";
+import { ChapterView } from "./components/ChapterView";
+import { ChapterNav } from "./components/ChapterNav";
+import { SimulatorModal } from "./components/hints/SimulatorModal";
+import { Simulator } from "./components/Simulator";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'guide' | 'simulator'>('guide');
+  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
+  const [modalVizId, setModalVizId] = useState<string | null>(null);
 
-  const activeChapter = chapters.find(c => c.id === activeChapterId) || chapters[0];
+  const index = Math.max(
+    0,
+    chapters.findIndex((c) => c.id === activeChapterId)
+  );
+  const activeChapter = chapters[index] ?? chapters[0];
+  const prev = index > 0 ? chapters[index - 1] : undefined;
+  const next = index < chapters.length - 1 ? chapters[index + 1] : undefined;
+
+  const goTo = useCallback((id: string) => {
+    setActiveChapterId(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Стрелки ← → листают темы (как на обучающих сайтах)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowRight" && next) goTo(next.id);
+      if (e.key === "ArrowLeft" && prev) goTo(prev.id);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goTo, next, prev]);
+
+  const progress = useMemo(() => ((index + 1) / chapters.length) * 100, [index]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      {activeTab === 'guide' ? (
-        <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
-          {/* Sidebar */}
-          <div className="lg:w-80 flex-shrink-0 w-full border-b lg:border-b-0 lg:border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] overflow-y-auto">
-             <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={setActiveChapterId} />
-          </div>
-          
-          {/* Main content */}
-          <main id="main-content" className="flex-1 p-4 md:p-8 lg:p-12 min-w-0 max-w-5xl mx-auto w-full">
-             
-             <div className="prose prose-invert max-w-none mb-8"
-                  dangerouslySetInnerHTML={{ __html: activeChapter.content }} />
 
-             {/* Specialized interactives */}
-             <div className="mt-8">
-               {activeChapter.id === 'euler-path-vs-cycle' && <EulerSimulator />}
-               {activeChapter.id === 'bridges-code' && <DfsBridgesSimulator />}
-               {activeChapter.id === 'graph-articulation' && <ArticulationPointsViz />}
-               {activeChapter.id === 'planarity-euler-formula' && <PlanarityDemo />}
-               {activeChapter.id === 'graph-dfs-bfs' && <GraphTraversalViz />}
-               
-               {activeChapter.id === 'stack-dfs' && <StackViz />}
-               {activeChapter.id === 'queue-bfs' && (
-                 <div className="space-y-12">
-                   <QueueViz />
-                   <BfsViz />
-                 </div>
-               )}
-               {activeChapter.id === 'heap-beam-search' && <HeapViz />}
-               
-               {activeChapter.id === 'intro' && <MnemonicCards />}
-               {activeChapter.id === 'dijkstra' && (
-                 <>
-                   <ChapterImage vizType="dijkstra" />
-                   <DijkstraViz />
-                 </>
-               )}
-               {activeChapter.id === 'bellman-ford' && (
-                 <>
-                   <ChapterImage vizType="bellman-ford" />
-                   <BellmanFordViz />
-                 </>
-               )}
-               {activeChapter.id === 'floyd' && (
-                 <>
-                   <ChapterImage vizType="floyd" />
-                   <FloydViz />
-                 </>
-               )}
-               {activeChapter.id === 'johnson-algo' && (
-                 <JohnsonViz />
-               )}
-               
-               {activeChapter.id === 'aho-corasick' && (
-                 <div className="space-y-12">
-                   <WaterfallAnimationWidget />
-                   <SalmonAutomatonWidget />
-                 </div>
-               )}
-               
-               {activeChapter.id === 'mst-kruskal' && <KruskalSimulator />}
-               {activeChapter.id === 'mst-prima' && <KruskalSimulator />}
-               {activeChapter.id === 'mst-boruvka' && <KruskalSimulator />}
-               
-               {activeChapter.id === 'string-kmp' && <StringAlgorithmsViz defaultMode="kmp" />}
-               {activeChapter.id === 'string-z-func' && <StringAlgorithmsViz defaultMode="z" />}
-               
-               {activeChapter.id === 'segment-trees' && <SegmentTreeVisualizer />}
-               {activeChapter.id === 'sparse-table' && <SparseTableViz />}
-               {activeChapter.id === 'dynamic-programming' && <DPVisualizer />}
-               {activeChapter.id === 'splay-tree' && <SplayTreeViz />}
-               {activeChapter.id === 'scc-kosaraju' && <KosarajuViz />}
-               {activeChapter.id === 'top-sort' && <TopologicalSortViz />}
-             </div>
-             
-          </main>
-        </div>
+      {activeTab === "guide" ? (
+        <>
+          <MobileToc
+            selectedChapterId={activeChapterId}
+            setSelectedChapterId={goTo}
+            currentTitle={activeChapter.title}
+            index={index}
+            total={chapters.length}
+          />
+
+          <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
+            {/* Сайдбар только на десктопе — на мобильном он в шторке */}
+            <div className="hidden lg:block lg:w-80 shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
+              <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
+            </div>
+
+            <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
+              {/* Шапка главы с быстрыми переходами */}
+              <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
+                    {activeChapter.category || "Универсальное пособие"}
+                  </div>
+                  <h2 className="text-base sm:text-xl font-extrabold text-white leading-tight truncate">
+                    {activeChapter.title}
+                  </h2>
+                </div>
+                <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
+              </div>
+
+              <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                <div
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <ChapterView
+                key={activeChapter.id}
+                chapter={activeChapter}
+                prev={prev}
+                next={next}
+                index={index}
+                total={chapters.length}
+                onGo={goTo}
+                onOpenSimulator={setModalVizId}
+              />
+            </main>
+          </div>
+        </>
       ) : (
         <main className="p-4 md:p-8 lg:p-12 max-w-5xl mx-auto">
-           <Simulator />
+          <Simulator />
         </main>
       )}
-      
-      {/* Footer */}
+
+      <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />
+
       <footer className="p-8 text-center text-slate-600 text-xs border-t border-slate-900 mt-12 bg-slate-950">
         © 2026 Universal Educational Guide. Интерактивные визуализации алгоритмов.
       </footer>
@@ -691,8 +697,110 @@ export default function App() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 11/61: src/index.css
-КАТЕГОРИЯ: Ядро приложения | СТРОК: 50 | РАЗМЕР: 950 B
+ФАЙЛ 11/74: src/hooks/useTermHints.ts
+КАТЕГОРИЯ: Ядро приложения | СТРОК: 96 | РАЗМЕР: 3.7 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import { useEffect } from "react";
+import { GLOSSARY_LABELS } from "../data/glossary";
+
+/** Сколько раз один и тот же термин подсвечивается в главе (чтобы текст не рябил). */
+const MAX_PER_TERM = 2;
+
+const SKIP_SELECTOR = "code, pre, script, style, a, textarea, input, .term-hint, [data-no-hint]";
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Одна большая регулярка из всех меток: длинные раньше коротких. */
+function buildRegex(): RegExp {
+  const alternation = GLOSSARY_LABELS.map((l) => escapeRe(l.label)).join("|");
+  // границы «не буква/цифра» — \b не работает с кириллицей
+  return new RegExp(`(?<![\\p{L}\\p{N}_-])(${alternation})(?![\\p{L}\\p{N}_-])`, "giu");
+}
+
+let cachedRegex: RegExp | null = null;
+const labelToId = new Map(GLOSSARY_LABELS.map((l) => [l.label.toLowerCase(), l.id]));
+
+/**
+ * Проходит по тексту главы и оборачивает известные термины в
+ * <span class="term-hint" data-term-id="…">, чтобы на них можно было
+ * повесить всплывающую карточку (как превью ссылок в Википедии).
+ */
+export function annotateTerms(root: HTMLElement): void {
+  if (!cachedRegex) cachedRegex = buildRegex();
+  const re = cachedRegex;
+
+  const counts = new Map<string, number>();
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = (node as Text).parentElement;
+      if (!parent) return NodeFilter.FILTER_REJECT;
+      if (parent.closest(SKIP_SELECTOR)) return NodeFilter.FILTER_REJECT;
+      if (!node.nodeValue || node.nodeValue.trim().length < 2) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+
+  const targets: Text[] = [];
+  let current = walker.nextNode();
+  while (current) {
+    targets.push(current as Text);
+    current = walker.nextNode();
+  }
+
+  for (const textNode of targets) {
+    const text = textNode.nodeValue ?? "";
+    re.lastIndex = 0;
+    if (!re.test(text)) continue;
+    re.lastIndex = 0;
+
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    let m: RegExpExecArray | null;
+
+    while ((m = re.exec(text)) !== null) {
+      const id = labelToId.get(m[1].toLowerCase());
+      if (!id) continue;
+      const used = counts.get(id) ?? 0;
+      if (used >= MAX_PER_TERM) continue;
+      counts.set(id, used + 1);
+
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const span = document.createElement("span");
+      span.className = "term-hint";
+      span.dataset.termId = id;
+      span.tabIndex = 0;
+      span.setAttribute("role", "button");
+      span.setAttribute("aria-label", `Подсказка: ${m[1]}`);
+      span.textContent = m[1];
+      frag.appendChild(span);
+      last = m.index + m[1].length;
+    }
+
+    if (last === 0) continue;
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    textNode.parentNode?.replaceChild(frag, textNode);
+  }
+}
+
+/** Навешивает разметку терминов на контейнер при каждой смене главы. */
+export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unknown[]) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    try {
+      annotateTerms(el);
+    } catch {
+      /* если браузер не умеет lookbehind — просто оставляем текст как есть */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 12/74: src/index.css
+КАТЕГОРИЯ: Ядро приложения | СТРОК: 165 | РАЗМЕР: 3.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 @import "tailwindcss";
@@ -710,10 +818,17 @@ export default function App() {
   .neon-glow-yellow {
     box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
   }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
 }
 
 @keyframes pulse-gold {
-  0%, 100% {
+  0%,
+  100% {
     stroke: #eab308;
     stroke-width: 5;
     filter: drop-shadow(0 0 2px rgba(234, 179, 8, 0.5));
@@ -727,6 +842,114 @@ export default function App() {
 
 .animate-pulse-gold {
   animation: pulse-gold 1.5s infinite;
+}
+
+@keyframes tocIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes hintIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.term-popover {
+  animation: hintIn 0.14s ease-out;
+}
+
+/* Интерактивные термины в тексте главы (превью как в Википедии) */
+.term-hint {
+  cursor: help;
+  border-bottom: 1px dashed rgba(129, 140, 248, 0.75);
+  color: #c7d2fe;
+  border-radius: 3px;
+  padding: 0 1px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.term-hint:hover,
+.term-hint:focus-visible {
+  background: rgba(99, 102, 241, 0.22);
+  color: #fff;
+  outline: none;
+}
+@media (hover: none) {
+  .term-hint {
+    border-bottom-style: solid;
+    background: rgba(99, 102, 241, 0.12);
+  }
+}
+
+/* Контент главы приходит готовым HTML — чиним его под мобильные */
+.chapter-body {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.chapter-body :where(section, div, p, li) {
+  min-width: 0;
+}
+
+.chapter-body :where(pre, code) {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chapter-body pre {
+  overflow-x: auto;
+  max-width: 100%;
+  font-size: clamp(11px, 2.9vw, 13px);
+}
+
+.chapter-body table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: clamp(11px, 3vw, 14px);
+}
+
+.chapter-body summary {
+  cursor: pointer;
+  padding: 0.35rem 0;
+}
+
+@media (max-width: 767px) {
+  .chapter-body :where(.grid) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .chapter-body :where(h2) {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+  }
+  .chapter-body :where(h3) {
+    font-size: 1.05rem !important;
+    line-height: 1.35 !important;
+  }
+  .chapter-body :where(.p-6, .p-8) {
+    padding: 0.9rem !important;
+  }
+  .chapter-body :where(.text-3xl) {
+    font-size: 1.4rem !important;
+  }
+  .chapter-body :where(.text-2xl) {
+    font-size: 1.2rem !important;
+  }
+  .chapter-body :where(.text-xl) {
+    font-size: 1.05rem !important;
+  }
 }
 
 /* Custom scrollbar styling for dark theme */
@@ -747,7 +970,7 @@ export default function App() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 12/61: src/main.tsx
+ФАЙЛ 13/74: src/main.tsx
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 11 | РАЗМЕР: 230 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -764,7 +987,7 @@ createRoot(document.getElementById("root")!).render(
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 13/61: src/types.ts
+ФАЙЛ 14/74: src/types.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 9 | РАЗМЕР: 153 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -779,7 +1002,7 @@ export interface Chapter {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 14/61: src/vite-env.d.ts
+ФАЙЛ 15/74: src/vite-env.d.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 19 | РАЗМЕР: 324 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -808,7 +1031,7 @@ declare module '*.png' {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 15/61: src/data/additionalTickets.ts
+ФАЙЛ 16/74: src/data/additionalTickets.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 646 | РАЗМЕР: 47.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1460,7 +1683,7 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 16/61: src/data/content_temp.ts
+ФАЙЛ 17/74: src/data/content_temp.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 385 | РАЗМЕР: 27.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1851,7 +2074,7 @@ void dfs(int v, int p = -1) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 17/61: src/data/content.ts
+ФАЙЛ 18/74: src/data/content.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 51 | РАЗМЕР: 1.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1908,11 +2131,388 @@ export const activeVizIds = [
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 18/61: src/data/graphContent.ts
+ФАЙЛ 19/74: src/data/glossary.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 371 | РАЗМЕР: 24.5 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import type { DemoKind } from "../components/hints/MiniDemo";
+
+/**
+ * Глоссарий «википедийных» подсказок.
+ *
+ * Любое слово из `labels`, встреченное в тексте главы, автоматически превращается
+ * в подчёркнутый термин: при наведении (или тапе на мобильном) всплывает карточка
+ * с объяснением на пальцах и мини-визуализацией.
+ */
+export interface GlossaryEntry {
+  id: string;
+  /** Варианты написания в тексте (регистр не важен). */
+  labels: string[];
+  title: string;
+  /** Объяснение «на пальцах» — 1–2 фразы. */
+  short: string;
+  /** Строгая формулировка / что важно не забыть. */
+  formal?: string;
+  complexity?: string;
+  /** Какая мини-анимация показывается в карточке. */
+  demo?: DemoKind;
+  /** id полного симулятора (см. vizRegistry) — кнопка «Открыть симулятор». */
+  simulator?: string;
+}
+
+export const GLOSSARY: GlossaryEntry[] = [
+  {
+    id: "bfs",
+    labels: ["BFS", "обход в ширину", "поиск в ширину", "в ширину"],
+    title: "BFS — обход в ширину",
+    short:
+      "Волна от источника: сначала все соседи, потом соседи соседей. Как круги по воде или слух, который расходится по этажам общаги.",
+    formal:
+      "Очередь (FIFO). Кладём старт, достаём вершину — кладём всех непосещённых соседей. В невзвешенном графе даёт кратчайшие пути по числу рёбер.",
+    complexity: "O(V + E)",
+    demo: "bfs",
+    simulator: "queue-bfs",
+  },
+  {
+    id: "dfs",
+    labels: ["DFS", "обход в глубину", "поиск в глубину", "в глубину"],
+    title: "DFS — обход в глубину",
+    short:
+      "Прёшь вперёд до упора, упёрся — откатываешься на шаг назад и пробуешь другую дверь. Как лабиринт с ниткой Ариадны.",
+    formal:
+      "Стек (или рекурсия). Из DFS растут: времена входа/выхода tin/tout, мосты, точки сочленения, топсорт, SCC.",
+    complexity: "O(V + E)",
+    demo: "dfs",
+    simulator: "stack-dfs",
+  },
+  {
+    id: "heap",
+    labels: ["куча", "кучу", "кучи", "куче", "кучей", "бинарная куча", "heap", "приоритетная очередь", "очередь с приоритетом"],
+    title: "Куча (priority queue)",
+    short:
+      "Не отсортированный список, а «мешок, из которого всегда достаётся самый главный». Внутри — дерево, где родитель не хуже детей.",
+    formal:
+      "Полное бинарное дерево в массиве: дети узла i лежат в 2i+1 и 2i+2. Вставка — sift-up, извлечение минимума — sift-down.",
+    complexity: "вставка/извлечение O(log n), «посмотреть минимум» O(1)",
+    demo: "heap",
+    simulator: "heap-beam-search",
+  },
+  {
+    id: "stack",
+    labels: ["стек", "стека", "стеке", "стеком", "LIFO"],
+    title: "Стек (LIFO)",
+    short: "Стопка тарелок: кладёшь сверху и берёшь сверху. Последний пришёл — первый ушёл.",
+    formal: "push / pop / top за O(1). На стеке живёт рекурсия и, соответственно, весь DFS.",
+    demo: "stack",
+    simulator: "stack-dfs",
+  },
+  {
+    id: "queue",
+    labels: ["очередь", "очереди", "очередью", "FIFO"],
+    title: "Очередь (FIFO)",
+    short: "Очередь в столовой: кто первым встал, тот первым и поел.",
+    formal: "push_back / pop_front за O(1). Основа BFS и 0-1 BFS (там дек).",
+    demo: "queue",
+    simulator: "queue-bfs",
+  },
+  {
+    id: "dsu",
+    labels: ["DSU", "СНМ", "система непересекающихся множеств", "union-find"],
+    title: "DSU — система непересекающихся множеств",
+    short:
+      "«Кто твой староста?» Каждый элемент знает своего главного; объединение групп = один главный начинает подчиняться другому.",
+    formal:
+      "find со сжатием путей + union по рангу/размеру. Нужен Краскалу, чтобы за копейки отвечать «эти двое уже в одной компоненте?».",
+    complexity: "почти O(1) — обратная функция Аккермана α(n)",
+    demo: "dsu",
+    simulator: "mst-kruskal",
+  },
+  {
+    id: "trie",
+    labels: ["бор", "бора", "боре", "бору", "бором", "trie", "префиксное дерево"],
+    title: "Бор (trie, префиксное дерево)",
+    short:
+      "Дерево, где путь от корня по буквам и есть слово. Общие приставки слов делят один и тот же путь — как папки в файловой системе.",
+    formal: "Из корня по символам; в вершине хранится флаг «здесь кончается слово». Основа Ахо–Корасика.",
+    complexity: "поиск слова — O(|слова|)",
+    demo: "trie",
+    simulator: "aho-corasick",
+  },
+  {
+    id: "bfs-on-trie",
+    labels: [
+      "обход дерева",
+      "обход бора",
+      "обход в ширину по бору",
+      "какой-то обход",
+      "обходом дерева",
+    ],
+    title: "Обход бора в ширину (тот самый «какой-то обход»)",
+    short:
+      "В Ахо–Корасике бор обходят именно BFS: суффиксную ссылку вершины можно посчитать, только когда уже посчитана ссылка её родителя — то есть строго по уровням.",
+    formal:
+      "Кладём в очередь детей корня (их ссылка = корень). Достаём вершину v, для каждого ребёнка c по букве ch: link(c) = go(link(v), ch), кладём c в очередь.",
+    complexity: "O(суммарной длины словаря × алфавит)",
+    demo: "trie-bfs",
+    simulator: "aho-corasick",
+  },
+  {
+    id: "suffix-link",
+    labels: ["суффиксная ссылка", "суффиксные ссылки", "суффиксной ссылке", "суффиксных ссылок"],
+    title: "Суффиксная ссылка",
+    short:
+      "«Куда откатиться, если следующая буква не подошла». Ведёт в вершину, соответствующую самому длинному собственному суффиксу текущей строки.",
+    formal: "link(v) = go(link(parent(v)), ch). Считается BFS-обходом бора по уровням. Обобщение массива π из КМП на дерево.",
+    demo: "suffix-link",
+    simulator: "aho-corasick",
+  },
+  {
+    id: "toposort",
+    labels: ["топологическая сортировка", "топсорт", "топологической сортировки", "топологическом порядке"],
+    title: "Топологическая сортировка",
+    short:
+      "Порядок «сначала штаны, потом ботинки»: каждая стрелка зависимости смотрит только вперёд. Существует ровно тогда, когда в графе нет циклов.",
+    formal: "DFS + вершины в обратном порядке выхода, либо алгоритм Кана: раз за разом снимаем вершины с нулевой входящей степенью.",
+    complexity: "O(V + E)",
+    demo: "toposort",
+    simulator: "top-sort",
+  },
+  {
+    id: "relaxation",
+    labels: ["релаксация", "релаксацию", "релаксации", "релаксацией", "ослабление ребра"],
+    title: "Релаксация ребра",
+    short:
+      "«А через соседа не быстрее?» Если известный путь до v длиннее, чем путь до u плюс ребро u→v, то честно записываем новый, короткий.",
+    formal: "if d[v] > d[u] + w(u,v) → d[v] = d[u] + w(u,v), parent[v] = u. Единственная операция, из которой собраны Дейкстра, Форд–Беллман и Флойд.",
+    demo: "relax",
+    simulator: "dijkstra",
+  },
+  {
+    id: "prefix-sum",
+    labels: ["префиксные суммы", "префиксная сумма", "префиксных сумм", "префиксной суммы"],
+    title: "Префиксные суммы",
+    short:
+      "Заранее посчитанные «сколько всего набежало от начала». Тогда сумма любого куска — это одно вычитание, а не цикл.",
+    formal: "P[0]=0, P[i]=P[i-1]+a[i-1]. Сумма a[l..r] = P[r+1] − P[l]. В 2D — включения-исключения: A − B − C + D.",
+    complexity: "препроцессинг O(n), запрос O(1)",
+    demo: "prefix-sum",
+    simulator: "prefix-sums-2d",
+  },
+  {
+    id: "sparse-table",
+    labels: ["разреженная таблица", "sparse table", "разреженной таблицы", "двоичные подъёмы", "двоичный подъём"],
+    title: "Разреженная таблица (метод двоичных подъёмов)",
+    short:
+      "Заранее считаем ответ для всех отрезков длины 1, 2, 4, 8… Любой запрос накрывается двумя такими отрезками — пусть даже с перекрытием.",
+    formal: "ST[i][j] = op(ST[i][j−1], ST[i+2^(j−1)][j−1]). Работает для идемпотентных операций (min, max, gcd).",
+    complexity: "препроцессинг O(n log n), запрос O(1)",
+    demo: "sparse-table",
+    simulator: "sparse-table",
+  },
+  {
+    id: "segment-tree",
+    labels: ["дерево отрезков", "дереве отрезков", "дерева отрезков", "деревом отрезков", "segment tree"],
+    title: "Дерево отрезков",
+    short:
+      "Матрёшка из отрезков: корень отвечает за весь массив, каждый ребёнок — за половину родителя. Любой запрос собирается из O(log n) готовых кусков.",
+    formal: "Строится за O(n), запрос и обновление — O(log n). Умеет то, чего не умеет sparse table: точечные и отрезочные обновления.",
+    demo: "segment-tree",
+    simulator: "segment-trees",
+  },
+  {
+    id: "bridge",
+    labels: ["мост", "моста", "мосты", "мостов", "мостом", "мостами", "мостами"],
+    title: "Мост",
+    short:
+      "Ребро, после удаления которого граф разваливается на части. Единственная дорога на остров: перекрыл — и всё, приехали.",
+    formal: "Ребро (u,v) — мост ⟺ low[v] > tin[u], где low — минимальное время входа, достижимое из поддерева v (обратные рёбра считаются, ребро в родителя — нет).",
+    complexity: "O(V + E) одним DFS",
+    demo: "bridge",
+    simulator: "bridges-code",
+  },
+  {
+    id: "articulation",
+    labels: ["точка сочленения", "точки сочленения", "точек сочленения", "шарнир"],
+    title: "Точка сочленения",
+    short:
+      "Вершина-незаменимый-сотрудник: уволь её — и коллектив распадается на несвязанные куски.",
+    formal: "Для не-корня: v — точка сочленения ⟺ ∃ ребёнок c с low[c] ≥ tin[v]. Для корня: ⟺ у него ≥ 2 детей в дереве DFS.",
+    demo: "articulation",
+    simulator: "graph-articulation",
+  },
+  {
+    id: "mst",
+    labels: ["остовное дерево", "остовного дерева", "минимальное остовное дерево", "MST"],
+    title: "Минимальное остовное дерево (MST)",
+    short:
+      "Связать все точки проводами так, чтобы суммарная длина провода была минимальной и не осталось лишних колец.",
+    formal: "V−1 ребро, никаких циклов. Краскал (жадно по весу + DSU), Прим (растим одно дерево), Борувка (все компоненты растут параллельно).",
+    demo: "mst",
+    simulator: "mst-kruskal",
+  },
+  {
+    id: "amortized",
+    labels: ["амортизированная", "амортизированный", "амортизированная сложность", "амортизированно"],
+    title: "Амортизированная сложность",
+    short:
+      "Средняя цена операции «по абонементу»: одна операция может быть дорогой, но за длинную серию средняя цена мала.",
+    formal: "Метод потенциалов: дорогая операция оплачивается «накопленным» на предыдущих дешёвых. Так живут splay-дерево и динамический массив.",
+    demo: "amortized",
+  },
+  {
+    id: "np",
+    labels: ["NP-полная", "NP-полнота", "NP-трудная", "NP-полных", "NP"],
+    title: "Класс NP и NP-полнота",
+    short:
+      "NP — «решение проверить легко, найти трудно» (судоку: заполненную сетку проверяешь за минуту, решаешь час). NP-полные — самые трудные в NP.",
+    formal: "Задача NP-полна, если она в NP и к ней полиномиально сводится любая задача из NP. P ⊆ NP; равенство не доказано.",
+    demo: "np",
+  },
+  {
+    id: "potential",
+    labels: ["потенциал", "потенциалы", "потенциалов", "перевзвешивание"],
+    title: "Потенциалы (перевзвешивание Джонсона)",
+    short:
+      "Трюк «поднять все дороги на одинаковую высоту»: меняем веса так, чтобы отрицательных не осталось, а кратчайшие пути не поехали.",
+    formal: "w'(u,v) = w(u,v) + h(u) − h(v), где h — расстояния от фиктивной вершины (Форд–Беллман). Сумма по пути телескопируется, порядок путей сохраняется.",
+    demo: "relax",
+    simulator: "johnson-algo",
+  },
+  {
+    id: "scc",
+    labels: ["компонента сильной связности", "компоненты сильной связности", "SCC", "сильной связности"],
+    title: "Компоненты сильной связности",
+    short:
+      "Группы вершин, где из каждой можно дойти до каждой и вернуться. «Тусовка, из которой есть дорога обратно».",
+    formal: "Косарайю: DFS с сохранением порядка выхода → DFS по транспонированному графу в обратном порядке.",
+    complexity: "O(V + E)",
+    demo: "scc",
+    simulator: "scc-kosaraju",
+  },
+  {
+    id: "prefix-function",
+    labels: ["префикс-функция", "префикс-функции", "префикс-функцию", "КМП", "KMP", "бордер", "border"],
+    title: "Префикс-функция π (КМП)",
+    short:
+      "Для каждой позиции запоминаем: какой кусок начала строки уже совпал с её концом. При несовпадении откатываемся не в начало, а на этот кусок.",
+    formal:
+      "π[i] — длина наибольшего собственного префикса s[0..i], совпадающего с суффиксом. Кнут—Моррис—Пратт ищет образец за один проход, не возвращая указатель по тексту.",
+    complexity: "O(n + m)",
+    demo: "prefix-function",
+    simulator: "string-kmp",
+  },
+  {
+    id: "z-function",
+    labels: ["Z-функция", "Z-функции", "Z-функцию", "z-блок", "z-блока"],
+    title: "Z-функция",
+    short:
+      "Для каждой позиции: сколько символов подряд, начиная отсюда, совпадает с самым началом строки. Как прикладывать линейку началом к каждой букве.",
+    formal:
+      "z[i] = длина наибольшего общего префикса s и s[i..]. Считается за O(n) с помощью «самого правого» z-блока [l, r].",
+    complexity: "O(n)",
+    demo: "prefix-function",
+    simulator: "string-z-func",
+  },
+  {
+    id: "dp",
+    labels: ["динамическое программирование", "динамики", "мемоизация", "мемоизацию", "подзадач", "подзадачи"],
+    title: "Динамическое программирование",
+    short:
+      "Решаем задачу через ответы на её меньшие копии и записываем каждый ответ в таблицу, чтобы не считать дважды.",
+    formal:
+      "Нужны: оптимальная подструктура + перекрывающиеся подзадачи. Реализация — снизу вверх (таблица) или сверху вниз (рекурсия + мемоизация).",
+    demo: "dp",
+    simulator: "dynamic-programming",
+  },
+  {
+    id: "shortest-path",
+    labels: ["кратчайший путь", "кратчайшие пути", "кратчайшего пути", "кратчайших путей"],
+    title: "Кратчайший путь",
+    short:
+      "Самый дешёвый маршрут из A в B. «Дешёвый» — по сумме весов рёбер, а не по числу поворотов.",
+    formal:
+      "Дейкстра — неотрицательные веса, O(E log V). Форд—Беллман — умеет отрицательные и ловит отрицательные циклы, O(VE). Флойд — все пары, O(V³).",
+    demo: "relax",
+    simulator: "dijkstra",
+  },
+  {
+    id: "negative-cycle",
+    labels: ["отрицательный цикл", "отрицательного цикла", "отрицательные веса", "отрицательных весов"],
+    title: "Отрицательный цикл",
+    short:
+      "Круг, пройдя по которому вы становитесь «богаче». Кратчайшего пути тогда просто не существует — можно крутиться вечно.",
+    formal:
+      "Форд—Беллман: если на V-й итерации ещё удаётся сделать релаксацию — в графе есть достижимый отрицательный цикл.",
+    demo: "relax",
+    simulator: "bellman-ford",
+  },
+  {
+    id: "greedy",
+    labels: ["жадный алгоритм", "жадный", "жадно", "жадная"],
+    title: "Жадный алгоритм",
+    short:
+      "На каждом шаге хватаем то, что лучше прямо сейчас, и никогда не пересматриваем решение. Работает не всегда — но для MST работает.",
+    formal:
+      "Корректность обычно доказывается «леммой о разрезе» или матроидной структурой задачи.",
+    demo: "mst",
+    simulator: "mst-kruskal",
+  },
+  {
+    id: "euler",
+    labels: ["эйлеров цикл", "эйлеров путь", "эйлерова цикла", "чётность степеней", "степень вершины", "нечётных вершин"],
+    title: "Эйлеров путь и цикл",
+    short:
+      "Пройти по каждому ребру ровно один раз, не отрывая карандаша. Цикл — вернуться в старт; путь — можно закончить в другом месте.",
+    formal:
+      "Связный граф: эйлеров цикл ⟺ все степени чётные; эйлеров путь ⟺ ровно две вершины нечётной степени (они и будут концами).",
+    simulator: "euler-path-vs-cycle",
+  },
+  {
+    id: "planarity",
+    labels: ["планарный", "планарность", "планарного", "планарным", "формула Эйлера", "грань", "грани"],
+    title: "Планарность",
+    short:
+      "Граф планарен, если его можно нарисовать на листе без пересечений рёбер. Проверка «на глаз» обманчива — рисунок можно перекрутить.",
+    formal:
+      "V − E + F = 2 для связного планарного графа. Куратовский—Понтрягин: граф планарен ⟺ в нём нет подграфа, гомеоморфного K₅ или K₃,₃.",
+    simulator: "planarity-euler-formula",
+  },
+  {
+    id: "splay",
+    labels: ["splay", "splay-дерево", "поворот", "повороты", "поворота", "zig-zag", "zig-zig"],
+    title: "Splay и повороты",
+    short:
+      "Каждый раз, когда к узлу обратились, его «вытягивают» в корень серией поворотов. Часто используемое само оказывается наверху.",
+    formal:
+      "Три случая: zig (родитель — корень), zig-zig (узел и родитель с одной стороны), zig-zag (с разных). Амортизированно O(log n) на операцию.",
+    demo: "amortized",
+    simulator: "splay-tree",
+  },
+  {
+    id: "adjacency",
+    labels: ["матрица смежности", "список смежности", "списки смежности", "списках смежности"],
+    title: "Способы хранить граф",
+    short:
+      "Матрица смежности — таблица «есть ли ребро», быстро проверять, но жрёт V² памяти. Список смежности — у каждой вершины список соседей, экономно для разреженных графов.",
+    formal: "Матрица: проверка O(1), память O(V²). Список: перебор соседей O(deg v), память O(V + E).",
+  },
+];
+
+/** Быстрый доступ по id. */
+export const GLOSSARY_BY_ID = new Map(GLOSSARY.map((e) => [e.id, e]));
+
+/** Все метки, отсортированные от длинных к коротким (чтобы «обход в ширину» победил «в ширину»). */
+export const GLOSSARY_LABELS: { label: string; id: string }[] = GLOSSARY.flatMap((e) =>
+  e.labels.map((label) => ({ label, id: e.id }))
+).sort((a, b) => b.label.length - a.label.length);
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 20/74: src/data/graphContent.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 275 | РАЗМЕР: 18.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { Chapter } from "./content";
+import { Chapter } from "../types";
 
 export const graphChapters: Chapter[] = [
   {
@@ -2189,7 +2789,7 @@ void buildLinks() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 19/61: src/data/quizzes.ts
+ФАЙЛ 21/74: src/data/quizzes.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 106 | РАЗМЕР: 6.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2305,11 +2905,11 @@ export const quizzes: Record<string, QuizQuestion[]> = {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 20/61: src/data/tickets/ticket1_5.ts
+ФАЙЛ 22/74: src/data/tickets/ticket1_5.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 277 | РАЗМЕР: 21.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { Chapter } from '../types';
+import { Chapter } from '../../types';
 
 export const tickets1to5: Chapter[] = [
   {
@@ -2588,11 +3188,11 @@ function rotate(x) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 21/61: src/data/tickets/ticket14_20.ts
+ФАЙЛ 23/74: src/data/tickets/ticket14_20.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 248 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { Chapter } from '../types';
+import { Chapter } from '../../types';
 
 export const tickets14to20: Chapter[] = [
   {
@@ -2842,11 +3442,11 @@ export const tickets14to20: Chapter[] = [
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 22/61: src/data/tickets/ticket21_24.ts
+ФАЙЛ 24/74: src/data/tickets/ticket21_24.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 262 | РАЗМЕР: 19.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { Chapter } from '../types';
+import { Chapter } from '../../types';
 
 export const tickets21to24: Chapter[] = [
   {
@@ -3110,11 +3710,11 @@ int go(int v, char c) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 23/61: src/data/tickets/ticket6_13.ts
+ФАЙЛ 25/74: src/data/tickets/ticket6_13.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 486 | РАЗМЕР: 35.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { Chapter } from "../types";
+import { Chapter } from "../../types";
 
 export const tickets6to13: Chapter[] = [
   {
@@ -3606,7 +4206,7 @@ void dfs(int v, int p = -1) {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 24/61: src/components/ArticulationPointsViz.tsx
+ФАЙЛ 26/74: src/components/ArticulationPointsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 371 | РАЗМЕР: 12.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3983,11 +4583,11 @@ export const ArticulationPointsViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 25/61: src/components/BellmanFordViz.tsx
+ФАЙЛ 27/74: src/components/BellmanFordViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 307 | РАЗМЕР: 16.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -4296,11 +4896,11 @@ export default function BellmanFordViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 26/61: src/components/BfsViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 304 | РАЗМЕР: 11.3 KB
+ФАЙЛ 28/74: src/components/BfsViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 306 | РАЗМЕР: 11.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, RotateCcw, StepForward } from 'lucide-react';
 
 const NODES = [
@@ -4431,6 +5031,7 @@ export default function BfsViz() {
     setStepIdx(prev => Math.min(prev + 1, STEPS.length - 1));
   }, []);
 
+  // @ts-expect-error зарезервировано под кнопку «назад»
   const handlePrev = useCallback(() => {
     setStepIdx(prev => Math.max(prev - 1, 0));
   }, []);
@@ -4507,6 +5108,7 @@ export default function BfsViz() {
               let fill = '#1e293b'; // slate-800
               let stroke = '#475569'; // slate-600
               let scale = 1;
+              void scale;
 
               if (isCurrent) {
                 fill = '#3b82f6'; // blue-500
@@ -4606,7 +5208,7 @@ export default function BfsViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 27/61: src/components/ChapterImage.tsx
+ФАЙЛ 29/74: src/components/ChapterImage.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4654,7 +5256,233 @@ export default function ChapterImage({ vizType }: { vizType: string }) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 28/61: src/components/DfsBridgesSimulator.tsx
+ФАЙЛ 30/74: src/components/ChapterNav.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 77 | РАЗМЕР: 3.3 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { Chapter } from "../types";
+
+interface Props {
+  prev?: Chapter;
+  next?: Chapter;
+  index: number;
+  total: number;
+  onGo: (id: string) => void;
+  compact?: boolean;
+}
+
+/**
+ * Переходы «предыдущая / следующая тема» — как на Codeforces и других учебных сайтах.
+ * Компактный вариант живёт в шапке главы, крупный — под текстом.
+ */
+export const ChapterNav: React.FC<Props> = ({ prev, next, index, total, onGo, compact }) => {
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        <button
+          disabled={!prev}
+          onClick={() => prev && onGo(prev.id)}
+          title={prev ? prev.title : "Это первая тема"}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 enabled:hover:bg-slate-700 enabled:hover:text-white disabled:opacity-35 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Назад</span>
+        </button>
+        <span className="text-slate-500 font-mono tabular-nums whitespace-nowrap">
+          {index + 1} / {total}
+        </span>
+        <button
+          disabled={!next}
+          onClick={() => next && onGo(next.id)}
+          title={next ? next.title : "Это последняя тема"}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 enabled:hover:bg-slate-700 enabled:hover:text-white disabled:opacity-35 transition-colors"
+        >
+          <span className="hidden sm:inline">Вперёд</span>
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <nav className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10 pt-6 border-t border-slate-800">
+      {prev ? (
+        <button
+          onClick={() => onGo(prev.id)}
+          className="group text-left p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/60 hover:bg-slate-800/70 transition-all"
+        >
+          <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 group-hover:text-indigo-400 mb-1">
+            <ChevronLeft className="w-3.5 h-3.5" /> Предыдущая тема
+          </div>
+          <div className="text-sm font-bold text-slate-200 group-hover:text-white leading-snug">{prev.title}</div>
+        </button>
+      ) : (
+        <div className="hidden sm:block" />
+      )}
+
+      {next && (
+        <button
+          onClick={() => onGo(next.id)}
+          className="group text-right p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/60 hover:bg-slate-800/70 transition-all sm:col-start-2"
+        >
+          <div className="flex items-center justify-end gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 group-hover:text-indigo-400 mb-1">
+            Следующая тема <ChevronRight className="w-3.5 h-3.5" />
+          </div>
+          <div className="text-sm font-bold text-slate-200 group-hover:text-white leading-snug">{next.title}</div>
+        </button>
+      )}
+    </nav>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 31/74: src/components/ChapterView.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 137 | РАЗМЕР: 4.7 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Maximize2, MousePointerClick, Sparkles } from "lucide-react";
+import type { Chapter } from "../types";
+import { useTermHints } from "../hooks/useTermHints";
+import { TermPopover, type HintAnchor } from "./hints/TermPopover";
+import { getViz } from "./vizRegistry";
+import { ChapterNav } from "./ChapterNav";
+
+interface Props {
+  chapter: Chapter;
+  prev?: Chapter;
+  next?: Chapter;
+  index: number;
+  total: number;
+  onGo: (id: string) => void;
+  onOpenSimulator: (vizId: string) => void;
+}
+
+const isTouch = () => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+
+export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator }) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<HintAnchor | null>(null);
+  const hideTimer = useRef<number | null>(null);
+
+  useTermHints(contentRef, [chapter.id]);
+
+  const cancelHide = useCallback(() => {
+    if (hideTimer.current) {
+      window.clearTimeout(hideTimer.current);
+      hideTimer.current = null;
+    }
+  }, []);
+
+  const scheduleHide = useCallback(() => {
+    cancelHide();
+    hideTimer.current = window.setTimeout(() => setAnchor(null), 180);
+  }, [cancelHide]);
+
+  useEffect(() => {
+    setAnchor(null);
+  }, [chapter.id]);
+
+  const open = useCallback(
+    (el: HTMLElement) => {
+      const termId = el.dataset.termId;
+      if (!termId) return;
+      cancelHide();
+      setAnchor({ termId, rect: el.getBoundingClientRect() });
+    },
+    [cancelHide]
+  );
+
+  const handlePointerOver = (e: React.MouseEvent) => {
+    if (isTouch()) return;
+    const el = (e.target as HTMLElement).closest<HTMLElement>(".term-hint");
+    if (el) open(el);
+  };
+
+  const handlePointerOut = (e: React.MouseEvent) => {
+    if (isTouch()) return;
+    const el = (e.target as HTMLElement).closest<HTMLElement>(".term-hint");
+    if (el) scheduleHide();
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>(".term-hint");
+    if (!el) return;
+    e.preventDefault();
+    if (anchor && anchor.termId === el.dataset.termId) setAnchor(null);
+    else open(el);
+  };
+
+  const handleFocus = (e: React.FocusEvent) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>(".term-hint");
+    if (el) open(el);
+  };
+
+  const viz = getViz(chapter.id);
+
+  return (
+    <>
+      <article className="chapter-body">
+        <div
+          ref={contentRef}
+          className="prose prose-invert max-w-none"
+          onMouseOver={handlePointerOver}
+          onMouseOut={handlePointerOut}
+          onClick={handleClick}
+          onFocus={handleFocus}
+          dangerouslySetInnerHTML={{ __html: chapter.content }}
+        />
+
+        <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
+          <MousePointerClick className="w-4 h-4 shrink-0 text-indigo-400 mt-px" />
+          <span>
+            Подчёркнутые термины — интерактивные: наведите курсор (или тапните на телефоне), чтобы увидеть
+            объяснение на пальцах, мини-анимацию и кнопку запуска полного симулятора.
+          </span>
+        </p>
+
+        {viz && (
+          <section id="chapter-viz" className="mt-8 scroll-mt-24">
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+              <h3 className="flex items-center gap-2 text-base font-bold text-white">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                Демонстрация: {viz.title}
+              </h3>
+              <button
+                onClick={() => onOpenSimulator(chapter.id)}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
+              >
+                <Maximize2 className="w-3.5 h-3.5" /> Развернуть
+              </button>
+            </div>
+            {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
+            <viz.Component />
+          </section>
+        )}
+
+        <ChapterNav prev={prev} next={next} index={index} total={total} onGo={onGo} />
+      </article>
+
+      <TermPopover
+        anchor={anchor}
+        onClose={() => setAnchor(null)}
+        onOpenSimulator={(id) => {
+          setAnchor(null);
+          onOpenSimulator(id);
+        }}
+        onCardEnter={cancelHide}
+        onCardLeave={scheduleHide}
+      />
+    </>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 32/74: src/components/DfsBridgesSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 344 | РАЗМЕР: 15.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5004,11 +5832,11 @@ export function DfsBridgesSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 29/61: src/components/DijkstraViz.tsx
+ФАЙЛ 33/74: src/components/DijkstraViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 386 | РАЗМЕР: 18.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -5396,7 +6224,7 @@ export default function DijkstraViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 30/61: src/components/DPVisualizer.tsx
+ФАЙЛ 34/74: src/components/DPVisualizer.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 331 | РАЗМЕР: 14.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5733,7 +6561,7 @@ export function DPVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 31/61: src/components/EulerSimulator.tsx
+ФАЙЛ 35/74: src/components/EulerSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 120 | РАЗМЕР: 5.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5859,7 +6687,7 @@ export function EulerSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 32/61: src/components/ExpressQuiz.tsx
+ФАЙЛ 36/74: src/components/ExpressQuiz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 233 | РАЗМЕР: 12.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6098,11 +6926,11 @@ export const ExpressQuiz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 33/61: src/components/FloydViz.tsx
+ФАЙЛ 37/74: src/components/FloydViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 274 | РАЗМЕР: 15.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Step {
   k: number; i: number; j: number;
@@ -6378,11 +7206,11 @@ export default function FloydViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 34/61: src/components/GraphTraversalViz.tsx
+ФАЙЛ 38/74: src/components/GraphTraversalViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 253 | РАЗМЕР: 12.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from 'lucide-react';
 
 type Node = { id: string; label: string; x: number; y: number };
@@ -6637,7 +7465,7 @@ export function GraphTraversalViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 35/61: src/components/HeapViz.tsx
+ФАЙЛ 39/74: src/components/HeapViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 416 | РАЗМЕР: 18.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -7059,11 +7887,849 @@ export const HeapViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 36/61: src/components/JohnsonViz.tsx
+ФАЙЛ 40/74: src/components/hints/demoKit.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 74 | РАЗМЕР: 1.9 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useEffect, useState } from "react";
+
+/** Общие примитивы для мини-визуализаций подсказок. */
+export const W = 260;
+export const H = 130;
+
+export function useLoop(steps: number, ms = 900) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    if (steps <= 1) return;
+    const t = setInterval(() => setStep((s) => (s + 1) % steps), ms);
+    return () => clearInterval(t);
+  }, [steps, ms]);
+  return step;
+}
+
+export const C = {
+  idle: "#334155",
+  idleStroke: "#475569",
+  text: "#e2e8f0",
+  dim: "#94a3b8",
+  active: "#6366f1",
+  done: "#10b981",
+  warn: "#f59e0b",
+  bad: "#f43f5e",
+  edge: "#475569",
+};
+
+export const Svg: React.FC<{ children: React.ReactNode; caption?: string }> = ({ children, caption }) => (
+  <div className="w-full">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img">
+      {children}
+    </svg>
+    {caption && <div className="text-[10px] text-slate-400 text-center mt-1 leading-tight px-1">{caption}</div>}
+  </div>
+);
+
+export const Node: React.FC<{
+  x: number;
+  y: number;
+  r?: number;
+  fill: string;
+  label?: string | number;
+  stroke?: string;
+}> = ({ x, y, r = 13, fill, label, stroke }) => (
+  <g style={{ transition: "all .35s ease" }}>
+    <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke ?? C.idleStroke} strokeWidth={1.5} />
+    {label !== undefined && (
+      <text x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight="700" fill="#fff">
+        {label}
+      </text>
+    )}
+  </g>
+);
+
+export const Edge: React.FC<{
+  a: [number, number];
+  b: [number, number];
+  color?: string;
+  width?: number;
+  dashed?: boolean;
+}> = ({ a, b, color = C.edge, width = 2, dashed }) => (
+  <line
+    x1={a[0]}
+    y1={a[1]}
+    x2={b[0]}
+    y2={b[1]}
+    stroke={color}
+    strokeWidth={width}
+    strokeDasharray={dashed ? "4 3" : undefined}
+    style={{ transition: "stroke .35s ease" }}
+  />
+);
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 41/74: src/components/hints/demosGraph.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 192 | РАЗМЕР: 8.9 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React from "react";
+import { C, Edge, Node, Svg, useLoop } from "./demoKit";
+
+const GRAPH_POS: Record<string, [number, number]> = {
+  A: [32, 65], B: [92, 30], C: [92, 100], D: [152, 65], E: [212, 30], F: [212, 100],
+};
+const GRAPH_EDGES: [string, string][] = [
+  ["A", "B"], ["A", "C"], ["B", "D"], ["C", "D"], ["D", "E"], ["D", "F"], ["E", "F"],
+];
+
+export const BfsDemo: React.FC = () => {
+  const order = [["A"], ["B", "C"], ["D"], ["E", "F"]];
+  const step = useLoop(order.length + 1, 850);
+  const visited = new Set(order.slice(0, step).flat());
+  const wave = step > 0 && step <= order.length ? order[step - 1] : [];
+  return (
+    <Svg caption={`Уровень ${Math.max(0, Math.min(step, order.length) - 1)}: волна расходится по слоям`}>
+      {GRAPH_EDGES.map(([u, v], i) => (
+        <Edge key={i} a={GRAPH_POS[u]} b={GRAPH_POS[v]} color={visited.has(u) && visited.has(v) ? C.done : C.edge} />
+      ))}
+      {Object.entries(GRAPH_POS).map(([k, [x, y]]) => (
+        <Node key={k} x={x} y={y} label={k}
+          fill={wave.includes(k) ? C.active : visited.has(k) ? C.done : C.idle}
+          stroke={wave.includes(k) ? "#a5b4fc" : undefined} />
+      ))}
+    </Svg>
+  );
+};
+
+export const DfsDemo: React.FC = () => {
+  const path = ["A", "B", "D", "E", "F", "C"];
+  const step = useLoop(path.length + 1, 750);
+  const visited = path.slice(0, step);
+  const head = visited[visited.length - 1];
+  return (
+    <Svg caption={head ? `Идём вглубь: ${visited.join(" → ")}` : "Стартуем из A"}>
+      {GRAPH_EDGES.map(([u, v], i) => {
+        const iu = visited.indexOf(u);
+        const iv = visited.indexOf(v);
+        const onPath = iu >= 0 && iv >= 0 && Math.abs(iu - iv) === 1;
+        return <Edge key={i} a={GRAPH_POS[u]} b={GRAPH_POS[v]} color={onPath ? C.active : C.edge} width={onPath ? 3 : 2} />;
+      })}
+      {Object.entries(GRAPH_POS).map(([k, [x, y]]) => (
+        <Node key={k} x={x} y={y} label={k} fill={k === head ? C.warn : visited.includes(k) ? C.active : C.idle} />
+      ))}
+    </Svg>
+  );
+};
+
+export const ToposortDemo: React.FC = () => {
+  const nodes = [
+    { id: "трусы", x: 52, y: 32 }, { id: "штаны", x: 148, y: 32 },
+    { id: "носки", x: 52, y: 98 }, { id: "боты", x: 148, y: 98 },
+  ];
+  const edges: [string, string][] = [["трусы", "штаны"], ["носки", "боты"], ["штаны", "боты"]];
+  const order = ["трусы", "носки", "штаны", "боты"];
+  const step = useLoop(order.length + 1, 800);
+  const placed = order.slice(0, step);
+  const pos = Object.fromEntries(nodes.map((n) => [n.id, [n.x, n.y] as [number, number]]));
+  return (
+    <Svg caption={`Порядок: ${placed.join(" → ") || "…"}`}>
+      {edges.map(([u, v], i) => (
+        <Edge key={i} a={pos[u]} b={pos[v]} color={placed.includes(u) && placed.includes(v) ? C.done : C.edge} />
+      ))}
+      {nodes.map((n) => {
+        const idx = placed.indexOf(n.id);
+        return (
+          <g key={n.id}>
+            <rect x={n.x - 34} y={n.y - 12} width={68} height={24} rx={6} fill={idx >= 0 ? C.done : C.idle} style={{ transition: "fill .3s" }} />
+            <text x={n.x} y={n.y} textAnchor="middle" dominantBaseline="central" fontSize={9} fontWeight="700" fill="#fff">{n.id}</text>
+            {idx >= 0 && <circle cx={n.x + 30} cy={n.y - 12} r={7} fill={C.active} />}
+            {idx >= 0 && (
+              <text x={n.x + 30} y={n.y - 12} textAnchor="middle" dominantBaseline="central" fontSize={8} fontWeight="700" fill="#fff">{idx + 1}</text>
+            )}
+          </g>
+        );
+      })}
+      <text x={224} y={62} textAnchor="middle" fontSize={8} fill={C.dim}>стрелки</text>
+      <text x={224} y={74} textAnchor="middle" fontSize={8} fill={C.dim}>только →</text>
+    </Svg>
+  );
+};
+
+export const RelaxDemo: React.FC = () => {
+  const step = useLoop(3, 1100);
+  const dV = [12, 12, 7][step];
+  const improved = step === 2;
+  return (
+    <Svg caption={improved ? "12 > 3 + 4 → пишем 7. Путь через u короче!" : "Проверяем: d[v] > d[u] + w(u,v)?"}>
+      <Edge a={[60, 70]} b={[200, 70]} color={improved ? C.done : C.warn} width={3} />
+      <text x={130} y={54} textAnchor="middle" fontSize={11} fontWeight="700" fill={C.warn}>w = 4</text>
+      <Node x={60} y={70} r={20} fill={C.active} label="u" />
+      <Node x={200} y={70} r={20} fill={improved ? C.done : C.idle} label="v" />
+      <text x={60} y={106} textAnchor="middle" fontSize={10} fill={C.text}>d = 3</text>
+      <text x={200} y={106} textAnchor="middle" fontSize={10} fontWeight="700" fill={improved ? C.done : C.bad}>d = {dV}</text>
+      <text x={130} y={22} textAnchor="middle" fontSize={9} fill={C.dim}>3 + 4 = 7</text>
+    </Svg>
+  );
+};
+
+export const BridgeDemo: React.FC = () => {
+  const step = useLoop(2, 1300);
+  const pos: Record<string, [number, number]> = {
+    A: [40, 40], B: [40, 95], C: [95, 68], D: [170, 68], E: [220, 40], F: [220, 95],
+  };
+  const edges: [string, string][] = [
+    ["A", "B"], ["A", "C"], ["B", "C"], ["C", "D"], ["D", "E"], ["D", "F"], ["E", "F"],
+  ];
+  const cut = step === 1;
+  return (
+    <Svg caption={cut ? "Убрали C—D → граф развалился на два куска. Это мост!" : "C—D — единственная дорога между кластерами"}>
+      {edges.map(([u, v], i) => {
+        const isBridge = u === "C" && v === "D";
+        if (isBridge && cut) return null;
+        return <Edge key={i} a={pos[u]} b={pos[v]} color={isBridge ? C.bad : C.edge} width={isBridge ? 3.5 : 2} dashed={isBridge} />;
+      })}
+      {Object.entries(pos).map(([k, [x, y]]) => (
+        <Node key={k} x={x} y={y} label={k} fill={cut ? (["A", "B", "C"].includes(k) ? C.active : C.warn) : C.idle} r={12} />
+      ))}
+    </Svg>
+  );
+};
+
+export const ArticulationDemo: React.FC = () => {
+  const step = useLoop(2, 1300);
+  const pos: Record<string, [number, number]> = {
+    A: [36, 40], B: [36, 96], C: [130, 68], D: [224, 40], E: [224, 96],
+  };
+  const edges: [string, string][] = [["A", "B"], ["A", "C"], ["B", "C"], ["C", "D"], ["C", "E"], ["D", "E"]];
+  const cut = step === 1;
+  return (
+    <Svg caption={cut ? "Убрали вершину C → две отдельные компоненты" : "C — единственный связующий сотрудник"}>
+      {edges.map(([u, v], i) => (cut && (u === "C" || v === "C") ? null : <Edge key={i} a={pos[u]} b={pos[v]} />))}
+      {Object.entries(pos).map(([k, [x, y]]) =>
+        cut && k === "C" ? (
+          <circle key={k} cx={x} cy={y} r={12} fill="none" stroke={C.bad} strokeWidth={2} strokeDasharray="3 3" />
+        ) : (
+          <Node key={k} x={x} y={y} label={k} fill={k === "C" ? C.bad : cut ? (["A", "B"].includes(k) ? C.active : C.warn) : C.idle} r={12} />
+        )
+      )}
+    </Svg>
+  );
+};
+
+export const MstDemo: React.FC = () => {
+  const pos: Record<string, [number, number]> = {
+    A: [40, 35], B: [130, 22], C: [220, 45], D: [70, 100], E: [180, 105],
+  };
+  const edges = [
+    { u: "A", v: "B", w: 2 }, { u: "B", v: "C", w: 3 }, { u: "A", v: "D", w: 1 },
+    { u: "D", v: "E", w: 4 }, { u: "B", v: "E", w: 6 }, { u: "C", v: "E", w: 5 },
+  ];
+  const chosen = ["A-D", "A-B", "B-C", "D-E"];
+  const step = useLoop(chosen.length + 1, 800);
+  const taken = new Set(chosen.slice(0, step));
+  return (
+    <Svg caption={`Жадно берём самые лёгкие рёбра без циклов (взято ${step} из 4)`}>
+      {edges.map((e, i) => {
+        const on = taken.has(`${e.u}-${e.v}`);
+        return (
+          <g key={i}>
+            <Edge a={pos[e.u]} b={pos[e.v]} color={on ? C.done : C.edge} width={on ? 3.5 : 1.5} />
+            <text x={(pos[e.u][0] + pos[e.v][0]) / 2} y={(pos[e.u][1] + pos[e.v][1]) / 2 - 4}
+              textAnchor="middle" fontSize={9} fontWeight="700" fill={on ? C.done : C.dim}>{e.w}</text>
+          </g>
+        );
+      })}
+      {Object.entries(pos).map(([k, [x, y]]) => (<Node key={k} x={x} y={y} label={k} fill={C.idle} r={12} />))}
+    </Svg>
+  );
+};
+
+export const SccDemo: React.FC = () => {
+  const pos: Record<string, [number, number]> = {
+    A: [45, 35], B: [110, 35], C: [77, 95], D: [185, 45], E: [225, 95],
+  };
+  const edges: [string, string][] = [["A", "B"], ["B", "C"], ["C", "A"], ["B", "D"], ["D", "E"]];
+  const step = useLoop(2, 1400);
+  const scc = ["A", "B", "C"];
+  const inScc = (u: string, v: string) => step === 1 && scc.includes(u) && scc.includes(v);
+  return (
+    <Svg caption={step === 1 ? "{A,B,C} — цикл: из каждой в каждую и обратно" : "Ищем группы с дорогой «туда и обратно»"}>
+      {edges.map(([u, v], i) => (
+        <Edge key={i} a={pos[u]} b={pos[v]} color={inScc(u, v) ? C.done : C.edge} width={inScc(u, v) ? 3 : 2} />
+      ))}
+      {Object.entries(pos).map(([k, [x, y]]) => (
+        <Node key={k} x={x} y={y} label={k} fill={step === 1 && scc.includes(k) ? C.done : C.idle} r={12} />
+      ))}
+    </Svg>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 42/74: src/components/hints/demosStruct.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 310 | РАЗМЕР: 14.3 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React from "react";
+import { C, Edge, Node, Svg, useLoop } from "./demoKit";
+
+export const HeapDemo: React.FC = () => {
+  const states = [[4, 8, 9, 12, 2], [4, 2, 9, 12, 8], [2, 4, 9, 12, 8]];
+  const step = useLoop(states.length, 1000);
+  const heap = states[step];
+  const pos: [number, number][] = [[130, 24], [80, 68], [186, 68], [50, 110], [112, 110]];
+  const moving = step === 0 ? 4 : step === 1 ? 1 : 0;
+  return (
+    <Svg caption="Новый элемент всплывает наверх, пока меньше родителя (sift-up)">
+      <Edge a={pos[0]} b={pos[1]} /><Edge a={pos[0]} b={pos[2]} />
+      <Edge a={pos[1]} b={pos[3]} /><Edge a={pos[1]} b={pos[4]} />
+      {heap.map((v, i) => (
+        <Node key={i} x={pos[i][0]} y={pos[i][1]} label={v} fill={i === moving ? C.active : i === 0 ? C.done : C.idle} />
+      ))}
+    </Svg>
+  );
+};
+
+export const StackDemo: React.FC = () => {
+  const states = [["A"], ["A", "B"], ["A", "B", "C"], ["A", "B"], ["A"]];
+  const step = useLoop(states.length, 800);
+  const items = states[step];
+  const popping = step >= 3;
+  return (
+    <Svg caption={popping ? "pop: забираем ВЕРХНЮЮ тарелку" : "push: кладём сверху"}>
+      <rect x={90} y={22} width={80} height={96} rx={6} fill="none" stroke={C.idleStroke} strokeDasharray="4 3" />
+      {items.map((v, i) => (
+        <g key={v} style={{ transition: "all .3s" }}>
+          <rect x={94} y={100 - i * 26} width={72} height={22} rx={5}
+            fill={i === items.length - 1 ? (popping ? C.bad : C.active) : C.idle} />
+          <text x={130} y={111 - i * 26} textAnchor="middle" fontSize={11} fontWeight="700" fill="#fff">{v}</text>
+        </g>
+      ))}
+      <text x={130} y={16} textAnchor="middle" fontSize={9} fill={C.dim}>верх (LIFO)</text>
+    </Svg>
+  );
+};
+
+export const QueueDemo: React.FC = () => {
+  const states = [["A", "B"], ["A", "B", "C"], ["B", "C"], ["C"], ["C", "D"]];
+  const step = useLoop(states.length, 800);
+  const items = states[step];
+  return (
+    <Svg caption="pop_front слева, push_back справа — кто первым встал, тот первым и вышел">
+      <defs>
+        <marker id="mdArrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill={C.done} />
+        </marker>
+      </defs>
+      <text x={12} y={44} fontSize={9} fill={C.dim}>выход</text>
+      <text x={206} y={44} fontSize={9} fill={C.dim}>вход</text>
+      {items.map((v, i) => (
+        <g key={v} style={{ transition: "all .3s" }}>
+          <rect x={30 + i * 54} y={56} width={46} height={30} rx={6} fill={i === 0 ? C.done : C.idle} />
+          <text x={53 + i * 54} y={71} textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="700" fill="#fff">{v}</text>
+        </g>
+      ))}
+      <line x1={24} y1={71} x2={10} y2={71} stroke={C.done} strokeWidth={2} markerEnd="url(#mdArrow)" />
+    </Svg>
+  );
+};
+
+export const DsuDemo: React.FC = () => {
+  const parents = [[0, 1, 2, 3], [0, 0, 2, 3], [0, 0, 2, 2], [0, 0, 0, 2]];
+  const step = useLoop(parents.length, 950);
+  const p = parents[step];
+  const pos: [number, number][] = [[50, 95], [105, 95], [160, 95], [215, 95]];
+  const rootColor = ["#6366f1", "#10b981", "#f59e0b", "#f43f5e"];
+  const root = (i: number): number => (p[i] === i ? i : root(p[i]));
+  return (
+    <Svg caption="find = «кто твой староста», union = один староста подчиняется другому">
+      {p.map((par, i) =>
+        par !== i ? (
+          <path key={i} d={`M ${pos[i][0]} ${pos[i][1] - 14} Q ${(pos[i][0] + pos[par][0]) / 2} 34 ${pos[par][0]} ${pos[par][1] - 14}`}
+            fill="none" stroke={rootColor[root(i)]} strokeWidth={2} />
+        ) : null
+      )}
+      {pos.map(([x, y], i) => (<Node key={i} x={x} y={y} label={i} fill={rootColor[root(i)]} />))}
+    </Svg>
+  );
+};
+
+const TRIE_NODES = [
+  { id: 0, x: 130, y: 22, ch: "•", parent: null as number | null },
+  { id: 1, x: 72, y: 62, ch: "a", parent: 0 },
+  { id: 2, x: 188, y: 62, ch: "b", parent: 0 },
+  { id: 3, x: 42, y: 104, ch: "b", parent: 1 },
+  { id: 4, x: 102, y: 104, ch: "c", parent: 1 },
+  { id: 5, x: 188, y: 104, ch: "c", parent: 2 },
+];
+
+export const TrieDemo: React.FC = () => {
+  const step = useLoop(TRIE_NODES.length + 1, 700);
+  return (
+    <Svg caption="Путь от корня по буквам = слово; общие приставки делят один путь">
+      {TRIE_NODES.filter((n) => n.parent !== null).map((n) => {
+        const p = TRIE_NODES[n.parent as number];
+        return <Edge key={n.id} a={[p.x, p.y]} b={[n.x, n.y]} color={n.id < step ? C.active : C.edge} />;
+      })}
+      {TRIE_NODES.map((n) => (<Node key={n.id} x={n.x} y={n.y} label={n.ch} fill={n.id < step ? C.active : C.idle} r={12} />))}
+    </Svg>
+  );
+};
+
+export const TrieBfsDemo: React.FC = () => {
+  const levels = [[0], [1, 2], [3, 4, 5]];
+  const step = useLoop(levels.length + 1, 950);
+  const doneIds = new Set(levels.slice(0, step).flat());
+  const wave = step > 0 && step <= levels.length ? levels[step - 1] : [];
+  return (
+    <Svg caption={`BFS по бору: уровень ${Math.max(0, Math.min(step, levels.length) - 1)} — ссылки родителей уже готовы`}>
+      {TRIE_NODES.filter((n) => n.parent !== null).map((n) => {
+        const p = TRIE_NODES[n.parent as number];
+        return <Edge key={n.id} a={[p.x, p.y]} b={[n.x, n.y]} color={doneIds.has(n.id) ? C.done : C.edge} />;
+      })}
+      {TRIE_NODES.map((n) => (
+        <Node key={n.id} x={n.x} y={n.y} label={n.ch}
+          fill={wave.includes(n.id) ? C.active : doneIds.has(n.id) ? C.done : C.idle} r={12} />
+      ))}
+      <text x={6} y={12} fontSize={9} fill={C.dim}>очередь →</text>
+    </Svg>
+  );
+};
+
+export const SuffixLinkDemo: React.FC = () => {
+  const links: [number, number][] = [[1, 0], [2, 0], [3, 2], [4, 5]];
+  const step = useLoop(links.length + 1, 900);
+  return (
+    <Svg caption="Суффиксная ссылка: «куда откатиться, если буква не подошла»">
+      {TRIE_NODES.filter((n) => n.parent !== null).map((n) => {
+        const p = TRIE_NODES[n.parent as number];
+        return <Edge key={n.id} a={[p.x, p.y]} b={[n.x, n.y]} />;
+      })}
+      {links.slice(0, step).map(([from, to], i) => {
+        const a = TRIE_NODES[from];
+        const b = TRIE_NODES[to];
+        return (
+          <path key={i} d={`M ${a.x} ${a.y} Q ${(a.x + b.x) / 2} ${a.y + 26} ${b.x} ${b.y}`}
+            fill="none" stroke={C.warn} strokeWidth={1.8} strokeDasharray="4 3" />
+        );
+      })}
+      {TRIE_NODES.map((n) => (
+        <Node key={n.id} x={n.x} y={n.y} label={n.ch} fill={step > 0 && links[step - 1]?.[0] === n.id ? C.warn : C.idle} r={12} />
+      ))}
+    </Svg>
+  );
+};
+
+export const SegmentTreeDemo: React.FC = () => {
+  const step = useLoop(3, 1000);
+  const nodes = [
+    { x: 130, y: 24, w: 226, label: "[0..7]", lvl: 0 },
+    { x: 72, y: 60, w: 110, label: "[0..3]", lvl: 1 },
+    { x: 188, y: 60, w: 110, label: "[4..7]", lvl: 1 },
+    { x: 44, y: 96, w: 52, label: "[0..1]", lvl: 2 },
+    { x: 100, y: 96, w: 52, label: "[2..3]", lvl: 2 },
+    { x: 160, y: 96, w: 52, label: "[4..5]", lvl: 2 },
+    { x: 216, y: 96, w: 52, label: "[6..7]", lvl: 2 },
+  ];
+  return (
+    <Svg caption="Запрос собирается из O(log n) готовых узлов-матрёшек">
+      {nodes.map((n, i) => (
+        <g key={i}>
+          <rect x={n.x - n.w / 2} y={n.y - 10} width={n.w} height={20} rx={5}
+            fill={n.lvl === step ? C.active : C.idle} stroke={C.idleStroke} style={{ transition: "fill .3s" }} />
+          <text x={n.x} y={n.y} textAnchor="middle" dominantBaseline="central" fontSize={9} fontWeight="700" fill="#fff">{n.label}</text>
+        </g>
+      ))}
+    </Svg>
+  );
+};
+
+export const PrefixSumDemo: React.FC = () => {
+  const a = [3, 1, 4, 1, 5, 9];
+  const pref = a.reduce<number[]>((acc, v) => [...acc, (acc[acc.length - 1] ?? 0) + v], [0]);
+  const step = useLoop(4, 1200);
+  const l = 1, r = 3;
+  const show = step >= 1;
+  return (
+    <Svg caption={show ? `a[${l}..${r}] = P[${r + 1}] − P[${l}] = ${pref[r + 1]} − ${pref[l]} = ${pref[r + 1] - pref[l]}` : "массив a и его префиксные суммы P"}>
+      <text x={4} y={18} fontSize={8} fill={C.dim}>a</text>
+      {a.map((v, i) => (
+        <g key={i}>
+          <rect x={20 + i * 39} y={24} width={34} height={24} rx={5}
+            fill={show && i >= l && i <= r ? C.active : C.idle} style={{ transition: "fill .3s" }} />
+          <text x={37 + i * 39} y={36} textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight="700" fill="#fff">{v}</text>
+        </g>
+      ))}
+      <text x={4} y={72} fontSize={8} fill={C.dim}>P</text>
+      {pref.map((v, i) => (
+        <g key={i}>
+          <rect x={20 + i * 33} y={78} width={29} height={24} rx={5}
+            fill={show && i === l ? C.bad : show && i === r + 1 ? C.done : "#1e293b"}
+            stroke={C.idleStroke} style={{ transition: "fill .3s" }} />
+          <text x={34 + i * 33} y={90} textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight="700" fill="#fff">{v}</text>
+        </g>
+      ))}
+    </Svg>
+  );
+};
+
+export const SparseTableDemo: React.FC = () => {
+  const step = useLoop(3, 1000);
+  const len = [1, 2, 4][step];
+  const count = 8 - len + 1;
+  return (
+    <Svg caption={`Уровень j=${step}: готовые ответы для всех отрезков длины ${len}`}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <g key={i}>
+          <rect x={12 + i * 30} y={18} width={26} height={22} rx={4} fill={C.idle} />
+          <text x={25 + i * 30} y={29} textAnchor="middle" dominantBaseline="central" fontSize={9} fill="#fff">{i}</text>
+        </g>
+      ))}
+      {Array.from({ length: count }).map((_, i) => (
+        <rect key={i} x={12 + i * 30} y={52 + (i % 4) * 19} width={26 + (len - 1) * 30} height={14} rx={4}
+          fill={C.active} opacity={i === 0 ? 1 : 0.4} style={{ transition: "all .3s" }} />
+      ))}
+    </Svg>
+  );
+};
+
+export const AmortizedDemo: React.FC = () => {
+  const costs = [1, 1, 1, 8, 1, 1, 1, 1];
+  const step = useLoop(costs.length + 1, 550);
+  const total = costs.slice(0, step).reduce((a, b) => a + b, 0);
+  const avg = step ? (total / step).toFixed(2) : "—";
+  return (
+    <Svg caption={`Сделано ${step} операций, суммарно ${total} → средняя цена ${avg}`}>
+      {costs.map((c, i) => (
+        <rect key={i} x={14 + i * 30} y={104 - c * 10} width={22} height={c * 10} rx={3}
+          fill={i < step ? (c > 2 ? C.bad : C.done) : C.idle} style={{ transition: "fill .2s" }} />
+      ))}
+      <line x1={8} y1={106} x2={252} y2={106} stroke={C.idleStroke} />
+      <text x={130} y={20} textAnchor="middle" fontSize={8} fill={C.dim}>одна дорогая операция «оплачена» пачкой дешёвых</text>
+    </Svg>
+  );
+};
+
+export const NpDemo: React.FC = () => {
+  const step = useLoop(2, 1400);
+  return (
+    <Svg caption={step === 0 ? "Найти решение — долго (перебор)" : "Проверить готовое решение — быстро"}>
+      <ellipse cx={130} cy={64} rx={112} ry={48} fill="#1e293b" stroke={C.idleStroke} />
+      <ellipse cx={92} cy={64} rx={52} ry={32} fill="#312e81" stroke={C.active} />
+      <text x={92} y={64} textAnchor="middle" dominantBaseline="central" fontSize={13} fontWeight="700" fill="#c7d2fe">P</text>
+      <text x={206} y={34} textAnchor="middle" fontSize={13} fontWeight="700" fill={C.dim}>NP</text>
+      <circle cx={196} cy={84} r={13} fill={step === 1 ? C.done : C.bad} style={{ transition: "fill .4s" }} />
+      <text x={196} y={84} textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight="700" fill="#fff">{step === 1 ? "✓" : "?"}</text>
+      <text x={130} y={124} textAnchor="middle" fontSize={8} fill={C.dim}>NP-полные — самые трудные в NP</text>
+    </Svg>
+  );
+};
+
+export const PrefixFunctionDemo: React.FC = () => {
+  const s = "abacaba";
+  const pi = [0, 0, 1, 0, 1, 2, 3];
+  const step = useLoop(s.length + 1, 700);
+  const i = Math.max(0, step - 1);
+  const len = step > 0 ? pi[i] : 0;
+  return (
+    <Svg caption={step > 0 ? `π[${i}] = ${len}: префикс длины ${len} совпал с суффиксом` : "Строка abacaba"}>
+      {s.split("").map((ch, idx) => (
+        <g key={idx}>
+          <rect x={18 + idx * 33} y={26} width={28} height={28} rx={5}
+            fill={step > 0 && (idx < len || (idx > i - len && idx <= i)) ? C.done : idx === i && step > 0 ? C.active : C.idle}
+            style={{ transition: "fill .25s" }} />
+          <text x={32 + idx * 33} y={40} textAnchor="middle" dominantBaseline="central" fontSize={13} fontWeight="700" fill="#fff">{ch}</text>
+          <text x={32 + idx * 33} y={70} textAnchor="middle" fontSize={10} fontWeight="700"
+            fill={idx <= i && step > 0 ? C.warn : C.idle}>{idx <= i && step > 0 ? pi[idx] : "·"}</text>
+        </g>
+      ))}
+      <text x={4} y={40} fontSize={8} fill={C.dim}>s</text>
+      <text x={4} y={70} fontSize={8} fill={C.dim}>π</text>
+      <text x={130} y={106} textAnchor="middle" fontSize={9} fill={C.dim}>
+        π[i] — длина самого длинного «префикс = суффикс»
+      </text>
+    </Svg>
+  );
+};
+
+export const DpDemo: React.FC = () => {
+  const rows = 3, cols = 5;
+  const step = useLoop(rows * cols + 1, 320);
+  return (
+    <Svg caption={`Заполняем таблицу подзадач: готово ${Math.min(step, rows * cols)} из ${rows * cols}`}>
+      {Array.from({ length: rows }).map((_, r) =>
+        Array.from({ length: cols }).map((_, c) => {
+          const idx = r * cols + c;
+          const filled = idx < step;
+          return (
+            <g key={idx}>
+              <rect x={40 + c * 38} y={22 + r * 32} width={34} height={28} rx={5}
+                fill={idx === step - 1 ? C.active : filled ? C.done : C.idle} style={{ transition: "fill .2s" }} />
+              {filled && (
+                <text x={57 + c * 38} y={36 + r * 32} textAnchor="middle" dominantBaseline="central"
+                  fontSize={10} fontWeight="700" fill="#fff">{(r + 1) * (c + 1)}</text>
+              )}
+            </g>
+          );
+        })
+      )}
+      <text x={130} y={122} textAnchor="middle" fontSize={9} fill={C.dim}>
+        каждая клетка считается один раз и переиспользуется
+      </text>
+    </Svg>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 43/74: src/components/hints/MiniDemo.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 48 | РАЗМЕР: 1.4 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React from "react";
+import { ArticulationDemo, BfsDemo, BridgeDemo, DfsDemo, MstDemo, RelaxDemo, SccDemo, ToposortDemo } from "./demosGraph";
+import {
+  AmortizedDemo, DsuDemo, HeapDemo, NpDemo, PrefixSumDemo, QueueDemo, SegmentTreeDemo,
+  SparseTableDemo, StackDemo, SuffixLinkDemo, TrieBfsDemo, TrieDemo, PrefixFunctionDemo, DpDemo,
+} from "./demosStruct";
+
+export type DemoKind =
+  | "bfs" | "dfs" | "heap" | "stack" | "queue" | "dsu" | "trie" | "trie-bfs"
+  | "suffix-link" | "toposort" | "relax" | "prefix-sum" | "sparse-table"
+  | "segment-tree" | "bridge" | "articulation" | "mst" | "amortized" | "np" | "scc"
+  | "prefix-function" | "dp";
+
+const REGISTRY: Record<DemoKind, React.FC> = {
+  bfs: BfsDemo,
+  dfs: DfsDemo,
+  heap: HeapDemo,
+  stack: StackDemo,
+  queue: QueueDemo,
+  dsu: DsuDemo,
+  trie: TrieDemo,
+  "trie-bfs": TrieBfsDemo,
+  "suffix-link": SuffixLinkDemo,
+  toposort: ToposortDemo,
+  relax: RelaxDemo,
+  "prefix-sum": PrefixSumDemo,
+  "sparse-table": SparseTableDemo,
+  "segment-tree": SegmentTreeDemo,
+  bridge: BridgeDemo,
+  articulation: ArticulationDemo,
+  mst: MstDemo,
+  amortized: AmortizedDemo,
+  np: NpDemo,
+  scc: SccDemo,
+  "prefix-function": PrefixFunctionDemo,
+  dp: DpDemo,
+};
+
+export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {
+  const Cmp = REGISTRY[kind];
+  if (!Cmp) return null;
+  return (
+    <div className="bg-slate-950/70 rounded-lg border border-slate-800 p-2">
+      <Cmp />
+    </div>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 44/74: src/components/hints/SimulatorModal.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 55 | РАЗМЕР: 2.1 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+import { getViz } from "../vizRegistry";
+
+interface Props {
+  vizId: string | null;
+  onClose: () => void;
+}
+
+/** Модальное окно с полноценным симулятором — вызывается прямо из текста главы. */
+export const SimulatorModal: React.FC<Props> = ({ vizId, onClose }) => {
+  useEffect(() => {
+    if (!vizId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [vizId, onClose]);
+
+  const viz = getViz(vizId ?? undefined);
+  if (!vizId || !viz) return null;
+  const Component = viz.Component;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center sm:p-4">
+      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full sm:max-w-5xl max-h-[92vh] sm:max-h-[88vh] bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800 shrink-0">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-white text-sm sm:text-base truncate">{viz.title}</h3>
+            {viz.hint && <p className="text-[11px] text-slate-400 truncate">{viz.hint}</p>}
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors shrink-0"
+            aria-label="Закрыть симулятор"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="overflow-y-auto overscroll-contain p-3 sm:p-5">
+          <Component />
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 45/74: src/components/hints/TermPopover.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 123 | РАЗМЕР: 4.1 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { Play, X } from "lucide-react";
+import { GLOSSARY_BY_ID } from "../../data/glossary";
+import { MiniDemo } from "./MiniDemo";
+import { getViz } from "../vizRegistry";
+
+export interface HintAnchor {
+  termId: string;
+  rect: DOMRect;
+}
+
+interface Props {
+  anchor: HintAnchor | null;
+  onClose: () => void;
+  onOpenSimulator: (vizId: string) => void;
+  onCardEnter: () => void;
+  onCardLeave: () => void;
+}
+
+const CARD_W = 320;
+const GAP = 10;
+
+export const TermPopover: React.FC<Props> = ({ anchor, onClose, onOpenSimulator, onCardEnter, onCardLeave }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; below: boolean } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!anchor) {
+      setPos(null);
+      return;
+    }
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const width = Math.min(CARD_W, vw - 16);
+    const height = cardRef.current?.offsetHeight ?? 300;
+
+    let left = anchor.rect.left + anchor.rect.width / 2 - width / 2;
+    left = Math.max(8, Math.min(left, vw - width - 8));
+
+    const below = anchor.rect.top < height + GAP + 8;
+    const top = below ? anchor.rect.bottom + GAP : anchor.rect.top - height - GAP;
+
+    setPos({ top: Math.max(8, Math.min(top, vh - height - 8)), left, below });
+  }, [anchor]);
+
+  useEffect(() => {
+    if (!anchor) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onClose, true);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onClose, true);
+    };
+  }, [anchor, onClose]);
+
+  if (!anchor) return null;
+  const entry = GLOSSARY_BY_ID.get(anchor.termId);
+  if (!entry) return null;
+  const viz = getViz(entry.simulator);
+  const simulatorId = entry.simulator;
+
+  return createPortal(
+    <div
+      ref={cardRef}
+      onMouseEnter={onCardEnter}
+      onMouseLeave={onCardLeave}
+      className="fixed z-[100] term-popover"
+      style={{
+        top: pos ? pos.top : -9999,
+        left: pos ? pos.left : -9999,
+        width: Math.min(CARD_W, typeof window !== "undefined" ? window.innerWidth - 16 : CARD_W),
+        visibility: pos ? "visible" : "hidden",
+      }}
+      role="dialog"
+    >
+      <div className="bg-slate-900 border border-indigo-500/40 rounded-xl shadow-2xl shadow-indigo-950/60 overflow-hidden">
+        <div className="flex items-start gap-2 px-3 pt-2.5 pb-2 border-b border-slate-800">
+          <h4 className="text-sm font-bold text-indigo-300 leading-snug flex-1">{entry.title}</h4>
+          <button
+            onClick={onClose}
+            className="text-slate-500 hover:text-white shrink-0 -mt-0.5 p-1 rounded"
+            aria-label="Закрыть подсказку"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-3 space-y-2.5 max-h-[60vh] overflow-y-auto overscroll-contain">
+          <p className="text-[13px] leading-relaxed text-slate-200">{entry.short}</p>
+
+          {entry.demo && <MiniDemo kind={entry.demo} />}
+
+          {entry.formal && (
+            <p className="text-[11.5px] leading-relaxed text-slate-400 border-l-2 border-slate-700 pl-2">
+              {entry.formal}
+            </p>
+          )}
+
+          {entry.complexity && (
+            <div className="text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 rounded px-2 py-1">
+              Сложность: {entry.complexity}
+            </div>
+          )}
+
+          {viz && simulatorId && (
+            <button
+              onClick={() => onOpenSimulator(simulatorId)}
+              className="w-full flex items-center justify-center gap-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2 transition-colors"
+            >
+              <Play className="w-3.5 h-3.5" /> Показать: {viz.title}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 46/74: src/components/JohnsonViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 315 | РАЗМЕР: 16.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { RotateCcw, SkipForward, Undo } from 'lucide-react';
 
 export function JohnsonViz() {
@@ -7380,8 +9046,8 @@ export function JohnsonViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 37/61: src/components/KosarajuViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 508 | РАЗМЕР: 16.1 KB
+ФАЙЛ 47/74: src/components/KosarajuViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 505 | РАЗМЕР: 16.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
@@ -7389,10 +9055,7 @@ import {
   Play,
   Pause,
   RotateCcw,
-  ArrowRight,
   Layers,
-  Shuffle,
-  Check,
 } from "lucide-react";
 
 interface GNode {
@@ -7894,7 +9557,7 @@ export const KosarajuViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 38/61: src/components/KruskalSimulator.tsx
+ФАЙЛ 48/74: src/components/KruskalSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1117 | РАЗМЕР: 56.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9017,7 +10680,7 @@ def prim(graph, start):
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 39/61: src/components/MnemonicCards.tsx
+ФАЙЛ 49/74: src/components/MnemonicCards.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 2.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9091,7 +10754,94 @@ export default function MnemonicCards() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 40/61: src/components/Navbar.tsx
+ФАЙЛ 50/74: src/components/MobileToc.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 81 | РАЗМЕР: 3.2 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useEffect, useState } from "react";
+import { List, X } from "lucide-react";
+import { Sidebar } from "./Sidebar";
+
+interface Props {
+  selectedChapterId: string;
+  setSelectedChapterId: (id: string) => void;
+  /** Заголовок текущей темы — показываем в кнопке, чтобы было видно, где ты. */
+  currentTitle: string;
+  index: number;
+  total: number;
+}
+
+/**
+ * Мобильное содержание: липкая панель снизу-сверху + выдвижная шторка.
+ * На десктопе не рендерится (там обычный сайдбар).
+ */
+export const MobileToc: React.FC<Props> = ({ selectedChapterId, setSelectedChapterId, currentTitle, index, total }) => {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <>
+      <div className="lg:hidden sticky top-[57px] z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left"
+          aria-label="Открыть содержание"
+        >
+          <span className="p-1.5 rounded-lg bg-indigo-600/20 border border-indigo-600/40 text-indigo-300 shrink-0">
+            <List className="w-4 h-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] uppercase tracking-wider text-slate-500 leading-tight">
+              Содержание · {index + 1} из {total}
+            </span>
+            <span className="block text-[13px] font-bold text-slate-200 truncate leading-snug">{currentTitle}</span>
+          </span>
+        </button>
+      </div>
+
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-[90]">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="absolute inset-y-0 left-0 w-[86%] max-w-sm bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col animate-[tocIn_.18s_ease-out]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 shrink-0">
+              <span className="font-bold text-white text-sm">Содержание</span>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 -mr-2 text-slate-400 hover:text-white"
+                aria-label="Закрыть содержание"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0">
+              <Sidebar
+                selectedChapterId={selectedChapterId}
+                setSelectedChapterId={setSelectedChapterId}
+                onNavigate={() => setOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 51/74: src/components/Navbar.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 77 | РАЗМЕР: 3.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9174,7 +10924,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 41/61: src/components/PlanarityDemo.tsx
+ФАЙЛ 52/74: src/components/PlanarityDemo.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 129 | РАЗМЕР: 6.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9309,7 +11059,7 @@ export function PlanarityDemo() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 42/61: src/components/QueueViz.tsx
+ФАЙЛ 53/74: src/components/QueueViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 304 | РАЗМЕР: 16.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9619,7 +11369,7 @@ export const QueueViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 43/61: src/components/SalmonAutomatonWidget.tsx
+ФАЙЛ 54/74: src/components/SalmonAutomatonWidget.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 645 | РАЗМЕР: 27.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10270,7 +12020,7 @@ export const SalmonAutomatonWidget: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 44/61: src/components/SegmentTreeVisualizer.tsx
+ФАЙЛ 55/74: src/components/SegmentTreeVisualizer.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 531 | РАЗМЕР: 29.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10807,81 +12557,116 @@ export function SegmentTreeVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 45/61: src/components/Sidebar.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 76 | РАЗМЕР: 3.8 KB
+ФАЙЛ 56/74: src/components/Sidebar.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 111 | РАЗМЕР: 5.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React from 'react';
-import { chapters, activeVizIds } from '../data/content';
-import { ChevronRight, Compass } from 'lucide-react';
+import React, { useMemo, useState } from "react";
+import { ChevronRight, Compass, Search, Sparkles, X } from "lucide-react";
+import { chapters } from "../data/content";
+import { VIZ_REGISTRY } from "./vizRegistry";
 
 interface SidebarProps {
   selectedChapterId: string;
   setSelectedChapterId: (id: string) => void;
+  /** Мобильный режим: список живёт в выдвижной панели и закрывается после выбора. */
+  onNavigate?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelectedChapterId }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelectedChapterId, onNavigate }) => {
+  const [query, setQuery] = useState("");
+
+  const groups = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = q ? chapters.filter((c) => c.title.toLowerCase().includes(q)) : chapters;
+    const map = new Map<string, typeof chapters>();
+    for (const c of filtered) {
+      const key = c.category?.trim() || "Прочие темы";
+      if (!map.has(key)) map.set(key, []);
+      (map.get(key) as typeof chapters).push(c);
+    }
+    return Array.from(map.entries());
+  }, [query]);
+
   return (
-    <aside className="w-full lg:w-80 bg-slate-900/80 border-r border-slate-800 p-6 flex flex-col gap-6 lg:min-h-[calc(100vh-4rem)]">
-      <div>
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Compass className="w-4 h-4 text-indigo-400" /> Навигация по пособию
+    <aside className="w-full bg-slate-900/80 lg:bg-transparent flex flex-col h-full">
+      <div className="p-4 pb-3 shrink-0">
+        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Compass className="w-4 h-4 text-indigo-400" /> Содержание · {chapters.length} тем
         </h3>
-        <div className="space-y-2">
-          {chapters.map((chapter) => {
-            const isSelected = chapter.id === selectedChapterId;
-            const hasViz = activeVizIds.includes(chapter.id);
-            return (
-              <button
-                key={chapter.id}
-                onClick={() => {
-                  setSelectedChapterId(chapter.id);
-                  setTimeout(() => {
-                    const el = document.getElementById('main-content');
-                    if (el && window.innerWidth < 1024) {
-                      // On mobile we scroll just past the navbar/sidebar so the content is visible
-                      // scrollIntoView is safer on mobile/iframes
-                      const yOffset = -80; 
-                      const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
-                      window.scrollTo({top: y, behavior: 'smooth'});
-                    } else if (el) {
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                  }, 50);
-                }}
-                className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-between group ${
-                  isSelected
-                    ? 'bg-indigo-600/10 border-indigo-500 text-white shadow-lg shadow-indigo-500/10'
-                    : 'bg-slate-800/50 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2 relative">
-                  {hasViz && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] absolute -left-2" title="Есть интерактивная визуализация"></span>
-                  )}
-                  <span className={`font-bold text-sm tracking-tight ${hasViz ? 'pl-2' : ''}`}>{chapter.title}</span>
-                </div>
-                <ChevronRight
-                  className={`w-4 h-4 transition-transform duration-200 ${
-                    isSelected ? 'text-indigo-400 translate-x-0.5' : 'text-slate-500 group-hover:text-slate-300'
-                  }`}
-                />
-              </button>
-            );
-          })}
+        <div className="relative">
+          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Поиск по темам…"
+            className="w-full bg-slate-800/70 border border-slate-700 rounded-lg pl-9 pr-8 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-white"
+              aria-label="Очистить поиск"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="mt-auto bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-2xl border border-slate-700/60 shadow-inner text-xs text-slate-300 space-y-3">
-        <div className="font-bold text-indigo-400 flex items-center gap-1.5 text-sm">
-          <span>🎯 Главная фишка пособия</span>
+      <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-4 overscroll-contain">
+        {groups.length === 0 && <p className="text-sm text-slate-500 px-2 py-6 text-center">Ничего не найдено</p>}
+
+        {groups.map(([category, items]) => (
+          <div key={category}>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 mb-1.5">{category}</div>
+            <div className="space-y-1">
+              {items.map((chapter) => {
+                const isSelected = chapter.id === selectedChapterId;
+                const hasViz = Boolean(VIZ_REGISTRY[chapter.id]);
+                return (
+                  <button
+                    key={chapter.id}
+                    onClick={() => {
+                      setSelectedChapterId(chapter.id);
+                      onNavigate?.();
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg border transition-colors flex items-start gap-2 group ${
+                      isSelected
+                        ? "bg-indigo-600/15 border-indigo-500 text-white"
+                        : "bg-slate-800/40 border-transparent text-slate-300 hover:bg-slate-800 hover:text-white"
+                    }`}
+                  >
+                    {hasViz && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-2"
+                        title="Есть интерактивная визуализация"
+                      />
+                    )}
+                    <span className="font-semibold text-[13px] leading-snug flex-1 min-w-0">{chapter.title}</span>
+                    <ChevronRight
+                      className={`w-4 h-4 shrink-0 mt-0.5 transition-transform ${
+                        isSelected ? "text-indigo-400" : "text-slate-600 group-hover:text-slate-400"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="shrink-0 m-3 mt-0 bg-gradient-to-br from-slate-800 to-slate-900 p-3 rounded-xl border border-slate-700/60 text-[11px] text-slate-300 space-y-1.5 hidden lg:block">
+        <div className="font-bold text-indigo-400 flex items-center gap-1.5 text-xs">
+          <Sparkles className="w-3.5 h-3.5" /> Как пользоваться
         </div>
         <p className="leading-relaxed">
-          Каждая глава разделена на две колонки: слева простые жизненные аналогии (пицца, фура, сплетни), справа — строгая техническая суть.
+          Подчёркнутые термины в тексте раскрываются по наведению: короткое объяснение, мини-анимация и запуск
+          симулятора.
         </p>
-        <p className="text-slate-400 font-medium italic">
-          💡 Душные детали, формулы и код спрятаны в спойлеры. Кликните, чтобы развернуть!
-        </p>
+        <p className="text-slate-400 italic">Стрелки ← → на клавиатуре листают темы.</p>
       </div>
     </aside>
   );
@@ -10889,7 +12674,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 46/61: src/components/Simulator.tsx
+ФАЙЛ 57/74: src/components/Simulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 587 | РАЗМЕР: 29.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11482,16 +13267,14 @@ export const Simulator: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 47/61: src/components/SplayTreeViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 508 | РАЗМЕР: 18.8 KB
+ФАЙЛ 58/74: src/components/SplayTreeViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 507 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState } from "react";
 import {
-  Play,
   RotateCcw,
   HelpCircle,
-  ArrowRight,
   BookOpen,
 } from "lucide-react";
 
@@ -11677,6 +13460,7 @@ export const SplayTreeViz: React.FC = () => {
     setLog(steps);
   };
 
+  // @ts-expect-error зарезервировано под кнопку вставки
   const handleInsert = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseInt(inputValue);
@@ -11774,7 +13558,7 @@ export const SplayTreeViz: React.FC = () => {
         key={`n-${node.key}`}
         className="cursor-pointer group"
         onClick={() => handleSplay(node.key)}
-        title={`Кликните, чтобы выполнить Splay(${node.key})`}
+        data-title={`Кликните, чтобы выполнить Splay(${node.key})`}
       >
         <circle
           cx={node.x}
@@ -11996,7 +13780,7 @@ export const SplayTreeViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 48/61: src/components/StackViz.tsx
+ФАЙЛ 59/74: src/components/StackViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 290 | РАЗМЕР: 14.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12292,7 +14076,7 @@ export const StackViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 49/61: src/components/StringAlgorithmsViz.tsx
+ФАЙЛ 60/74: src/components/StringAlgorithmsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 322 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12620,8 +14404,8 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 50/61: src/components/TopologicalSortViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 385 | РАЗМЕР: 12.9 KB
+ФАЙЛ 61/74: src/components/TopologicalSortViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 384 | РАЗМЕР: 12.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
@@ -12629,8 +14413,6 @@ import {
   Play,
   Pause,
   RotateCcw,
-  ArrowRight,
-  BookOpen,
   Clock,
 } from "lucide-react";
 
@@ -12878,6 +14660,7 @@ export const TopologicalSortViz: React.FC = () => {
               let fill = "#1e293b";
               let stroke = "#334155";
               let textColor = "text-slate-400";
+              void textColor;
 
               if (isCurrent) {
                 fill = "#312e81";
@@ -13011,8 +14794,154 @@ export const TopologicalSortViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 51/61: src/components/WaterfallAnimationWidget.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 761 | РАЗМЕР: 42.0 KB
+ФАЙЛ 62/74: src/components/vizRegistry.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 140 | РАЗМЕР: 5.9 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React from "react";
+
+import { ArticulationPointsViz } from "./ArticulationPointsViz";
+import BellmanFordViz from "./BellmanFordViz";
+import BfsViz from "./BfsViz";
+import { DPVisualizer } from "./DPVisualizer";
+import { DfsBridgesSimulator } from "./DfsBridgesSimulator";
+import DijkstraViz from "./DijkstraViz";
+import { EulerSimulator } from "./EulerSimulator";
+import FloydViz from "./FloydViz";
+import { GraphTraversalViz } from "./GraphTraversalViz";
+import { HeapViz } from "./HeapViz";
+import { JohnsonViz } from "./JohnsonViz";
+import { KosarajuViz } from "./KosarajuViz";
+import { KruskalSimulator } from "./KruskalSimulator";
+import MnemonicCards from "./MnemonicCards";
+import { PlanarityDemo } from "./PlanarityDemo";
+import { QueueViz } from "./QueueViz";
+import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
+import { SegmentTreeVisualizer } from "./SegmentTreeVisualizer";
+import { SplayTreeViz } from "./SplayTreeViz";
+import { StackViz } from "./StackViz";
+import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
+import { TopologicalSortViz } from "./TopologicalSortViz";
+import { WaterfallAnimationWidget } from "./WaterfallAnimationWidget";
+import ChapterImage from "./ChapterImage";
+import { PrefixSumViz } from "./visualizers/PrefixSumViz";
+import { SparseTableViz } from "./visualizers/SparseTableViz";
+
+export interface VizEntry {
+  /** Заголовок панели/модалки. */
+  title: string;
+  /** Короткое пояснение, что здесь можно потыкать. */
+  hint?: string;
+  Component: React.FC;
+}
+
+/**
+ * Единый реестр интерактивных демонстраций.
+ * Используется и для панели под главой, и для всплывающих подсказок,
+ * и для модального окна «Открыть симулятор».
+ */
+export const VIZ_REGISTRY: Record<string, VizEntry> = {
+  "stack-dfs": {
+    title: "Стек и обход в глубину",
+    hint: "Кладите и снимайте тарелки — это ровно то, что делает рекурсия DFS.",
+    Component: StackViz,
+  },
+  "queue-bfs": {
+    title: "Очередь и обход в ширину",
+    hint: "Очередь слева, живой BFS по графу справа.",
+    Component: () => (
+      <div className="space-y-10">
+        <QueueViz />
+        <BfsViz />
+      </div>
+    ),
+  },
+  "heap-beam-search": {
+    title: "Куча (priority queue)",
+    hint: "Добавляйте гипотезы — куча сама держит лучшую наверху.",
+    Component: HeapViz,
+  },
+  "segment-trees": {
+    title: "Дерево отрезков",
+    hint: "Запросы и обновления на отрезке за O(log n).",
+    Component: SegmentTreeVisualizer,
+  },
+  "sparse-table": {
+    title: "Разреженная таблица (1D и 2D)",
+    hint: "Наведите курсор на любую ячейку — подсветится отрезок, за который она отвечает.",
+    Component: SparseTableViz,
+  },
+  "prefix-sums-2d": {
+    title: "Префиксные суммы (1D и 2D)",
+    hint: "Наведите на число — увидите, из чего оно сложилось.",
+    Component: PrefixSumViz,
+  },
+  "dynamic-programming": {
+    title: "Динамическое программирование",
+    hint: "Таблица подзадач заполняется на глазах.",
+    Component: DPVisualizer,
+  },
+  "splay-tree": { title: "Splay-дерево", Component: SplayTreeViz },
+  "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
+  "top-sort": { title: "Топологическая сортировка", Component: TopologicalSortViz },
+  "scc-kosaraju": { title: "Компоненты сильной связности (Косарайю)", Component: KosarajuViz },
+  "graph-articulation": { title: "Точки сочленения", Component: ArticulationPointsViz },
+  "bridges-code": { title: "Мосты: DFS + tin/low", Component: DfsBridgesSimulator },
+  "euler-path-vs-cycle": { title: "Эйлеров путь и цикл", Component: EulerSimulator },
+  "planarity-euler-formula": { title: "Планарность: K5 и K3,3", Component: PlanarityDemo },
+  dijkstra: {
+    title: "Дейкстра",
+    hint: "Жадно забираем ближайшую вершину и релаксируем её рёбра.",
+    Component: () => (
+      <>
+        <ChapterImage vizType="dijkstra" />
+        <DijkstraViz />
+      </>
+    ),
+  },
+  "bellman-ford": {
+    title: "Форд—Беллман",
+    Component: () => (
+      <>
+        <ChapterImage vizType="bellman-ford" />
+        <BellmanFordViz />
+      </>
+    ),
+  },
+  floyd: {
+    title: "Флойд—Уоршелл",
+    Component: () => (
+      <>
+        <ChapterImage vizType="floyd" />
+        <FloydViz />
+      </>
+    ),
+  },
+  "johnson-algo": { title: "Алгоритм Джонсона", Component: JohnsonViz },
+  "mst-kruskal": { title: "Краскал и DSU", Component: KruskalSimulator },
+  "mst-prima": { title: "Прим", Component: KruskalSimulator },
+  "mst-boruvka": { title: "Борувка", Component: KruskalSimulator },
+  "string-kmp": { title: "Префикс-функция (КМП)", Component: () => <StringAlgorithmsViz defaultMode="kmp" /> },
+  "string-z-func": { title: "Z-функция", Component: () => <StringAlgorithmsViz defaultMode="z" /> },
+  "aho-corasick": {
+    title: "Ахо—Корасик",
+    hint: "Бор, суффиксные ссылки и BFS-обход по уровням.",
+    Component: () => (
+      <div className="space-y-10">
+        <WaterfallAnimationWidget />
+        <SalmonAutomatonWidget />
+      </div>
+    ),
+  },
+  intro: { title: "Мнемокарточки", Component: MnemonicCards },
+};
+
+export const getViz = (id?: string): VizEntry | undefined => (id ? VIZ_REGISTRY[id] : undefined);
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 63/74: src/components/WaterfallAnimationWidget.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 762 | РАЗМЕР: 42.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState } from 'react';
@@ -13112,6 +15041,7 @@ export const WaterfallAnimationWidget: React.FC = () => {
     let logMsg = `[Символ '${char}'] `;
 
     let jumpType: 'normal' | 'fail' | null = null;
+    void jumpType;
     let originalCurr = curr;
 
     if (TRIE_TRANSITIONS[curr][char] !== undefined) {
@@ -13782,15 +15712,350 @@ export const WaterfallAnimationWidget: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 52/61: src/components/visualizers/SparseTableViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 661 | РАЗМЕР: 40.6 KB
+ФАЙЛ 64/74: src/components/visualizers/PrefixSumViz.tsx
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 330 | РАЗМЕР: 13.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
+
+/**
+ * Префиксные суммы: 1D и 2D.
+ *
+ * Главная фишка — наведение на число:
+ *  • в 1D наводим на P[i] — подсвечивается кусок массива, из которого эта сумма набежала;
+ *  • в 1D наводим на a[i] — видно, в какие префиксы он входит;
+ *  • в 2D наводим на ячейку — подсвечивается прямоугольник от начала координат,
+ *    а при выбранном запросе показывается формула включений-исключений A − B − C + D.
+ */
+
+const A1 = [3, 1, 4, 1, 5, 9, 2, 6];
+
+const A2 = [
+  [1, 2, 3, 4],
+  [5, 6, 7, 8],
+  [9, 1, 2, 3],
+  [4, 5, 6, 7],
+];
+
+const cellBase =
+  "flex items-center justify-center rounded-md font-mono font-bold transition-colors duration-150 select-none " +
+  "w-[clamp(30px,9vw,46px)] h-[clamp(30px,9vw,46px)] text-[clamp(10px,3vw,14px)]";
+
+export const PrefixSumViz: React.FC = () => {
+  const [mode, setMode] = useState<"1d" | "2d">("1d");
+  return (
+    <div className="w-full bg-slate-950 rounded-2xl border border-slate-800 p-3 sm:p-5 shadow-xl">
+      <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+        {(
+          [
+            ["1d", "1. Одномерные суммы"],
+            ["2d", "2. Двумерные суммы"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setMode(key)}
+            className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap transition-colors ${
+              mode === key ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {mode === "1d" ? <Prefix1D /> : <Prefix2D />}
+    </div>
+  );
+};
+
+/* ------------------------------- 1D ------------------------------- */
+const Prefix1D: React.FC = () => {
+  const pref = useMemo(
+    () => A1.reduce<number[]>((acc, v) => [...acc, acc[acc.length - 1] + v], [0]),
+    []
+  );
+
+  /** Что сейчас под курсором: префикс P[i] или элемент a[i]. */
+  const [hover, setHover] = useState<{ kind: "pref" | "a"; i: number } | null>(null);
+  const [range, setRange] = useState<{ l: number; r: number }>({ l: 2, r: 5 });
+
+  const covered =
+    hover?.kind === "pref"
+      ? { from: 0, to: hover.i - 1 }
+      : hover?.kind === "a"
+        ? { from: hover.i, to: hover.i }
+        : null;
+
+  const sum = pref[range.r + 1] - pref[range.l];
+
+  return (
+    <div className="space-y-5">
+      <div className="overflow-x-auto pb-1">
+        <div className="inline-block min-w-full">
+          {/* индексы */}
+          <div className="flex gap-1.5 mb-1 pl-[52px]">
+            {A1.map((_, i) => (
+              <div key={i} className={`${cellBase} !h-5 text-slate-500 !text-[10px]`}>
+                {i}
+              </div>
+            ))}
+          </div>
+
+          {/* массив a */}
+          <div className="flex gap-1.5 items-center mb-3">
+            <div className="w-[46px] shrink-0 text-right pr-2 text-xs font-mono text-slate-400">a</div>
+            {A1.map((v, i) => {
+              const inCover = covered && i >= covered.from && i <= covered.to;
+              const inRange = i >= range.l && i <= range.r;
+              return (
+                <div
+                  key={i}
+                  onMouseEnter={() => setHover({ kind: "a", i })}
+                  onMouseLeave={() => setHover(null)}
+                  onClick={() => setRange((r) => (i < r.l ? { l: i, r: r.r } : { l: r.l, r: i }))}
+                  className={`${cellBase} cursor-pointer ${
+                    inCover
+                      ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
+                      : inRange
+                        ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
+                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  }`}
+                  title={`a[${i}] = ${v}`}
+                >
+                  {v}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* массив P */}
+          <div className="flex gap-1.5 items-center">
+            <div className="w-[46px] shrink-0 text-right pr-2 text-xs font-mono text-slate-400">P</div>
+            {pref.map((v, i) => {
+              const active = hover?.kind === "pref" && hover.i === i;
+              const isL = i === range.l;
+              const isR = i === range.r + 1;
+              return (
+                <div
+                  key={i}
+                  onMouseEnter={() => setHover({ kind: "pref", i })}
+                  onMouseLeave={() => setHover(null)}
+                  className={`${cellBase} cursor-help ${
+                    active
+                      ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
+                      : isR
+                        ? "bg-emerald-700 text-white"
+                        : isL
+                          ? "bg-rose-700 text-white"
+                          : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                  }`}
+                  title={`P[${i}] = сумма a[0..${i - 1}]`}
+                >
+                  {v}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Пояснение под курсором */}
+      <div className="min-h-[62px] bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm">
+        {hover?.kind === "pref" ? (
+          hover.i === 0 ? (
+            <p className="text-slate-300">
+              <b className="text-emerald-400">P[0] = 0</b> — «пустой» префикс. Он нужен, чтобы формула работала и для
+              отрезка, начинающегося с нуля.
+            </p>
+          ) : (
+            <p className="text-slate-300">
+              <b className="text-emerald-400">
+                P[{hover.i}] = {pref[hover.i]}
+              </b>{" "}
+              — это сумма всего, что набежало от начала:{" "}
+              <span className="font-mono text-indigo-300">
+                a[0..{hover.i - 1}] = {A1.slice(0, hover.i).join(" + ")}
+              </span>
+            </p>
+          )
+        ) : hover?.kind === "a" ? (
+          <p className="text-slate-300">
+            <b className="text-indigo-400">
+              a[{hover.i}] = {A1[hover.i]}
+            </b>{" "}
+            входит во все префиксы, начиная с{" "}
+            <span className="font-mono text-emerald-300">P[{hover.i + 1}]</span>. Кликните по элементу, чтобы
+            подвинуть границу запроса.
+          </p>
+        ) : (
+          <p className="text-slate-500">
+            Наведите курсор на любое число: у <b className="text-emerald-400">P</b> покажется, из чего оно сложилось,
+            у <b className="text-indigo-400">a</b> — куда оно входит.
+          </p>
+        )}
+      </div>
+
+      {/* Запрос */}
+      <div className="bg-slate-900 border border-indigo-900/60 rounded-xl p-3 sm:p-4">
+        <div className="text-xs text-slate-400 mb-2">
+          Запрос суммы на отрезке (кликайте по массиву <span className="font-mono">a</span>, чтобы двигать границы):
+        </div>
+        <p className="font-mono text-sm sm:text-base text-white break-words">
+          sum(a[{range.l}..{range.r}]) = P[{range.r + 1}] − P[{range.l}] ={" "}
+          <span className="text-emerald-400">{pref[range.r + 1]}</span> −{" "}
+          <span className="text-rose-400">{pref[range.l]}</span> ={" "}
+          <span className="text-indigo-300 font-bold">{sum}</span>
+        </p>
+        <p className="text-[11px] text-slate-500 mt-1">
+          Один вычитание вместо цикла: запрос за O(1) после препроцессинга за O(n).
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* ------------------------------- 2D ------------------------------- */
+const Prefix2D: React.FC = () => {
+  const n = A2.length;
+  const m = A2[0].length;
+
+  const P = useMemo(() => {
+    const p = Array.from({ length: n + 1 }, () => Array<number>(m + 1).fill(0));
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= m; j++) {
+        p[i][j] = A2[i - 1][j - 1] + p[i - 1][j] + p[i][j - 1] - p[i - 1][j - 1];
+      }
+    }
+    return p;
+  }, [n, m]);
+
+  const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
+  const [rect, setRect] = useState({ r1: 1, c1: 1, r2: 2, c2: 2 });
+
+  const D = P[rect.r1][rect.c1];
+  const B = P[rect.r1][rect.c2 + 1];
+  const Cc = P[rect.r2 + 1][rect.c1];
+  const Aa = P[rect.r2 + 1][rect.c2 + 1];
+  const total = Aa - B - Cc + D;
+
+  const cornerOf = (i: number, j: number) => {
+    if (i === rect.r2 + 1 && j === rect.c2 + 1) return "A";
+    if (i === rect.r1 && j === rect.c2 + 1) return "B";
+    if (i === rect.r2 + 1 && j === rect.c1) return "C";
+    if (i === rect.r1 && j === rect.c1) return "D";
+    return null;
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-5 lg:grid-cols-2">
+        {/* Исходная матрица */}
+        <div className="overflow-x-auto">
+          <div className="text-xs text-slate-400 mb-2">Исходная матрица (кликайте, чтобы задать прямоугольник)</div>
+          <div className="inline-block">
+            {A2.map((row, i) => (
+              <div key={i} className="flex gap-1.5 mb-1.5">
+                {row.map((v, j) => {
+                  const inRect = i >= rect.r1 && i <= rect.r2 && j >= rect.c1 && j <= rect.c2;
+                  return (
+                    <div
+                      key={j}
+                      onClick={() =>
+                        setRect((r) =>
+                          i < r.r1 || j < r.c1 ? { r1: i, c1: j, r2: r.r2, c2: r.c2 } : { ...r, r2: i, c2: j }
+                        )
+                      }
+                      className={`${cellBase} cursor-pointer ${
+                        inRect ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                      }`}
+                    >
+                      {v}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Матрица префиксных сумм */}
+        <div className="overflow-x-auto">
+          <div className="text-xs text-slate-400 mb-2">Префиксные суммы P (наведите на число)</div>
+          <div className="inline-block">
+            {P.map((row, i) => (
+              <div key={i} className="flex gap-1.5 mb-1.5">
+                {row.map((v, j) => {
+                  const corner = cornerOf(i, j);
+                  const isHover = hover?.i === i && hover?.j === j;
+                  const cornerColor =
+                    corner === "A"
+                      ? "bg-emerald-600 text-white"
+                      : corner === "D"
+                        ? "bg-sky-600 text-white"
+                        : corner
+                          ? "bg-rose-600 text-white"
+                          : "bg-slate-900 border border-slate-700 text-slate-300";
+                  return (
+                    <div
+                      key={j}
+                      onMouseEnter={() => setHover({ i, j })}
+                      onMouseLeave={() => setHover(null)}
+                      className={`${cellBase} cursor-help relative ${
+                        isHover ? "bg-amber-500 text-white ring-2 ring-amber-300" : cornerColor
+                      }`}
+                    >
+                      {v}
+                      {corner && !isHover && (
+                        <span className="absolute -top-1 -right-1 text-[9px] bg-slate-950 border border-slate-600 rounded px-1 leading-tight">
+                          {corner}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="min-h-[54px] bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm">
+        {hover ? (
+          <p className="text-slate-300">
+            <b className="text-amber-400">
+              P[{hover.i}][{hover.j}] = {P[hover.i][hover.j]}
+            </b>{" "}
+            — сумма всего прямоугольника от левого верхнего угла до клетки ({hover.i - 1}, {hover.j - 1}) включительно.
+          </p>
+        ) : (
+          <p className="text-slate-500">Наведите курсор на число в матрице P, чтобы увидеть, какой прямоугольник оно покрывает.</p>
+        )}
+      </div>
+
+      <div className="bg-slate-900 border border-indigo-900/60 rounded-xl p-3 sm:p-4">
+        <p className="font-mono text-sm sm:text-base text-white break-words">
+          сумма = <span className="text-emerald-400">A</span> − <span className="text-rose-400">B</span> −{" "}
+          <span className="text-rose-400">C</span> + <span className="text-sky-400">D</span> = {Aa} − {B} − {Cc} + {D} ={" "}
+          <span className="text-indigo-300 font-bold">{total}</span>
+        </p>
+        <p className="text-[11px] text-slate-500 mt-1">
+          Вычли два «хвоста» и вернули дважды вычтенный угол — это и есть включения-исключения.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 65/74: src/components/visualizers/SparseTableViz.tsx
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 709 | РАЗМЕР: 43.8 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
-  Pause,
   RotateCcw,
   ChevronRight,
   ChevronLeft,
@@ -13862,23 +16127,23 @@ export const SparseTableViz: React.FC = () => {
   const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("1d");
 
   return (
-    <div className="w-full bg-slate-950 p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden font-sans">
-      <div className="flex gap-4 mb-6 border-b border-slate-800 pb-4 overflow-x-auto whitespace-nowrap">
+    <div className="w-full bg-slate-950 p-3 sm:p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl font-sans">
+      <div className="flex gap-2 sm:gap-4 mb-5 border-b border-slate-800 pb-4 overflow-x-auto whitespace-nowrap no-scrollbar">
         <button
           onClick={() => setTab("1d")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${tab === "1d" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shrink-0 transition-colors ${tab === "1d" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
         >
           1. Сворачивание 1D
         </button>
         <button
           onClick={() => setTab("2d_build")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${tab === "2d_build" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shrink-0 transition-colors ${tab === "2d_build" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
         >
           2. Сворачивание 2D (Построение)
         </button>
         <button
           onClick={() => setTab("2d_query")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${tab === "2d_query" ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium shrink-0 transition-colors ${tab === "2d_query" ? "bg-rose-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
         >
           3. Запрос 2D (Формула)
         </button>
@@ -13899,6 +16164,7 @@ export const SparseTableViz: React.FC = () => {
 
 const Viz1D: React.FC = () => {
   const [step, setStep] = useState(0);
+  const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
 
   // Total steps: we animate computing each element for j=1, j=2, j=3.
   const computeSteps: { i: number; j: number }[] = [];
@@ -13909,9 +16175,10 @@ const Viz1D: React.FC = () => {
   }
 
   const maxStep = computeSteps.length;
+  const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between bg-slate-900 p-4 rounded-xl border border-slate-800">
         <div>
           <h3 className="text-lg font-bold text-indigo-400 mb-1">
@@ -13945,23 +16212,65 @@ const Viz1D: React.FC = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="inline-block bg-slate-900 p-6 rounded-xl border border-slate-800 pb-20">
-          <div className="grid grid-cols-[auto_repeat(4,_minmax(60px,_1fr))] gap-4 items-start">
+      <div className="bg-slate-900 rounded-xl border border-slate-800 p-3 sm:p-4">
+        <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">Исходный массив</div>
+        <div className="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1">
+          {arr1D.map((v, idx) => {
+            const inCover = !!covered && idx >= covered.from && idx <= covered.to;
+            return (
+              <div key={idx} className="flex flex-col items-center shrink-0">
+                <div
+                  className={`flex items-center justify-center rounded-md font-mono font-bold transition-all duration-150 w-[clamp(26px,8vw,44px)] h-[clamp(26px,8vw,44px)] text-[clamp(10px,2.8vw,14px)] ${
+                    inCover ? "bg-indigo-500 text-white ring-2 ring-indigo-300" : "bg-slate-800 text-slate-300"
+                  }`}
+                >
+                  {v}
+                </div>
+                <span className="text-[9px] text-slate-600 mt-0.5 font-mono">{idx}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-2 text-xs min-h-[36px]">
+          {hover && covered ? (
+            <p className="text-slate-300">
+              <b className="text-sky-400">
+                ST[{hover.i}][{hover.j}] = {st1D[hover.i][hover.j]}
+              </b>{" "}
+              — это минимум на отрезке{" "}
+              <span className="font-mono text-sky-300">
+                [{covered.from}, {covered.to}]
+              </span>{" "}
+              длины 2^{hover.j} = {1 << hover.j}:{" "}
+              <span className="font-mono text-slate-400">
+                min({arr1D.slice(covered.from, covered.to + 1).join(", ")})
+              </span>
+            </p>
+          ) : (
+            <p className="text-slate-500">
+              Наведите курсор (или тапните) на любое число в таблице ниже — подсветится отрезок, за который оно отвечает.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto pb-2">
+        <div className="inline-block min-w-full bg-slate-900 p-3 sm:p-5 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-[auto_repeat(4,minmax(50px,1fr))] gap-x-2 gap-y-2 sm:gap-x-4 items-start">
             {/* Headers */}
             <div className="text-slate-500 font-mono text-sm self-end pb-2">
               i \ j
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^0 (L=1)
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^1 (L=2)
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^2 (L=4)
             </div>
-            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2">
+            <div className="text-center font-bold text-indigo-300 border-b border-indigo-900/50 pb-2 text-[10px] sm:text-xs whitespace-nowrap">
               2^3 (L=8)
             </div>
 
@@ -14007,18 +16316,21 @@ const Viz1D: React.FC = () => {
                   return (
                     <div key={j} className="relative flex justify-center">
                       {!isValid ? (
-                        <div className="w-12 h-12 flex items-center justify-center opacity-0">
-                          -
-                        </div>
+                        <div className="w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)]" />
                       ) : (
                         <motion.div
+                          onMouseEnter={() => isVisible && setHover({ i, j })}
+                          onMouseLeave={() => setHover(null)}
+                          onClick={() => isVisible && setHover(hover && hover.i === i && hover.j === j ? null : { i, j })}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{
                             opacity: isVisible ? 1 : 0,
                             scale: isVisible ? 1 : 0.8,
                           }}
-                          className={`w-12 h-12 flex items-center justify-center rounded-lg text-lg font-bold transition-colors ${
-                            isActive
+                          className={`w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)] flex items-center justify-center rounded-lg text-[clamp(11px,3vw,17px)] font-bold transition-colors cursor-pointer ${
+                            hover && hover.i === i && hover.j === j
+                              ? "bg-sky-500 text-white ring-4 ring-sky-400/50 z-10"
+                              : isActive
                               ? "bg-indigo-500 text-white ring-4 ring-indigo-400 ring-opacity-50 z-10"
                               : isSrc1
                                 ? "bg-emerald-500 text-white ring-2 ring-emerald-400 z-10"
@@ -14115,7 +16427,7 @@ const Viz2DBuild: React.FC = () => {
 
   return (
     <div className="flex flex-col xl:flex-row gap-6">
-      <div className="flex-1 bg-slate-900 p-6 rounded-xl border border-slate-800 flex flex-col items-center max-w-full overflow-hidden">
+      <div className="flex-1 min-w-0 bg-slate-900 p-3 sm:p-6 rounded-xl border border-slate-800 flex flex-col items-center max-w-full">
         <h3 className="text-xl font-bold text-indigo-400 mb-2">Промежуточные матрицы</h3>
         <p className="text-sm text-slate-400 mb-6 text-center max-w-[400px]">
           Для наглядности показываем только <b className="text-indigo-300">квадратные блоки</b>.
@@ -14135,7 +16447,7 @@ const Viz2DBuild: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex flex-col items-center gap-4 w-full h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="flex flex-col items-center gap-4 w-full max-h-[70vh] sm:h-[600px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
           {[...Array(k + 1)].map((_, i) => k - i).map((step, idx) => {
              const stepL = 1 << step;
              const stepSize = 8 - stepL + 1;
@@ -14149,7 +16461,8 @@ const Viz2DBuild: React.FC = () => {
                      <span>Матрица блоков {stepL}x{stepL}</span>
                      <span className={`text-[10px] font-mono font-normal mt-1 border px-1.5 py-0.5 rounded ${isCurr ? 'bg-indigo-900/40 border-indigo-800/40 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>ST[][][{step}][{step}]</span>
                    </h4>
-                   <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner overflow-x-auto max-w-full ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 shadow-[0_0_25px_rgba(99,102,241,0.05)] relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, 1fr)`}}>
+                   <div className="max-w-full overflow-x-auto">
+                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 shadow-[0_0_25px_rgba(99,102,241,0.05)] relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
                      {Array.from({length: stepSize * stepSize}).map((_, idx) => {
                         const r = Math.floor(idx / stepSize);
                         const c = idx % stepSize;
@@ -14192,12 +16505,13 @@ const Viz2DBuild: React.FC = () => {
                                    else setLocked({r, c});
                                }
                             }}
-                            className={`flex items-center justify-center font-mono rounded border min-w-[28px] min-h-[28px] shrink-0 ${highlightClass} ${zIndex} ${isCurr ? 'w-10 h-10 md:w-9 md:h-9 text-sm' : 'w-8 h-8 text-[11px]'}`}
+                            className={`flex items-center justify-center font-mono rounded border shrink-0 ${highlightClass} ${zIndex} ${isCurr ? 'w-[clamp(24px,6.5vw,38px)] h-[clamp(24px,6.5vw,38px)] text-[clamp(9px,2.4vw,13px)]' : 'w-[clamp(20px,5.2vw,30px)] h-[clamp(20px,5.2vw,30px)] text-[clamp(8px,2vw,11px)]'}`}
                           >
                             {ST2D[r][c][step][step]}
                           </div>
                         );
                      })}
+                     </div>
                    </div>
                  </div>
                </React.Fragment>
@@ -14206,8 +16520,8 @@ const Viz2DBuild: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col gap-4">
-        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 h-full flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col gap-4">
+        <div className="bg-slate-900 p-4 sm:p-6 rounded-xl border border-slate-800 h-full flex flex-col">
           <h3 className="text-lg font-bold text-slate-300 mb-6 flex items-center gap-2">Код построения и формула</h3>
           {k === 0 ? (
              <div className="text-slate-400 text-sm leading-relaxed font-sans mt-4">
@@ -14307,19 +16621,19 @@ const Viz2DQuery: React.FC = () => {
 
     return (
         <div className="flex flex-col xl:flex-row gap-6">
-            <div className="flex-1 bg-slate-900 p-6 rounded-xl border border-slate-800 flex flex-col xl:max-w-md h-full">
+            <div className="flex-1 min-w-0 bg-slate-900 p-3 sm:p-6 rounded-xl border border-slate-800 flex flex-col xl:max-w-md h-full">
                <h3 className="text-xl font-bold text-rose-400 mb-2">Запрос на прямоугольнике</h3>
                <p className="text-slate-400 text-[13px] mb-4 border-b border-slate-800 pb-4">Изменяйте координаты поиска (r1, c1 - левый верх, r2, c2 - правый низ).</p>
                
                <div className="flex flex-col items-center justify-center flex-1">
-                  <div className="grid grid-cols-[repeat(8,1fr)] gap-[2px] bg-[#0a0f1e] p-2 rounded-xl border border-slate-800 relative shadow-inner overflow-x-auto max-w-full">
+                  <div className="grid grid-cols-[repeat(8,max-content)] gap-[2px] bg-[#0a0f1e] p-2 rounded-xl border border-slate-800 relative shadow-inner w-max max-w-full">
                      {Array.from({length: 64}).map((_, idx) => {
                          const r = Math.floor(idx / 8);
                          const c = idx % 8;
                          const isInQuery = r >= r1 && r <= r2 && c >= c1 && c <= c2;
 
                          return (
-                            <div key={idx} className={`w-8 h-8 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center rounded text-[11px] sm:text-xs font-mono transition-all duration-300 ${isInQuery ? 'bg-rose-900/40 text-rose-200 border-rose-500/50 border scale-105 z-10' : 'bg-slate-800/60 text-slate-500'}`}>
+                            <div key={idx} className={`w-[clamp(24px,7vw,40px)] h-[clamp(24px,7vw,40px)] shrink-0 flex items-center justify-center rounded text-[clamp(9px,2.4vw,12px)] font-mono transition-all duration-300 ${isInQuery ? 'bg-rose-900/40 text-rose-200 border-rose-500/50 border scale-105 z-10' : 'bg-slate-800/60 text-slate-500'}`}>
                                {val2D[r][c]}
                             </div>
                          )
@@ -14453,7 +16767,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 53/61: src/layout/footer.html
+ФАЙЛ 66/74: src/layout/footer.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 137 | РАЗМЕР: 7.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14596,7 +16910,7 @@ const Viz2DQuery: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 54/61: src/layout/header.html
+ФАЙЛ 67/74: src/layout/header.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 1169 | РАЗМЕР: 89.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15776,7 +18090,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 55/61: src/utils/cn.ts
+ФАЙЛ 68/74: src/utils/cn.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 7 | РАЗМЕР: 169 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15793,8 +18107,8 @@ export function cn(...inputs: ClassValue[]) {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 56/61: scripts/audit-coverage.mjs
-КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 81 | РАЗМЕР: 3.1 KB
+ФАЙЛ 69/74: scripts/audit-coverage.mjs
+КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 83 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -15826,8 +18140,10 @@ await build({
 
 const { chapters } = await import(`file://${bundle}`);
 
-const app = fs.readFileSync(path.join(ROOT, "src/App.tsx"), "utf8");
-const vizIds = new Set([...app.matchAll(/activeChapter\.id === ['"]([^'"]+)['"]/g)].map((m) => m[1]));
+// Список интерактивов берём из реестра визуализаторов
+const registry = fs.readFileSync(path.join(ROOT, "src/components/vizRegistry.tsx"), "utf8");
+const registryBody = registry.slice(registry.indexOf("VIZ_REGISTRY: Record<string, VizEntry> = {"));
+const vizIds = new Set([...registryBody.matchAll(/^\s{2}"?([a-z0-9-]+)"?:\s*\{/gim)].map((m) => m[1]));
 
 const rows = chapters.map((c) => {
   const html = c.content ?? "";
@@ -15880,7 +18196,7 @@ if (process.argv.includes("--md")) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 57/61: scripts/export/build-pdf.mjs
+ФАЙЛ 70/74: scripts/export/build-pdf.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 64 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15950,7 +18266,7 @@ main().catch((err) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 58/61: scripts/export/collect-code.mjs
+ФАЙЛ 71/74: scripts/export/collect-code.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 196 | РАЗМЕР: 7.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16152,7 +18468,7 @@ main();
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 59/61: scripts/export/common.mjs
+ФАЙЛ 72/74: scripts/export/common.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 66 | РАЗМЕР: 2.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16224,7 +18540,7 @@ export function imageMagickCmd() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 60/61: scripts/export/render-pages.mjs
+ФАЙЛ 73/74: scripts/export/render-pages.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 117 | РАЗМЕР: 4.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16351,7 +18667,7 @@ main().catch((err) => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 61/61: .github/workflows/rebuild-pdf.yml
+ФАЙЛ 74/74: .github/workflows/rebuild-pdf.yml
 КАТЕГОРИЯ: CI / автоматизация | СТРОК: 128 | РАЗМЕР: 4.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16485,5 +18801,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 61 файлов • сгенерировано 04.09.2026, 21:22:14
+КОНЕЦ ДОКУМЕНТА • 74 файлов • сгенерировано 04.09.2026, 21:52:24
 ==========================================================================================================================================

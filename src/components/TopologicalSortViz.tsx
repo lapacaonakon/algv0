@@ -3,8 +3,6 @@ import {
   Play,
   Pause,
   RotateCcw,
-  ArrowRight,
-  BookOpen,
   Clock,
 } from "lucide-react";
 
@@ -252,6 +250,7 @@ export const TopologicalSortViz: React.FC = () => {
               let fill = "#1e293b";
               let stroke = "#334155";
               let textColor = "text-slate-400";
+              void textColor;
 
               if (isCurrent) {
                 fill = "#312e81";
