@@ -19,6 +19,7 @@ import { QueueViz } from "./QueueViz";
 import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
 import { SegmentTreeVisualizer } from "./SegmentTreeVisualizer";
 import { SplayTreeViz } from "./SplayTreeViz";
+import { SplayRotationsViz } from "./SplayRotationsViz";
 import { StackViz } from "./StackViz";
 import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
@@ -82,7 +83,21 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     hint: "Таблица подзадач заполняется на глазах.",
     Component: DPVisualizer,
   },
-  "splay-tree": { title: "Splay-дерево", Component: SplayTreeViz },
+  "splay-tree": {
+    title: "Splay-дерево",
+    hint: "Сверху — разбор всех трёх поворотов (Zig, Zig-Zig, Zig-Zag), снизу — живое дерево.",
+    Component: () => (
+      <div className="space-y-10">
+        <SplayRotationsViz />
+        <SplayTreeViz />
+      </div>
+    ),
+  },
+  "splay-rotations": {
+    title: "Splay: Zig, Zig-Zig и Zig-Zag по шагам",
+    hint: "Три случая поворота с покадровой анимацией и подписью, что и в каком порядке крутится.",
+    Component: SplayRotationsViz,
+  },
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
   "top-sort": { title: "Топологическая сортировка", Component: TopologicalSortViz },
   "scc-kosaraju": { title: "Компоненты сильной связности (Косарайю)", Component: KosarajuViz },

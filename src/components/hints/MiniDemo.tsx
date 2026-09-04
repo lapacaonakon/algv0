@@ -4,13 +4,17 @@ import {
   AmortizedDemo, DsuDemo, HeapDemo, NpDemo, PrefixSumDemo, QueueDemo, SegmentTreeDemo,
   SparseTableDemo, StackDemo, SuffixLinkDemo, TrieBfsDemo, TrieDemo, PrefixFunctionDemo, DpDemo,
 } from "./demosStruct";
-import { ComponentsDemo, CoordCompressDemo, FloydDemo, GraphBasicsDemo } from "./demosExtra";
+import {
+  ComponentsDemo, CoordCompressDemo, FloydDemo, GraphBasicsDemo,
+  ZigDemo, ZigZagDemo, ZigZigDemo,
+} from "./demosExtra";
 
 export type DemoKind =
   | "bfs" | "dfs" | "heap" | "stack" | "queue" | "dsu" | "trie" | "trie-bfs"
   | "suffix-link" | "toposort" | "relax" | "prefix-sum" | "sparse-table"
   | "segment-tree" | "bridge" | "articulation" | "mst" | "amortized" | "np" | "scc"
-  | "prefix-function" | "dp" | "floyd" | "components" | "graph" | "coord-compress";
+  | "prefix-function" | "dp" | "floyd" | "components" | "graph" | "coord-compress"
+  | "zig" | "zig-zig" | "zig-zag";
 
 const REGISTRY: Record<DemoKind, React.FC> = {
   bfs: BfsDemo,
@@ -39,6 +43,9 @@ const REGISTRY: Record<DemoKind, React.FC> = {
   components: ComponentsDemo,
   graph: GraphBasicsDemo,
   "coord-compress": CoordCompressDemo,
+  zig: ZigDemo,
+  "zig-zig": ZigZigDemo,
+  "zig-zag": ZigZagDemo,
 };
 
 export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {

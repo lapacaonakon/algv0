@@ -162,3 +162,78 @@ export const CoordCompressDemo: React.FC = () => {
     </Svg>
   );
 };
+
+/* --------------------- Splay: три случая поворота --------------------- */
+
+type Pt = [number, number];
+
+const SplayFrames: React.FC<{
+  frames: { pos: Record<string, Pt>; edges: [string, string][] }[];
+  captions: string[];
+  ms?: number;
+}> = ({ frames, captions, ms = 1400 }) => {
+  const step = useLoop(frames.length, ms);
+  const f = frames[step];
+  const color = (id: string) =>
+    id === "x" ? "#6366f1" : id === "p" ? "#0ea5e9" : id === "g" ? "#f59e0b" : C.idle;
+
+  return (
+    <Svg caption={captions[step]}>
+      {f.edges.map(([a, b], i) => (
+        <line
+          key={i}
+          x1={f.pos[a][0]}
+          y1={f.pos[a][1]}
+          x2={f.pos[b][0]}
+          y2={f.pos[b][1]}
+          stroke={C.edge}
+          strokeWidth={1.8}
+          style={{ transition: "all .45s ease" }}
+        />
+      ))}
+      {Object.entries(f.pos).map(([id, [x, y]]) => (
+        <g key={id} style={{ transform: `translate(${x}px, ${y}px)`, transition: "transform .45s ease" }}>
+          <circle r={13} fill={color(id)} stroke={C.idleStroke} strokeWidth={1.5} />
+          <text textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight="700" fill="#fff">
+            {id}
+          </text>
+        </g>
+      ))}
+    </Svg>
+  );
+};
+
+/** Zig — один поворот, когда родитель уже корень. */
+export const ZigDemo: React.FC = () => (
+  <SplayFrames
+    captions={["p — корень, x под ним", "Один поворот: x всплыл в корень"]}
+    frames={[
+      { pos: { p: [130, 32], x: [78, 92] }, edges: [["p", "x"]] },
+      { pos: { x: [130, 32], p: [182, 92] }, edges: [["x", "p"]] },
+    ]}
+  />
+);
+
+/** Zig-Zig — x и p с одной стороны, крутим сначала верхнюю пару. */
+export const ZigZigDemo: React.FC = () => (
+  <SplayFrames
+    captions={["Линия g → p → x («бамбук»)", "Поворот ВЕРХНЕЙ пары (g, p)", "Поворот (p, x): x в корне"]}
+    frames={[
+      { pos: { g: [176, 24], p: [126, 70], x: [76, 112] }, edges: [["g", "p"], ["p", "x"]] },
+      { pos: { p: [130, 26], x: [78, 78], g: [186, 78] }, edges: [["p", "x"], ["p", "g"]] },
+      { pos: { x: [102, 24], p: [152, 70], g: [202, 112] }, edges: [["x", "p"], ["p", "g"]] },
+    ]}
+  />
+);
+
+/** Zig-Zag — x и p с разных сторон, крутим сначала нижнюю пару. */
+export const ZigZagDemo: React.FC = () => (
+  <SplayFrames
+    captions={["Зигзаг: g влево, x вправо", "Поворот НИЖНЕЙ пары (p, x)", "Поворот (g, x): p и g — дети x"]}
+    frames={[
+      { pos: { g: [176, 24], p: [110, 70], x: [152, 112] }, edges: [["g", "p"], ["p", "x"]] },
+      { pos: { g: [176, 24], x: [110, 70], p: [64, 112] }, edges: [["g", "x"], ["x", "p"]] },
+      { pos: { x: [130, 30], p: [80, 100], g: [180, 100] }, edges: [["x", "p"], ["x", "g"]] },
+    ]}
+  />
+);

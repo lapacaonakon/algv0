@@ -1,8 +1,15 @@
 import { useEffect } from "react";
 import { GLOSSARY_LABELS } from "../data/glossary";
 
-/** Сколько раз один и тот же термин подсвечивается в главе (чтобы текст не рябил). */
-const MAX_PER_TERM = 2;
+/**
+ * Ограничители, чтобы текст не рябил, но и чтобы подсказки не пропадали.
+ *
+ * Считаем не «сколько раз встретился термин», а «сколько раз встретилось конкретное
+ * написание». Иначе в главе про splay первые же «Splay-дерево» и «Splay(v)» съедали
+ * лимит, и слова «Zig-Zag», «вращений», «AVL-дереве» оставались без подсказки.
+ */
+const MAX_PER_SURFACE = 2;
+const MAX_PER_TERM = 8;
 
 const SKIP_SELECTOR = "code, pre, script, style, a, textarea, input, .term-hint, [data-no-hint]";
 
@@ -27,7 +34,8 @@ export function annotateTerms(root: HTMLElement): void {
   if (!cachedRegex) cachedRegex = buildRegex();
   const re = cachedRegex;
 
-  const counts = new Map<string, number>();
+  const perTerm = new Map<string, number>();
+  const perSurface = new Map<string, number>();
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       const parent = (node as Text).parentElement;
@@ -56,11 +64,15 @@ export function annotateTerms(root: HTMLElement): void {
     let m: RegExpExecArray | null;
 
     while ((m = re.exec(text)) !== null) {
-      const id = labelToId.get(m[1].toLowerCase());
+      const surface = m[1].toLowerCase();
+      const id = labelToId.get(surface);
       if (!id) continue;
-      const used = counts.get(id) ?? 0;
-      if (used >= MAX_PER_TERM) continue;
-      counts.set(id, used + 1);
+
+      const usedTerm = perTerm.get(id) ?? 0;
+      const usedSurface = perSurface.get(surface) ?? 0;
+      if (usedTerm >= MAX_PER_TERM || usedSurface >= MAX_PER_SURFACE) continue;
+      perTerm.set(id, usedTerm + 1);
+      perSurface.set(surface, usedSurface + 1);
 
       if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
       const span = document.createElement("span");
@@ -80,9 +92,15 @@ export function annotateTerms(root: HTMLElement): void {
   }
 }
 
-/** Навешивает разметку терминов на контейнер при каждой смене главы. */
+/**
+ * Навешивает разметку терминов на контейнер при смене главы.
+ *
+ * Дополнительно перепроверяет разметку после каждого рендера: если React
+ * (или что-то ещё) перезаписал innerHTML главы, подсказки восстанавливаются,
+ * а не пропадают до перезагрузки страницы.
+ */
 export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unknown[]) {
-  useEffect(() => {
+  const run = () => {
     const el = ref.current;
     if (!el) return;
     try {
@@ -90,6 +108,16 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
     } catch {
       /* если браузер не умеет lookbehind — просто оставляем текст как есть */
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  };
+
+  // при смене главы
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(run, deps);
+
+  // страховка: контент перерисовали, а подсказок в нём нет — размечаем заново
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!el.querySelector(".term-hint")) run();
+  });
 }
