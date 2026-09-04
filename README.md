@@ -1,3 +1,70 @@
+# algv0 — Универсальное пособие по алгоритмам и структурам данных
+
+Интерактивная web-читалка (React + Vite + Tailwind) с симуляторами алгоритмов
+и автоматическим экспортом всего исходного кода в PDF.
+
+## Быстрый старт
+
+```bash
+npm install
+npm run dev          # предпросмотр на http://0.0.0.0:5173
+npm run build        # сборка в dist/ (single-file)
+```
+
+## Экспорт кода: код → txt → png → pdf
+
+Пайплайн собирает **весь** исходный код репозитория в один документ.
+
+| Команда | Шаг | Результат |
+| --- | --- | --- |
+| `npm run export:txt` | код → txt | `public/export/full_code_all_pages.txt` |
+| `npm run export:png` | txt → png | `tmp/export-pages/page-*.png` (A4, DejaVu Sans Mono, ImageMagick) |
+| `npm run export:pdf` | png → pdf | `public/export/full_code_all_pages.pdf` (pdfkit, по PNG на страницу) |
+| `npm run export` | всё сразу | txt + png + pdf |
+
+Скрипты лежат в `scripts/export/`. Требуется ImageMagick и шрифты DejaVu:
+
+```bash
+sudo apt-get install -y imagemagick fonts-dejavu-core
+```
+
+Настройки через переменные окружения:
+
+* `EXPORT_DENSITY=200` — DPI растеризации (по умолчанию 150);
+* `EXPORT_GRAYSCALE=1` — оттенки серого вместо 1-битного ч/б (крупнее, но мягче).
+
+### Автоматизация (CI)
+
+`.github/workflows/rebuild-pdf.yml` запускается **на каждый push**:
+пересобирает TXT → PNG → PDF, кладёт PNG-страницы и документы в artifacts запуска
+и коммитит обновлённые `public/export/full_code_all_pages.{txt,pdf}` обратно в ветку
+(с меткой `[skip ci]`, чтобы не зациклиться).
+
+Приложение отдаёт эти файлы по ссылкам `/export/full_code_all_pages.pdf` и `.txt` из шапки.
+
+## Аудит контента
+
+```bash
+node scripts/audit-coverage.mjs        # какие темы без аналогии / без 2D
+node scripts/audit-coverage.mjs --md   # markdown-таблица
+```
+
+Актуальный отчёт: [`TOPICS_AUDIT.md`](./TOPICS_AUDIT.md).
+
+## Структура
+
+```
+src/
+  App.tsx              — оболочка, привязка глав к визуализаторам
+  components/          — интерактивные симуляторы (Дейкстра, Краскал, Splay, Ахо-Корасик, …)
+  data/                — контент пособия (главы/билеты в виде HTML-строк)
+scripts/export/        — пайплайн код → txt → png → pdf
+public/export/         — сгенерированные TXT и PDF (обновляются CI)
+.github/workflows/     — автоматизация
+```
+
+---
+
 # Структура приложения и парсинг элементов
 
 Если вы хотите парсить HTML конспект внешними инструментами, элементы разбиты на следующие логические сущности, к которым привязаны предсказуемые теги и классы.

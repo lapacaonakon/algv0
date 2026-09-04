@@ -1,12 +1,16 @@
 {
-  "name": "react-vite-tailwind",
+  "name": "algv0-exam-guide",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "export:txt": "node scripts/export/collect-code.mjs",
+    "export:png": "node scripts/export/render-pages.mjs",
+    "export:pdf": "node scripts/export/build-pdf.mjs",
+    "export": "npm run export:txt && npm run export:png && npm run export:pdf"
   },
   "dependencies": {
     "clsx": "2.1.1",
@@ -24,9 +28,11 @@
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
+    "esbuild": "^0.28.2",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vite": "7.3.2",
     "vite-plugin-singlefile": "2.3.0"
-  }
+  },
+  "description": "Интерактивное пособие по алгоритмам и структурам данных + пайплайн экспорта кода в PDF"
 }

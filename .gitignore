@@ -1,0 +1,31 @@
+# --- dependencies ---
+node_modules/
+.pnpm-store/
+
+# --- build output ---
+dist/
+build/
+.vite/
+
+# --- export pipeline intermediates (код -> txt -> png -> pdf) ---
+# Промежуточные PNG-страницы не версионируются: они пересобираются в CI.
+tmp/
+.export-cache/
+
+# --- logs / editor / os junk ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- lock-файлы других пакет-менеджеров (канон — package-lock.json) ---
+bun.lock
+bun.lockb
+yarn.lock
+pnpm-lock.yaml

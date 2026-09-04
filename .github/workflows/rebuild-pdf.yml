@@ -1,0 +1,127 @@
+name: Rebuild code PDF
+
+# Пайплайн пересборки PDF при каждом коммите:
+#
+#   исходный код  ──▶  full_code_all_pages.txt   (scripts/export/collect-code.mjs)
+#        │
+#        └──────────▶  page-0001.png … page-NNNN.png  (scripts/export/render-pages.mjs, ImageMagick)
+#                              │
+#                              └──▶  full_code_all_pages.pdf  (scripts/export/build-pdf.mjs, pdfkit)
+#
+# Готовые TXT и PDF коммитятся обратно в ветку (их отдаёт приложение по /export/...),
+# промежуточные PNG сохраняются как artifacts запуска.
+
+on:
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      # чтобы коммит самого workflow не запускал бесконечный цикл
+      - "public/export/**"
+      - "**/*.md"
+  workflow_dispatch:
+    inputs:
+      density:
+        description: "DPI растеризации страниц (по умолчанию 150)"
+        required: false
+        default: "150"
+
+concurrency:
+  group: rebuild-pdf-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-pdf:
+    name: код → txt → png → pdf
+    runs-on: ubuntu-latest
+    # не реагируем на собственный коммит бота
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && github.actor != 'github-actions[bot]'"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install ImageMagick + DejaVu fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends imagemagick fonts-dejavu-core
+          # На Ubuntu политика ImageMagick иногда запрещает часть кодеков —
+          # разрешаем то, что нужно пайплайну (text -> png -> pdf).
+          for policy in /etc/ImageMagick-6/policy.xml /etc/ImageMagick-7/policy.xml; do
+            if [ -f "$policy" ]; then
+              sudo sed -i 's/rights="none" pattern="\(PDF\|PS\|TEXT\|LABEL\)"/rights="read|write" pattern="\1"/g' "$policy"
+            fi
+          done
+          convert -version
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Step 1 — код → txt
+        run: npm run export:txt
+
+      - name: Step 2 — txt → png
+        env:
+          EXPORT_DENSITY: ${{ github.event.inputs.density || '150' }}
+        run: npm run export:png
+
+      - name: Step 3 — png → pdf
+        run: npm run export:pdf
+
+      - name: Type-check приложения
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Summary
+        run: |
+          {
+            echo "### 📄 Экспорт пересобран"
+            echo ""
+            echo "| Артефакт | Размер |"
+            echo "| --- | --- |"
+            echo "| \`public/export/full_code_all_pages.txt\` | $(du -h public/export/full_code_all_pages.txt | cut -f1) |"
+            echo "| \`public/export/full_code_all_pages.pdf\` | $(du -h public/export/full_code_all_pages.pdf | cut -f1) |"
+            echo "| PNG-страниц | $(ls tmp/export-pages/*.png | wc -l) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts (PDF + TXT)
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-code-export
+          path: |
+            public/export/full_code_all_pages.pdf
+            public/export/full_code_all_pages.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload artifacts (PNG-страницы)
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-code-pages-png
+          path: tmp/export-pages/*.png
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Commit rebuilt export back to the branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf
+          if git diff --cached --quiet; then
+            echo "Экспорт не изменился — коммит не нужен."
+            exit 0
+          fi
+          git commit -m "chore(export): пересборка full_code_all_pages.pdf/.txt [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
