@@ -31,9 +31,21 @@ import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
 
 /** Разбор поворота и песочница всегда идут парой: посмотрел — сразу повтори сам. */
+/**
+ * Анимация и песочница идут друг под другом, а не в две колонки: в узкой
+ * колонке дерево сжималось до нечитаемого размера, а понятность здесь важнее
+ * компактности. Между ними — подпись, объясняющая переход от «смотрю» к «делаю».
+ */
 const SplayRotationsPair: React.FC = () => (
-  <div className="grid gap-5 xl:grid-cols-2 items-start">
+  <div className="space-y-4">
     <SplayRotationsViz />
+    <p className="flex items-start gap-2 text-[12px] leading-relaxed text-slate-400 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
+      <span aria-hidden="true">👇</span>
+      <span>
+        Разобрался — проверь себя: ниже то же самое дерево, но крутить его нужно самому. Подсказок не будет, пока
+        не решишь.
+      </span>
+    </p>
     <SplayRotationSandbox />
   </div>
 );
@@ -94,7 +106,7 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
   },
   "splay-tree": {
     title: "Splay-дерево",
-    hint: "Сверху — разбор всех трёх поворотов (Zig, Zig-Zig, Zig-Zag), снизу — живое дерево.",
+    hint: "Покадровый разбор трёх поворотов, песочница на них же и живое дерево целиком.",
     Component: () => (
       <div className="space-y-10">
         <SplayRotationsPair />
@@ -104,7 +116,7 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
   },
   "splay-rotations": {
     title: "Splay: Zig, Zig-Zig и Zig-Zag по шагам",
-    hint: "Слева — покадровый разбор поворота, справа — песочница, где то же самое делаешь сам.",
+    hint: "Сверху — покадровый разбор поворота, снизу — песочница, где то же самое делаешь сам.",
     Component: () => <SplayRotationsPair />,
   },
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
