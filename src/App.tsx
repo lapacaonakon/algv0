@@ -7,11 +7,16 @@ import { ChapterView } from "./components/ChapterView";
 import { ChapterNav } from "./components/ChapterNav";
 import { SimulatorModal } from "./components/hints/SimulatorModal";
 import { SimulatorHub } from "./components/SimulatorHub";
+import { PythonCompiler } from "./components/PythonCompiler";
+import { SideCompilerDrawer } from "./components/SideCompilerDrawer";
+import { CompilerPanelContent } from "./components/CompilerPanelContent";
+import { Terminal } from "lucide-react";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
+  const [activeTab, setActiveTab] = useState<"guide" | "simulator" | "compiler">("guide");
   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
   const [modalVizId, setModalVizId] = useState<string | null>(null);
+  const [sideOpen, setSideOpen] = useState(false);
 
   const index = Math.max(
     0,
@@ -26,18 +31,25 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  // Закрываем боковой компилятор при смене главы/таба
+  useEffect(() => {
+    setSideOpen(false);
+  }, [activeChapterId, activeTab]);
+
   // Стрелки ← → листают темы (как на обучающих сайтах)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // не мешаем когда открыты модалки/дроеры
+      if (sideOpen || modalVizId) return;
       if (e.key === "ArrowRight" && next) goTo(next.id);
       if (e.key === "ArrowLeft" && prev) goTo(prev.id);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goTo, next, prev]);
+  }, [goTo, next, prev, sideOpen, modalVizId]);
 
   const progress = useMemo(() => ((index + 1) / chapters.length) * 100, [index]);
 
@@ -61,7 +73,7 @@ export default function App() {
               <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
             </div>
 
-            <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
+            <main id="main-content" className={`flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8 ${sideOpen ? "lg:pr-6" : ""}`}>
               {/* Шапка главы с быстрыми переходами */}
               <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
                 <div className="min-w-0">
@@ -91,11 +103,68 @@ export default function App() {
                 total={chapters.length}
                 onGo={goTo}
                 onOpenSimulator={setModalVizId}
+                onOpenCompiler={() => setSideOpen(true)}
               />
             </main>
+
+            {/* Док-панель компилятора на десктопе — видно демо и компилятор одновременно, есть Шаг/Пуск/Запустить */}
+            {sideOpen && (
+              <aside className="hidden lg:flex lg:w-[380px] shrink-0 border-l border-slate-800 bg-slate-950 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] flex-col overflow-hidden">
+                <CompilerPanelContent
+                  chapterId={activeChapter.id}
+                  onClose={() => setSideOpen(false)}
+                  onOpenFull={() => {
+                    setSideOpen(false);
+                    setActiveTab("compiler");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              </aside>
+            )}
+
+            {/* Вертикальная вкладка — только когда панель закрыта */}
+            {!sideOpen && (
+              <div className="hidden xl:flex fixed right-0 top-1/2 -translate-y-1/2 z-40">
+                <button
+                  onClick={() => setSideOpen(true)}
+                  className="writing-vertical bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-6 rounded-l-xl shadow-xl shadow-emerald-900/30 flex flex-col items-center gap-2 transition-colors border-y border-l border-emerald-500"
+                  style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+                  title="Открыть боковой компилятор — не перекрывает демо, есть Шаг и Запустить"
+                >
+                  <Terminal className="w-4 h-4 rotate-90" />
+                  <span className="tracking-widest">КОМПИЛЯТОР</span>
+                  <span className="text-[10px] opacity-80">i·k·j·n·m</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Мобильная кнопка + drawer — только на мобильных/планшетах */}
+          {!sideOpen && (
+            <button
+              onClick={() => setSideOpen(true)}
+              className="lg:hidden fixed bottom-6 right-6 z-40 bg-emerald-600 hover:bg-emerald-500 text-white p-4 rounded-full shadow-xl shadow-emerald-900/30 transition-colors"
+              title="Открыть компилятор"
+            >
+              <Terminal className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* На десктопе — drawer hidden, на мобиле — overlay. Используем тот же контент */}
+          <div className="lg:hidden">
+            <SideCompilerDrawer
+              chapterId={activeChapter.id}
+              open={sideOpen}
+              onClose={() => setSideOpen(false)}
+              onOpenFull={() => {
+                setSideOpen(false);
+                setActiveTab("compiler");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
           </div>
         </>
-      ) : (
+      ) : activeTab === "simulator" ? (
         <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
           <SimulatorHub
             onOpen={setModalVizId}
@@ -105,6 +174,8 @@ export default function App() {
             }}
           />
         </main>
+      ) : (
+        <PythonCompiler chapterId={activeChapter.id} />
       )}
 
       <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />

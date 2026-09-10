@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useVizSync } from '../hooks/useVizSync';
+import { useVizControl } from '../hooks/useVizControl';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -157,6 +159,21 @@ export default function BellmanFordViz() {
   }, [isPlaying, currentStepIndex, steps.length]);
 
   const currentStep = steps[currentStepIndex] || null;
+
+  useVizSync("bellman-ford", {
+    n: 7,
+    m: edges.length,
+    i: currentStep?.iteration ?? "—",
+    k: currentStep?.checkingEdge?.u ?? "—",
+    j: currentStep?.checkingEdge?.v ?? "—",
+  });
+  useVizControl("bellman-ford", {
+    onStep: () => { setIsPlaying(false); setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
+    onReset: () => { setIsPlaying(false); setCurrentStepIndex(0); },
+    onPlay: () => setIsPlaying(true),
+    onPause: () => setIsPlaying(false),
+  });
+
   if (!currentStep) return <div>Загрузка...</div>;
 
   return (

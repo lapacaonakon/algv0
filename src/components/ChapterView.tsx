@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles } from "lucide-react";
+import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles, Terminal, Eye } from "lucide-react";
 import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
 import { getViz } from "./vizRegistry";
 import { ChapterNav } from "./ChapterNav";
 import { downloadChapterHtml } from "../utils/exportHtml";
+import { getFallbackMeta } from "../data/compilerVars";
 
 interface Props {
   chapter: Chapter;
@@ -15,11 +16,12 @@ interface Props {
   total: number;
   onGo: (id: string) => void;
   onOpenSimulator: (vizId: string) => void;
+  onOpenCompiler?: () => void;
 }
 
 const isTouch = () => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
 
-export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator }) => {
+export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator, onOpenCompiler }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [anchor, setAnchor] = useState<HintAnchor | null>(null);
   const hideTimer = useRef<number | null>(null);
@@ -91,6 +93,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
   };
 
   const viz = getViz(chapter.id);
+  const meta = getFallbackMeta(chapter.id);
 
   return (
     <>
@@ -119,7 +122,36 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
           >
             <Printer className="w-3.5 h-3.5" /> Печать
           </button>
-          <span className="text-[11px] text-slate-500">одна тема = один файл, открывается без интернета</span>
+          <span className="text-[11px] text-slate-500 hidden sm:inline">одна тема = один файл, открывается без интернета</span>
+          {onOpenCompiler && (
+            <button
+              onClick={onOpenCompiler}
+              className="ml-auto hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-colors"
+              title="Открыть боковой компилятор — хардкод i,k,j,n,m синхронизирован с демо этой страницы (кода нет, только комментарии)"
+            >
+              <Terminal className="w-3.5 h-3.5" /> Компилятор
+            </button>
+          )}
+        </div>
+
+        {/* Компактное табло синхрона — не перегружаем */}
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-300">
+            <Eye className="w-3.5 h-3.5" /> {meta.title}
+          </span>
+          <span className="hidden sm:inline text-slate-600">·</span>
+          <span className="flex flex-wrap gap-1.5">
+            {Object.entries(meta.vars).map(([k, v]) => (
+              <span key={k} className="font-mono text-[11px] bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded" title={`${k} — ${v.desc}`}>
+                {k}={v.example}
+              </span>
+            ))}
+          </span>
+          {onOpenCompiler && (
+            <button onClick={onOpenCompiler} className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white">
+              <Terminal className="w-3 h-3" /> Компилятор
+            </button>
+          )}
         </div>
 
         <div
@@ -136,7 +168,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
           <MousePointerClick className="w-4 h-4 shrink-0 text-indigo-400 mt-px" />
           <span>
             Подчёркнутые термины — интерактивные: наведите курсор (или тапните на телефоне), чтобы увидеть
-            объяснение на пальцах, мини-анимацию и кнопку запуска полного симулятора.
+            объяснение на пальцах, мини-анимацию и кнопку запуска полного симулятора. Всплывает подсказка-карточка.
           </span>
         </p>
 
@@ -147,15 +179,33 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 Демонстрация: {viz.title}
               </h3>
-              <button
-                onClick={() => onOpenSimulator(chapter.id)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
-              >
-                <Maximize2 className="w-3.5 h-3.5" /> Развернуть
-              </button>
+              <div className="flex items-center gap-2">
+                {onOpenCompiler && (
+                  <button
+                    onClick={onOpenCompiler}
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-900/40 border border-emerald-700 text-emerald-300 hover:text-white hover:bg-emerald-800 transition-colors"
+                    title="Открыть боковой компилятор с переменными этой демо"
+                  >
+                    <Terminal className="w-3.5 h-3.5" /> Компилятор
+                  </button>
+                )}
+                <button
+                  onClick={() => onOpenSimulator(chapter.id)}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" /> Развернуть
+                </button>
+              </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
-            <viz.Component />
+            <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-1">
+              <viz.Component />
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500 flex items-center gap-1.5">
+              <Terminal className="w-3 h-3 text-emerald-400" />
+              Переменные этой демо (<span className="font-mono text-slate-400">{Object.keys(meta.vars).join(", ")}</span>) уже
+              подсвечены в боковом компиляторе — код отсутствует, только комментарии.
+            </div>
           </section>
         )}
 

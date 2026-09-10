@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useVizSync } from '../hooks/useVizSync';
+import { useVizControl } from '../hooks/useVizControl';
 
 interface Step {
   k: number; i: number; j: number;
@@ -111,6 +113,19 @@ export default function FloydViz() {
   }, [isPlaying, currentStepIndex, steps.length]);
 
   const currentStep = steps[currentStepIndex] || null;
+  useVizSync("floyd", {
+    n: 7,
+    m: "-",
+    k: currentStep ? (currentStep.k >= 0 ? currentStep.k : "—") : "—",
+    i: currentStep ? (currentStep.i >= 0 ? currentStep.i : "—") : "—",
+    j: currentStep ? (currentStep.j >= 0 ? currentStep.j : "—") : "—",
+  });
+  useVizControl("floyd", {
+    onStep: () => { setIsPlaying(false); setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
+    onReset: () => { setIsPlaying(false); setCurrentStepIndex(0); },
+    onPlay: () => setIsPlaying(true),
+    onPause: () => setIsPlaying(false),
+  });
   if (!currentStep) return <div>Загрузка...</div>;
 
   return (

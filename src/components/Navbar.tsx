@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2 } from 'lucide-react';
+import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2, Terminal } from 'lucide-react';
 import { chapters } from '../data/content';
 import { downloadBookHtml } from '../utils/exportHtml';
 
 interface NavbarProps {
-  activeTab: 'guide' | 'simulator';
-  setActiveTab: (tab: 'guide' | 'simulator') => void;
+  activeTab: 'guide' | 'simulator' | 'compiler';
+  setActiveTab: (tab: 'guide' | 'simulator' | 'compiler') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
@@ -60,9 +60,20 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           >
             <Cpu className="w-4 h-4" /> Тренажёры
           </button>
+          <button
+            id="tab-compiler-btn"
+            onClick={() => setActiveTab('compiler')}
+            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+              activeTab === 'compiler'
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Terminal className="w-4 h-4" /> Python
+          </button>
           <a
             id="download-pdf-btn"
-            href="/export/full_code_all_pages.pdf"
+            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.pdf`}
             download="full_code_all_pages.pdf"
             target="_blank"
             rel="noreferrer"
@@ -73,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           </a>
           <a
             id="download-txt-btn"
-            href="/export/full_code_all_pages.txt"
+            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.txt`}
             download="full_code_all_pages.txt"
             target="_blank"
             rel="noreferrer"

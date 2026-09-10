@@ -10,6 +10,9 @@ const __dirname = path.dirname(__filename);
 
 // https://vite.dev/config/
 export default defineConfig({
+  // На GitHub Pages приложение живёт в /algv0/, локально — в корне.
+  // VITE_BASE можно переопределить, если репозиторий будет переименован.
+  base: process.env.VITE_BASE || "/",
   plugins: [react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: {
