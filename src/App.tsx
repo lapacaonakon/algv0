@@ -73,54 +73,57 @@ export default function App() {
               <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
             </div>
 
-            <main id="main-content" className={`flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8 ${sideOpen ? "lg:pr-6" : ""}`}>
-              {/* Шапка главы с быстрыми переходами */}
-              <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
-                    {activeChapter.category || "Универсальное пособие"}
+            {/* Контент + компилятор 50/50 когда открыто */}
+            <div className={`flex flex-1 min-w-0 w-full ${sideOpen ? "flex-col lg:flex-row" : ""}`}>
+              <main id="main-content" className={`flex-1 min-w-0 w-full mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8 ${sideOpen ? "lg:w-1/2 lg:max-w-none lg:border-r lg:border-slate-800" : "max-w-4xl"}`}>
+                {/* Шапка главы с быстрыми переходами */}
+                <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
+                      {activeChapter.category || "Универсальное пособие"}
+                    </div>
+                    <h2 className="text-base sm:text-xl font-extrabold text-white leading-tight truncate">
+                      {activeChapter.title}
+                    </h2>
                   </div>
-                  <h2 className="text-base sm:text-xl font-extrabold text-white leading-tight truncate">
-                    {activeChapter.title}
-                  </h2>
+                  <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
                 </div>
-                <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
-              </div>
 
-              <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
-                <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+                <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+
+                <ChapterView
+                  key={activeChapter.id}
+                  chapter={activeChapter}
+                  prev={prev}
+                  next={next}
+                  index={index}
+                  total={chapters.length}
+                  onGo={goTo}
+                  onOpenSimulator={setModalVizId}
+                  onOpenCompiler={() => setSideOpen(true)}
                 />
-              </div>
+              </main>
 
-              <ChapterView
-                key={activeChapter.id}
-                chapter={activeChapter}
-                prev={prev}
-                next={next}
-                index={index}
-                total={chapters.length}
-                onGo={goTo}
-                onOpenSimulator={setModalVizId}
-                onOpenCompiler={() => setSideOpen(true)}
-              />
-            </main>
-
-            {/* Док-панель компилятора на десктопе — видно демо и компилятор одновременно, есть Шаг/Пуск/Запустить */}
-            {sideOpen && (
-              <aside className="hidden lg:flex lg:w-[380px] shrink-0 border-l border-slate-800 bg-slate-950 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] flex-col overflow-hidden">
-                <CompilerPanelContent
-                  chapterId={activeChapter.id}
-                  onClose={() => setSideOpen(false)}
-                  onOpenFull={() => {
-                    setSideOpen(false);
-                    setActiveTab("compiler");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                />
-              </aside>
-            )}
+              {/* 50/50 док-панель — не чат, а панель кода, видно одновременно с демо */}
+              {sideOpen && (
+                <aside className="w-full lg:w-1/2 shrink-0 border-t lg:border-t-0 lg:border-l border-slate-800 bg-slate-950 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
+                  <CompilerPanelContent
+                    chapterId={activeChapter.id}
+                    onClose={() => setSideOpen(false)}
+                    onOpenFull={() => {
+                      setSideOpen(false);
+                      setActiveTab("compiler");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  />
+                </aside>
+              )}
+            </div>
 
             {/* Вертикальная вкладка — только когда панель закрыта */}
             {!sideOpen && (
@@ -129,11 +132,11 @@ export default function App() {
                   onClick={() => setSideOpen(true)}
                   className="writing-vertical bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-6 rounded-l-xl shadow-xl shadow-emerald-900/30 flex flex-col items-center gap-2 transition-colors border-y border-l border-emerald-500"
                   style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
-                  title="Открыть боковой компилятор — не перекрывает демо, есть Шаг и Запустить"
+                  title="Открыть компилятор 50/50 — слева демо, справа код"
                 >
                   <Terminal className="w-4 h-4 rotate-90" />
                   <span className="tracking-widest">КОМПИЛЯТОР</span>
-                  <span className="text-[10px] opacity-80">i·k·j·n·m</span>
+                  <span className="text-[10px] opacity-80">50/50</span>
                 </button>
               </div>
             )}
