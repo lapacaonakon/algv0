@@ -1,4 +1,4 @@
-import { Chapter } from "../types";
+import { Chapter } from "../../types";
 
 export const tickets6to13: Chapter[] = [
   {

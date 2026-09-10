@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from 'lucide-react';
 
 type Node = { id: string; label: string; x: number; y: number };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { RotateCcw, SkipForward, Undo } from 'lucide-react';
 
 export function JohnsonViz() {

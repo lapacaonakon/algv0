@@ -1,4 +1,4 @@
-import { Chapter } from "./content";
+import { Chapter } from "../types";
 
 export const graphChapters: Chapter[] = [
   {
