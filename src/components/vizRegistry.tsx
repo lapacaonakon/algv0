@@ -29,6 +29,7 @@ import ChapterImage from "./ChapterImage";
 import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
+import { TreapBuildViz } from "./TreapBuildViz";
 
 /** Разбор поворота и песочница всегда идут парой: посмотрел — сразу повтори сам. */
 /**
@@ -93,6 +94,11 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     title: "Разреженная таблица (1D и 2D)",
     hint: "Наведите курсор на любую ячейку — подсветится отрезок, за который она отвечает.",
     Component: SparseTableViz,
+  },
+  treap: {
+    title: "Построение Treap: новенький спускается",
+    hint: "Сортируем по грейду (приоритет), вставляем спуском от корня: табельный ≤ узла — налево, больше — направо. Путь, дерево и код синхронизированы.",
+    Component: TreapBuildViz,
   },
   "prefix-sums-2d": {
     title: "Префиксные суммы (1D и 2D)",
