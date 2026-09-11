@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Copy, Play, RotateCcw, StepForward, Pause, Terminal } from "lucide-react";
 import { getFallbackMeta, getMinimalStarter } from "../data/compilerVars";
+import { VizObject, parseAssignments } from "../viz/VizObject";
 
 interface Props {
   chapterId: string;
@@ -11,57 +12,106 @@ interface Props {
 export function CompilerPanelContent({ chapterId, onOpenFull, onClose }: Props) {
   const meta = getFallbackMeta(chapterId);
   const starter = getMinimalStarter(chapterId);
+  const lines = useMemo(() => starter.split("\n"), [starter]);
+  const vizObj = useMemo(() => new VizObject(chapterId, lines, {}), [chapterId, lines]);
+
   const [live, setLive] = useState<Record<string, string | number> | null>(null);
   const [playing, setPlaying] = useState(false);
   const [line, setLine] = useState(0);
-  const lines = starter.split("\n");
+
+  // внешний highlight от viz (когда viz шагает сама)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (d?.chapterId === chapterId || !d?.chapterId) setLive(d.vars ?? null);
+    };
+    window.addEventListener("viz:sync", handler as EventListener);
+    return () => window.removeEventListener("viz:sync", handler as EventListener);
+  }, [chapterId]);
 
   useEffect(() => {
     setLine(0);
     setLive(null);
   }, [chapterId]);
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const d = (e as CustomEvent).detail;
-      if (d?.chapterId === chapterId || !d?.chapterId) {
-        setLive(d.vars ?? null);
-        if (typeof d.line === "number") setLine(Math.min(d.line, lines.length - 1));
-      }
-    };
-    window.addEventListener("viz:sync", handler as EventListener);
-    return () => window.removeEventListener("viz:sync", handler as EventListener);
-  }, [chapterId, lines.length]);
+  const emitHighlight = (nextLine: number) => {
+    const codeLine = lines[nextLine] ?? "";
+    const parsed = parseAssignments(codeLine);
+    // обновляем объект
+    for (const [k, v] of Object.entries(parsed)) vizObj.vars.set(k, v as number);
+    const vars = { ...vizObj.vars.vars } as Record<string, string | number>;
+    // если есть распарсенные vars — шлём в визуализацию
+    if (Object.keys(parsed).length > 0) {
+      window.dispatchEvent(new CustomEvent("viz:highlight", { detail: { chapterId, vars, line: nextLine } }));
+      setLive(vars);
+    } else {
+      // для строк без присваивания (ans = min...) — просто подсветить строку, оставить прежние vars
+      window.dispatchEvent(new CustomEvent("viz:highlight", { detail: { chapterId, vars, line: nextLine } }));
+    }
+  };
 
   const sendControl = (action: "step" | "play" | "pause" | "reset") => {
     if (action === "step") {
       const next = Math.min(line + 1, lines.length - 1);
+      // если на нулевой строке и ещё не эмитили — эмитим текущую
+      if (line === 0 && Object.keys(vizObj.vars.vars).length === 0) {
+        emitHighlight(0);
+        if (lines.length > 1) {
+          // следующий шаг будет на 1
+          setLine(1);
+          emitHighlight(1);
+          return;
+        }
+        setLine(next);
+        emitHighlight(next);
+        return;
+      }
       setLine(next);
-      window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action, line: next } }));
-      const viz = document.getElementById("chapter-viz");
-      const btn = Array.from(viz?.querySelectorAll("button") ?? []).find((b) => /Шаг|Step/i.test(b.textContent || ""));
-      (btn as HTMLButtonElement | undefined)?.click();
-      if (!viz) setLine((v) => Math.min(v + 1, lines.length - 1));
-      return;
-    }
-    if (action === "reset") {
+      emitHighlight(next);
+      // также дёргаем viz для совместимости
+      window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action: "step" } }));
+    } else if (action === "reset") {
       setLine(0);
-      window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action, line: 0 } }));
-      const viz = document.getElementById("chapter-viz");
-      const btn = Array.from(viz?.querySelectorAll("button") ?? []).find((b) => /Сброс|Reset/i.test(b.textContent || ""));
-      (btn as HTMLButtonElement | undefined)?.click();
-      return;
-    }
-    window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action } }));
-    const viz = document.getElementById("chapter-viz");
-    if (action === "play" || action === "pause") {
-      const btn = Array.from(viz?.querySelectorAll("button") ?? []).find((b) => /Пуск|Пауза|Play|Pause/i.test(b.textContent || ""));
-      (btn as HTMLButtonElement | undefined)?.click();
+      vizObj.vars.vars = {};
+      setLive(null);
+      window.dispatchEvent(new CustomEvent("viz:highlight", { detail: { chapterId, vars: {}, line: 0 } }));
+      window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action: "reset" } }));
+      emitHighlight(0);
+    } else if (action === "play" || action === "pause") {
+      window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action } }));
       setPlaying(action === "play");
+      // при play — начать автопроход по строкам
+      if (action === "play") {
+        let cur = line;
+        const iv = setInterval(() => {
+          cur = Math.min(cur + 1, lines.length - 1);
+          setLine(cur);
+          emitHighlight(cur);
+          if (cur >= lines.length - 1) {
+            clearInterval(iv);
+            setPlaying(false);
+          }
+        }, 900);
+        // сохранить interval для паузы — упрощённо через событие pause
+        window.addEventListener("viz:control", function h(e: Event) {
+          const d = (e as CustomEvent).detail;
+          if (d?.action === "pause") {
+            clearInterval(iv);
+            window.removeEventListener("viz:control", h as EventListener);
+          }
+        } as EventListener);
+      }
     }
   };
 
   const copy = () => navigator.clipboard.writeText(starter).catch(() => {});
+
+  // при первом рендере подсветить строку 0 (i,j=0,0)
+  useEffect(() => {
+    // небольшая задержка чтобы viz успел подписаться
+    const t = setTimeout(() => emitHighlight(0), 200);
+    return () => clearTimeout(t);
+  }, [chapterId, starter]);
 
   return (
     <div className="flex flex-col h-full bg-[#0b1220]">
@@ -102,20 +152,20 @@ export function CompilerPanelContent({ chapterId, onOpenFull, onClose }: Props) 
       <div className="shrink-0 px-3 py-2 border-b border-slate-800 bg-slate-900/30 font-mono text-[11px] leading-5">
         <div className="flex items-center gap-1.5 text-slate-500 mb-1">
           <span className={`w-2 h-2 rounded-full ${live ? "bg-emerald-400 animate-pulse" : "bg-slate-600"}`} />
-          WATCHES {live ? <span className="text-emerald-400">· шаг {line + 1}/{lines.length}</span> : null}
+          WATCHES — шаг {line + 1}/{lines.length} · {vizObj.describe()}
         </div>
         <div className="flex flex-wrap gap-1">
-          {live ? (
+          {live && Object.keys(live).length > 0 ? (
             Object.entries(live).map(([k, v]) => (
               <span key={k} className="px-1.5 py-0.5 rounded bg-[#0f172a] border border-emerald-600/30 text-emerald-300">
                 {k} = {String(v)}
               </span>
             ))
           ) : (
-            <span className="text-slate-500">{Object.keys(meta.vars).join("  ·  ")} — жми Шаг</span>
+            <span className="text-slate-500">{lines[line]?.split("#")[0].trim() || "i,j = 0,0"} — жми Шаг</span>
           )}
         </div>
-        {live && <div className="mt-1 text-[10px] text-slate-500">подсветка в визуализации слева соответствует строке {line + 1}</div>}
+        <div className="mt-1 text-[10px] text-slate-500">строка кода → подсветка в визуализации слева (отдельный объект: CodeImpl + VarsStruct)</div>
       </div>
 
       <div className="flex-1 overflow-auto bg-[#080d14] font-mono text-[13px] leading-6">
@@ -138,7 +188,7 @@ export function CompilerPanelContent({ chapterId, onOpenFull, onClose }: Props) 
       </div>
 
       <div className="shrink-0 border-t border-slate-800 bg-slate-950 px-3 py-2 flex items-center justify-between text-[11px] text-slate-500">
-        <span>строка {line + 1} · шаг = подсветка слева</span>
+        <span>viz:{meta.vizId ?? chapterId} · {vizObj.code.describe()} · {vizObj.vars.describe()}</span>
         <button onClick={onOpenFull} className="text-emerald-400 hover:text-white">терминал →</button>
       </div>
     </div>

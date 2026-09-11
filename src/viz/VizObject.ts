@@ -1,123 +1,93 @@
-/**
- * Визуализация как отдельный объект с двумя наследниками:
- *  - CodeImpl — как считается (код реализации)
- *  - VarsStruct — какие переменные на текущем шаге (структура переменных)
- *
- * Шаг в компиляторе === шаг в визуализации: строка кода ↔ подсветка в теории.
- */
-
-export abstract class VizObject {
-  abstract readonly id: string;
-  /** Код — те же строки, что в компиляторе (i,j=0,0 и a,b,c,d=... ) */
-  abstract getCode(): string[];
-  /** Переменные на шаге step (0-index) */
-  abstract getVars(step: number): Record<string, number | string>;
-  /** Сколько шагов = сколько строк кода */
-  getStepCount(): number {
-    return this.getCode().length;
-  }
-  /** Подсветка: какие ячейки/рёбра светить на шаге */
-  abstract getHighlight(step: number): { cells?: string[]; note?: string };
+// Базовый объект визуализации с двумя наследниками
+export abstract class Visualization {
+  abstract getType(): string;
+  abstract describe(): string;
 }
 
-/** Наследник 1: код реализации */
-export abstract class VizCode extends VizObject {}
-/** Наследник 2: структура переменных */
-export abstract class VizVars extends VizObject {}
-
-// ── Sparse Table: 1D i,j и 2D a,b,c,d → new ──
-export class SparseTableVars extends VizVars {
-  readonly id = "sparse-table";
-  getCode(): string[] {
-    return ["i, j = 0, 0  # 1D: первый блок", "a, b, c, d = 4, 1, 3, 2  # 2D: 2×2 → new", "ans = min(a, b, c, d)  # new"];
+// Наследник 1: код реализации — строки которые видит пользователь в компиляторе
+export class CodeImpl extends Visualization {
+  lines: string[];
+  constructor(lines: string[]) {
+    super();
+    this.lines = lines;
   }
-  getVars(step: number): Record<string, number | string> {
-    if (step === 0) return { i: 0, j: 0, n: 8, k: 0 };
-    if (step === 1) return { a: 4, b: 1, c: 3, d: 2, k: 1 };
-    return { ans: 1, i: 0, j: 0, a: 4, b: 1, c: 3, d: 2 };
-  }
-  getHighlight(step: number) {
-    if (step === 0) return { cells: ["st[0][0]"], note: "i=0 j=0 — первый блок длины 1" };
-    if (step === 1) return { cells: ["2×2 блок"], note: "a,b,c,d — четыре ячейки → new" };
-    return { cells: ["ans"], note: "new = min(4,1,3,2)=1" };
-  }
+  getType() { return "code"; }
+  describe() { return `code: ${this.lines.length} lines`; }
+  getLine(i: number) { return this.lines[i] ?? ""; }
 }
 
-export class SparseTableCode extends VizCode {
-  readonly id = "sparse-table";
-  getCode(): string[] {
-    return new SparseTableVars().getCode();
+// Наследник 2: структура переменных — i,j,k,n,m и их текущие значения
+export class VarsStruct extends Visualization {
+  vars: Record<string, number | string>;
+  constructor(vars: Record<string, number | string>) {
+    super();
+    this.vars = { ...vars };
   }
-  getVars(step: number) {
-    return new SparseTableVars().getVars(step);
+  getType() { return "vars"; }
+  describe() { return `vars: ${Object.keys(this.vars).join(",")}`; }
+  set(key: string, value: number | string) { this.vars[key] = value; }
+  get(key: string) { return this.vars[key]; }
+}
+
+// Объект визуализации объединяет оба наследника
+export class VizObject extends Visualization {
+  code: CodeImpl;
+  vars: VarsStruct;
+  chapterId: string;
+  constructor(chapterId: string, codeLines: string[], initialVars: Record<string, number | string>) {
+    super();
+    this.chapterId = chapterId;
+    this.code = new CodeImpl(codeLines);
+    this.vars = new VarsStruct(initialVars);
   }
-  getHighlight(step: number) {
-    return new SparseTableVars().getHighlight(step);
+  getType() { return "viz"; }
+  describe() { return `viz:${this.chapterId} ${this.code.describe()} ${this.vars.describe()}`; }
+
+  // подсветка: обновить vars из строки кода и вернуть их
+  highlightFromLine(line: string): Record<string, number | string> {
+    const parsed = parseAssignments(line);
+    for (const [k, v] of Object.entries(parsed)) this.vars.set(k, v);
+    return { ...this.vars.vars };
   }
 }
 
-// ── Префиксные суммы: тоже i,j и 4→1 ──
-export class PrefixSumVars extends VizVars {
-  readonly id = "prefix-sums-2d";
-  getCode(): string[] {
-    return ["i, j = 0, 0  # 1D", "a, b, c, d = 1, 2, 3, 4  # 2D блок", "s = a + b + c + d  # 4 → 1"];
+// Парсит строку вида "i, j = 0, 0" или "a, b, c, d = 1, 2, 3, 4" или "ans = min(a,b,c,d)"
+export function parseAssignments(line: string): Record<string, number | string> {
+  const out: Record<string, number | string> = {};
+  // убрать коммент
+  const code = line.split("#")[0].trim();
+  if (!code) return out;
+  if (!code.includes("=")) return out;
+  const [left, right] = code.split("=").map(s => s.trim());
+  if (!left || !right) return out;
+  // левая часть: "i, j" или "a, b, c, d" или "ans"
+  const leftVars = left.split(",").map(s => s.trim()).filter(Boolean);
+  // правая часть: "0, 0" или "4, 1, 3, 2" или "min(a,b,c,d)" — если не числа, пропускаем
+  // пробуем распарсить как числа
+  if (right.startsWith("min") || right.startsWith("max") || right.includes("(")) {
+    // для конструкции ans = min(a,b,c,d) — не парсим как vars, но можно вычислить
+    // оставляем как строку, но подсветка будет по a,b,c,d уже
+    return out;
   }
-  getVars(step: number): Record<string, string | number> {
-    if (step === 0) return { i: 0, j: 0 };
-    if (step === 1) return { a: 1, b: 2, c: 3, d: 4 };
-    return { s: 10, a: 1, b: 2, c: 3, d: 4 } as Record<string, string | number>;
+  const rightVals = right.split(",").map(s => s.trim()).filter(Boolean);
+  // если одно значение и несколько vars: "a,b,c,d = 1" -> не поддерживаем
+  // если количество совпадает
+  if (leftVars.length === rightVals.length) {
+    for (let i = 0; i < leftVars.length; i++) {
+      const k = leftVars[i];
+      const vStr = rightVals[i];
+      const num = Number(vStr);
+      out[k] = Number.isNaN(num) ? vStr : num;
+    }
+  } else if (leftVars.length === 1 && rightVals.length === 1) {
+    const num = Number(rightVals[0]);
+    out[leftVars[0]] = Number.isNaN(num) ? rightVals[0] : num;
+  } else if (rightVals.length === 1 && leftVars.length > 1) {
+    // "i, j = 0" — распарсить как оба = 0?
+    const num = Number(rightVals[0]);
+    const val = Number.isNaN(num) ? rightVals[0] : num;
+    for (const k of leftVars) out[k] = val;
   }
-  getHighlight(step: number) {
-    if (step === 0) return { cells: ["pref[0][0]"] };
-    if (step === 1) return { cells: ["2×2"] };
-    return { cells: ["sum"] };
-  }
-}
-export class PrefixSumCode extends VizCode {
-  readonly id = "prefix-sums-2d";
-  getCode() { return new PrefixSumVars().getCode(); }
-  getVars(step: number): Record<string, string | number> { return new PrefixSumVars().getVars(step); }
-  getHighlight(step: number) { return new PrefixSumVars().getHighlight(step); }
-}
-
-// ── Флойд: 8 строк как в FloydViz ──
-export class FloydVars extends VizVars {
-  readonly id = "floyd";
-  getCode(): string[] {
-    return [
-      "def floyd_warshall(matrix, V):",
-      "    dist = copy(matrix)",
-      "    for k in range(V):  # промежут. k",
-      "        for i in range(V):",
-      "            for j in range(V):",
-      "                if dist[i][k] + dist[k][j] < dist[i][j]:",
-      "                    dist[i][j] = dist[i][k] + dist[k][j]",
-      "    return dist",
-    ];
-  }
-  getVars(step: number) {
-    const k = step % 7;
-    const i = Math.floor(step / 7) % 7;
-    const j = step % 7;
-    return { k, i, j, n: 7 };
-  }
-  getHighlight(step: number) {
-    return { cells: [`k=${step % 7}`] };
-  }
-}
-export class FloydCode extends VizCode {
-  readonly id = "floyd";
-  getCode() { return new FloydVars().getCode(); }
-  getVars(s: number) { return new FloydVars().getVars(s); }
-  getHighlight(s: number) { return new FloydVars().getHighlight(s); }
-}
-
-const REGISTRY: Record<string, VizObject> = {
-  "sparse-table": new SparseTableVars(),
-  "prefix-sums-2d": new PrefixSumVars(),
-  "floyd": new FloydVars(),
-};
-
-export function getVizObject(id: string): VizObject | undefined {
-  return REGISTRY[id];
+  // поддержка "i,j=0,0" без пробелов уже покрыта
+  return out;
 }

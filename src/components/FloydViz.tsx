@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useVizSync } from '../hooks/useVizSync';
 import { useVizControl } from '../hooks/useVizControl';
+import { VizObject } from '../viz/VizObject';
 
 interface Step {
   k: number; i: number; j: number;
@@ -113,6 +114,7 @@ export default function FloydViz() {
   }, [isPlaying, currentStepIndex, steps.length]);
 
   const currentStep = steps[currentStepIndex] || null;
+  const vizObj = useMemo(() => new VizObject("floyd", ["k, i, j = 0, 0, 0  # k — промежут., i — строка, j — столбец"], { k: 0, i: 0, j: 0, n: 7 }), []);
   useVizSync("floyd", {
     n: 7,
     m: "-",
@@ -126,6 +128,27 @@ export default function FloydViz() {
     onPlay: () => setIsPlaying(true),
     onPause: () => setIsPlaying(false),
   });
+  // подсветка из компилятора: k,i,j = 0,0,0 → шаг
+  useEffect(() => {
+    const h = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (d.chapterId && d.chapterId !== "floyd") return;
+      const v = d.vars as Record<string, any>;
+      if (!v) return;
+      if (v.k !== undefined && v.i !== undefined && v.j !== undefined) {
+        const k = Number(v.k), i = Number(v.i), j = Number(v.j);
+        vizObj.vars.set("k", k); vizObj.vars.set("i", i); vizObj.vars.set("j", j);
+        const idx = steps.findIndex((s) => s.k === k && s.i === i && s.j === j);
+        if (idx !== -1) { setIsPlaying(false); setCurrentStepIndex(idx); }
+      } else if (v.i !== undefined && v.j !== undefined) {
+        const i = Number(v.i), j = Number(v.j);
+        const idx = steps.findIndex((s) => s.i === i && s.j === j);
+        if (idx !== -1) { setIsPlaying(false); setCurrentStepIndex(idx); }
+      }
+    };
+    window.addEventListener("viz:highlight", h as EventListener);
+    return () => window.removeEventListener("viz:highlight", h as EventListener);
+  }, [steps, vizObj]);
   if (!currentStep) return <div>Загрузка...</div>;
 
   return (

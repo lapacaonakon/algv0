@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useVizSync } from "../../hooks/useVizSync";
 import { useVizControl } from "../../hooks/useVizControl";
+import { VizObject } from "../../viz/VizObject";
 import {
   Play,
   RotateCcw,
@@ -113,6 +114,8 @@ export const SparseTableViz: React.FC = () => {
 const Viz1D: React.FC = () => {
   const [step, setStep] = useState(0);
   const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
+  const vizObj = useMemo(() => new VizObject("sparse-table", ["i, j = 0, 0  # 1D", "a, b, c, d = 4, 1, 3, 2  # 2D", "ans = min(a,b,c,d)"], { n: N, m: LOG, i: 0, j: 0 }), []);
+  void vizObj;
 
   // Total steps: we animate computing each element for j=1, j=2, j=3.
   const computeSteps: { i: number; j: number }[] = [];
@@ -125,16 +128,37 @@ const Viz1D: React.FC = () => {
   const maxStep = computeSteps.length;
   const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
   const cur = step > 0 && step <= maxStep ? computeSteps[step - 1] : null;
+  const [ext, setExt] = useState<{ i: number; j: number } | null>(null);
   // подсветка в визуализации = строка в компиляторе; отдельный объект Vars+Code
-  useVizSync("sparse-table", { n: N, m: LOG, i: cur?.i ?? 0, j: cur?.j ?? 0, k: cur?.j ?? 0, a: cur ? st1D[cur.i][cur.j] : st1D[0][0] }, step);
+  useVizSync("sparse-table", { n: N, m: LOG, i: cur?.i ?? ext?.i ?? 0, j: cur?.j ?? ext?.j ?? 0, k: cur?.j ?? ext?.j ?? 0, a: cur ? st1D[cur.i][cur.j] : ext ? st1D[ext.i]?.[ext.j] ?? st1D[0][0] : st1D[0][0] }, step);
   useVizControl("sparse-table", {
     onStep: (line) => {
       if (typeof line === "number") setStep(Math.min(line, maxStep));
       else setStep((s) => Math.min(s + 1, maxStep));
     },
-    onReset: () => setStep(0),
+    onReset: () => { setStep(0); setExt(null); setHover(null); },
     onPrev: () => setStep((s) => Math.max(0, s - 1)),
   });
+  // слушает компилятор: i,j = 0,0 → подсветка ячейки
+  useEffect(() => {
+    const h = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (d.chapterId && d.chapterId !== "sparse-table") return;
+      const vars = d.vars as Record<string, any>;
+      if (!vars) return;
+      if (vars.i !== undefined && vars.j !== undefined) {
+        const i = Number(vars.i), j = Number(vars.j);
+        const idx = computeSteps.findIndex((s) => s.i === i && s.j === j);
+        if (idx !== -1) { setStep(idx + 1); setHover({ i, j }); setExt({ i, j }); }
+        else { setHover({ i, j }); setExt({ i, j }); }
+      } else if (vars.a !== undefined) {
+        // 2D строка a,b,c,d — подсветим блок 2x2 в 1D как j=1
+        setHover({ i: 0, j: 1 }); setExt({ i: 0, j: 1 });
+      }
+    };
+    window.addEventListener("viz:highlight", h as EventListener);
+    return () => window.removeEventListener("viz:highlight", h as EventListener);
+  }, []);
 
   return (
     <div className="flex flex-col gap-5">
@@ -241,17 +265,18 @@ const Viz1D: React.FC = () => {
                 </div>
                 {Array.from({ length: LOG }).map((_, j) => {
                   const isValid = i + (1 << j) <= N;
+                  const stepIdx = computeSteps.findIndex((s) => s.i === i && s.j === j);
+                  const extActive = !!(ext && ext.i === i && ext.j === j);
                   const isVisible =
                     isValid &&
-                    (j === 0 ||
-                      computeSteps.findIndex((s) => s.i === i && s.j === j) <
-                        step);
+                    (j === 0 || stepIdx < step || extActive);
 
-                  // Active computing state
+                  // Active computing state — шаг из компилятора подсвечивает ячейку
                   let isActive = false;
                   let isSrc1 = false;
                   let isSrc2 = false;
 
+                  if (extActive) isActive = true;
                   if (step > 0 && step <= maxStep) {
                     const currentStep = computeSteps[step - 1];
                     if (currentStep.i === i && currentStep.j === j)
@@ -380,6 +405,8 @@ const Viz2DBuild: React.FC = () => {
   const [k, setK] = useState(1);
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null);
   const [locked, setLocked] = useState<{ r: number; c: number } | null>(null);
+  const vizObj = useMemo(() => new VizObject("sparse-table-2d", ["i, j = 0, 0", "a, b, c, d = 4,1,3,2", "ans = min(a,b,c,d)"], { k: 1, n: 8, m: 8 }), []);
+  void vizObj;
 
   const L = 1 << k;
   const activeCell = locked || hover;
@@ -398,8 +425,28 @@ const Viz2DBuild: React.FC = () => {
       if (typeof line === "number") setK(Math.min(line, 3));
       else setK((v) => Math.min(3, v + 1));
     },
-    onReset: () => setK(0),
+    onReset: () => { setK(0); setHover(null); setLocked(null); },
   });
+  useEffect(() => {
+    const h = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (d.chapterId && d.chapterId !== "sparse-table") return;
+      const vars = d.vars as Record<string, any>;
+      if (!vars) return;
+      if (vars.a !== undefined && vars.b !== undefined && vars.c !== undefined) {
+        // 4→1 из компилятора: подсветить 2x2 блок
+        setK(1);
+        setLocked({ r: 0, c: 0 });
+        setHover({ r: 0, c: 0 });
+      } else if (vars.i !== undefined && vars.j !== undefined) {
+        const r = Number(vars.i), c = Number(vars.j);
+        setLocked({ r: Math.min(6, r), c: Math.min(6, c) });
+        setHover({ r: Math.min(6, r), c: Math.min(6, c) });
+      }
+    };
+    window.addEventListener("viz:highlight", h as EventListener);
+    return () => window.removeEventListener("viz:highlight", h as EventListener);
+  }, []);
 
   return (
     <div className="flex flex-col xl:flex-row gap-6">
