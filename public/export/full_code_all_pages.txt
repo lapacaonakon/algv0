@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 17:19:18
+Дата генерации:            11.09.2026, 18:01:32
 Файлов исходного кода:     87
 Суммарный объём кода:      1.18 MB
 Глав/билетов в пособии:    30
@@ -3744,7 +3744,7 @@ export const activeVizIds = [
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 20/87: src/data/debugRunner.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 111 | РАЗМЕР: 4.1 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 113 | РАЗМЕР: 4.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -3794,7 +3794,9 @@ def __safe(v):
     return r if len(r) <= 80 else r[:77] + "…"
 
 def __tracer(frame, event, arg):
-    if event == "line" and frame.f_code.co_filename == "<user-code>":
+    if event == "line" and frame.f_code.co_filename == "<user-code>" \
+            and not (frame.f_code.co_name.startswith("<") and frame.f_code.co_name != "<module>"):
+        # listcomp/genexpr/генераторные рамки дают ложные шаги на своей строке — пропускаем
         loc = {}
         for k, v in frame.f_locals.items():
             if not k.startswith("__") and type(v).__name__ != "module":
@@ -4959,7 +4961,7 @@ export function vizStepForTrace(
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 25/87: src/data/vizSync.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 600 | РАЗМЕР: 36.1 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 626 | РАЗМЕР: 36.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -5000,6 +5002,11 @@ export interface PageSync {
    * шаг демонстрации (иначе — грубо «строчный индекс = шаг»).
    */
   stepCodeLines?: number[];
+  /**
+   * Может ли демонстрация страницы ходить за отладчиком по шагам.
+   * false/нет — интерактив руками (клики/наведение): чип в панели скажет честно.
+   */
+  stepDriven?: boolean;
 }
 
 /** Справочные значения, указанные внутри самих симуляторов (демо-графы, строки и т.п.). */
@@ -5059,22 +5066,16 @@ print("zig-zag: ", x, "↗", g)`,
   },
   "sparse-table": {
     vizTitle: "Разреженная таблица (1D и 2D)",
-    stepNote: "Шаг построения = заполнение ячейки уровня k: склейка двух блоков длины 2^(k−1).",
-    code: `n = 8                       # размер массива (демо)
-log = 3                     # k ≤ log2(n)
+    stepNote: "Шаг = одна ячейка st[i][j] = min(st[i][j−1], st[i+2^(j−1)][j−1]) при построении таблицы — как в демонстрации слева.",
+    stepDriven: true,
+    code: `a = [2, 3, 5, 62, 3, 21, 1, 4]
+n, LOG = 8, 4
+st = [[2, 0, 0, 0], [3, 0, 0, 0], [5, 0, 0, 0], [62, 0, 0, 0], [3, 0, 0, 0], [21, 0, 0, 0], [1, 0, 0, 0], [4, 0, 0, 0]]
 
-# 1D: ячейка (i, j) — блок [i, i + 2^j)
-i = 0
-j = 0
-
-# 2D: 4 ключа → одна ячейка
-st2 = {}                    # (r, c, kx, ky) → ответ
-r, c, kx, ky = 0, 0, 0, 0
-st2[(r, c, kx, ky)] = 0
-
-for j in range(1, log + 1):
-    for i in range(n - 2 ** j + 1):
-        print(f"1D: st[{i}][{j}]")`,
+for j in range(1, LOG):
+    for i in range(n - (1 << j) + 1):
+        st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1])`,
+    stepCodeLines: [3, 7],
     variables: [
       { name: "n", role: "длина массива / сторона квадратной матрицы", range: "n = 8 на демо" },
       { name: "k", role: "уровень таблицы: ячейка хранит ответ на блоке длины 2^k", range: "0 … log₂ n" },
@@ -5086,13 +5087,15 @@ for j in range(1, log + 1):
   },
   "prefix-sums-2d": {
     vizTitle: "Префиксные суммы (1D и 2D)",
-    stepNote: "Шаг = вычисление S[i][j] по формуле включений-исключений из уже готовых соседей.",
-    code: `n, m = 3, 4                 # строк, столбцов (демо)
-S = [[0] * (m + 1) for _ in range(n + 1)]
+    stepNote: "Шаг = заполнение очередного P[i] = P[i−1] + a[i−1] в 1D-демонстрации слева.",
+    stepDriven: true,
+    code: `a = [3, 1, 4, 1, 5, 9, 2, 6]
 
-for i in range(1, n + 1):       # строка
-    for j in range(1, m + 1):   # столбец
-        print(f"S[{i}][{j}] = A + ↑S[{i-1}][{j}] + ←S[{i}][{j-1}] − ↖S[{i-1}][{j-1}]")`,
+P = [0]
+for i in range(1, len(a) + 1):
+    P.append(P[i - 1] + a[i - 1])
+print("P =", P)`,
+    stepCodeLines: [3, 5],
     variables: [
       { name: "n", role: "число строк матрицы", range: "1 … n" },
       { name: "m", role: "число столбцов матрицы", range: "1 … m" },
@@ -5103,15 +5106,28 @@ for i in range(1, n + 1):       # строка
   },
   "dynamic-programming": {
     vizTitle: "Динамическое программирование (мемоизация)",
-    stepNote: "Шаг = вызов fibMemo(n): попадание в кэш memo или вычисление fib(n−1) + fib(n−2).",
-    code: `n = 5                       # цель (демо)
-memo = {}                   # кэш подзадач
+    stepNote: "Шаг = событие внутри fibMemo(k): вызов, кэш-хит, база, рекурсия или запись в memo — как в демонстрации слева.",
+    code: `n = 5
+memo = {}
 
-# шаг: fib(n) → memo[n] или fib(n−1) + fib(n−2)
-print("fib(", n, ") → memo", memo, "?")`,
+def fib(k):
+    if k in memo:
+        return memo[k]
+    if k <= 2:
+        return 1
+    print(f"считаем fib({k-1}) + fib({k-2})")
+    r1 = fib(k - 1)
+    r2 = fib(k - 2)
+    memo[k] = r1 + r2
+    return memo[k]
+
+print("итог:", fib(n))`,
+    stepCodeLines: [5, 6, 8, 9, 12, 15],
+    stepDriven: true,
     variables: [
       { name: "n", role: "номер числа Фибоначчи, которое сейчас считаем", range: "1 … targetN (по умолчанию 5)" },
-      { name: "memo[n]", role: "кэш уже посчитанных значений — второй заход отдаёт ответ за O(1)", range: "заполняется снизу вверх" },
+      { name: "memo", role: "кэш уже посчитанных значений — кэш-хит отдаёт ответ за O(1)", range: "заполняется снизу вверх" },
+      { name: "r1, r2", role: "ответы двух рекурсивных вызовов fib(k−1) и fib(k−2)", range: "числа Фибоначчи" },
     ],
   },
   "heap-beam-search": {
@@ -5146,6 +5162,7 @@ print("pop →", top, "стек:", st)`,
   },
   "queue-bfs": {
     vizTitle: "Очередь и обход в ширину",
+    stepDriven: true,
     stepNote: "Шаг = dequeue вершины из головы очереди и enqueue всех её непосещённых соседей.",
     code: `from collections import deque
 
@@ -5175,6 +5192,7 @@ print("тарелка:", top, "| первый из очереди:", first)`,
   },
   "graph-dfs-bfs": {
     vizTitle: "DFS и BFS на графе",
+    stepDriven: true,
     stepNote: "Шаг = переход из текущей вершины v к непосещённому соседу to (DFS — вглубь, BFS — по слоям).",
     code: `adj = {"A": ["B", "C"], "B": ["D"], "C": [], "D": []}
 visited, order = set(), []
@@ -5200,6 +5218,7 @@ print(order)`,
   },
   "top-sort": {
     vizTitle: "Топологическая сортировка",
+    stepDriven: true,
     stepNote: "Шаг = выход рекурсии из вершины v: она дописывается в order, потом order разворачивается.",
     code: `adj = {0: [1, 4], 1: [2, 3], 2: [], 3: [2], 4: []}
 used, order = set(), []
@@ -5224,6 +5243,7 @@ print(order[::-1])          # разворот — ответ`,
   },
   "scc-kosaraju": {
     vizTitle: "Компоненты сильной связности (Косарайю)",
+    stepDriven: true,
     stepNote: "Шаг = вершина из order (в обратном порядке) запускает DFS по транспонированному графу и красит свою SCC.",
     code: `adj = {0: [1], 1: [2], 2: [0, 3], 3: [], 4: [3]}
 adjT = {v: [] for v in adj}
@@ -5247,6 +5267,7 @@ for i in range(len(order) - 1, -1, -1):
   },
   "graph-articulation": {
     vizTitle: "Точки сочленения",
+    stepDriven: true,
     stepNote: "Шаг = обновление low[v] по ребру; вершина v — точка сочленения, когда low[to] ≥ tin[v].",
     code: `tin, low, timer = {}, {}, 0
 
@@ -5267,6 +5288,7 @@ print(f"v={v} to={to} critical={critical}")`,
   },
   "bridges-code": {
     vizTitle: "Мосты: DFS + tin/low",
+    stepDriven: true,
     stepNote: "Шаг = строка псевдокода слева; ребро (v, to) — мост, когда low[to] > tin[v].",
     code: `tin, low = {"A": 1, "B": 2, "G": 3}, {"A": 1, "B": 2, "G": 3}
 timer = 3                   # как на демо
@@ -5316,6 +5338,7 @@ print(f"V={V} E={E} F={F} непланарен={not_planar}")`,
   },
   dijkstra: {
     vizTitle: "Дейкстра",
+    stepDriven: true,
     stepNote: "Шаг = старт, извлечение ближайшей вершины u из кучи или релаксация ребра (u → v) — как в демонстрации слева.",
     code: `import heapq
 
@@ -5349,6 +5372,7 @@ print("итог:", dist)`,
   },
   "bellman-ford": {
     vizTitle: "Форд—Беллман",
+    stepDriven: true,
     stepNote: "Шаг = одна релаксация ребра (u, v, w) внутри i-й итерации по всем рёбрам.",
     code: `n, m = 7, 10                # вершин, рёбер (демо)
 dist = {"S": 0}
@@ -5370,6 +5394,7 @@ for i in range(1, n):       # итерация i = 1 … n−1
   },
   floyd: {
     vizTitle: "Флойд—Уоршелл",
+    stepDriven: true,
     stepNote: "Шаг = инициализация матрицы, смена промежуточной вершины k или улучшение dist[i][j] — как в демонстрации слева.",
     code: `INF = 999
 
@@ -5394,6 +5419,7 @@ print("итог: все пары посчитаны")`,
   },
   "johnson-algo": {
     vizTitle: "Алгоритм Джонсона (перевзвешивание)",
+    stepDriven: true,
     stepNote: "Шаг = Беллман-Форд из фиктивной вершины считает h[v], затем n запусков Дейкстры в новых весах.",
     code: `# потенциалы из Беллмана-Форда от фиктивной вершины S
 h = {"A": 0, "B": -3, "C": -1, "D": 1, "E": 2, "F": 4}
@@ -5470,6 +5496,7 @@ print(cheapest)             # за фазу компонент станет ÷2`
   },
   "string-kmp": {
     vizTitle: "Префикс-функция (КМП)",
+    stepDriven: true,
     stepNote: "Шаг = обработка символа s[i]: откаты по j = π[j−1], пока не совпадёт s[j] с s[i].",
     code: `s = "aabaabaaa"
 n = len(s)
@@ -5492,6 +5519,7 @@ print(pi)`,
   },
   "string-z-func": {
     vizTitle: "Z-функция",
+    stepDriven: true,
     stepNote: "Шаг = вычисление z[i]: внутри Z-блока [l, r] берём инициализацию из z[i−l], потом досчитаем в лоб.",
     code: `s = "abacaba"
 n = len(s)
@@ -14134,7 +14162,7 @@ export function PlanarityDemo() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 58/87: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 811 | РАЗМЕР: 38.9 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 815 | РАЗМЕР: 39.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -14424,17 +14452,19 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
   /** Редактор на шаблоне страницы: каждая строка трассы = шаг демонстрации слева. */
   const lockedToViz = code === template;
+  /** Демонстрация реально умеет ходить по шагам за отладчиком (подписана на шину). */
+  const stepCapable = lockedToViz && !!sync.code && sync.stepDriven === true;
 
   const goDebug = useCallback(
     (nextIdx: number) => {
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
-        if (code === template) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines)); // визуализация следует за шагом
+        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines)); // визуализация следует за шагом
         return { ...d, idx };
       });
     },
-    [code, template, chapterId, stepLines]
+    [code, template, chapterId, stepLines, stepCapable]
   );
 
   const stepBy = useCallback(
@@ -14442,11 +14472,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
-        if (code === template) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines));
+        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines));
         return { ...d, idx };
       });
     },
-    [code, template, chapterId, stepLines]
+    [code, template, chapterId, stepLines, stepCapable]
   );
 
   const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
@@ -14476,7 +14506,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: code });
-      if (code === template) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, stepLines)); // старт: демонстрация на первом шаге
+      if (stepCapable) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, stepLines)); // старт: демонстрация на первом шаге
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
       setRuntimeMessage(
@@ -14800,21 +14830,23 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
               )}
               <Tooltip
                 content={
-                  lockedToViz
-                    ? "Код = шаблон страницы: каждая строка трассы соответствует шагу демонстрации слева — она шагает вместе с вами."
-                    : "Код изменён пользователем: демонстрация слева НЕ следует за шагами. Вернитесь к шаблону страницы (кнопка «Сбросить к шаблону» / ресинк), чтобы восстановить связь."
+                  stepCapable
+                    ? "Код = шаблон страницы: каждый помеченный шаг трассы двигает демонстрацию слева — ячейки/вершины подсвечиваются синхронно."
+                    : lockedToViz
+                      ? "На этой странице демонстрация — ручной интерактив (клики/наведение), за отладчиком по шагам она не ходит."
+                      : "Код изменён пользователем: демонстрация слева НЕ следует за шагами. Вернитесь к шаблону страницы (кнопка «Сбросить к шаблону» / ресинк), чтобы восстановить связь."
                 }
               >
                 <span
                   tabIndex={0}
                   className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${
-                    lockedToViz
+                    stepCapable
                       ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                       : "border-slate-600 bg-slate-800 text-slate-400"
                   }`}
                 >
-                  {lockedToViz ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
-                  {lockedToViz ? "демо следует" : "демо отвязано"}
+                  {stepCapable ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
+                  {stepCapable ? "демо следует" : lockedToViz ? "демо ручное" : "демо отвязано"}
                 </span>
               </Tooltip>
               <Tooltip content="Выход из отладчика (Esc)">
@@ -20699,10 +20731,11 @@ export const WaterfallAnimationWidget: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 74/87: src/components/visualizers/PrefixSumViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 330 | РАЗМЕР: 13.7 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 353 | РАЗМЕР: 15.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useMemo, useState } from "react";
+import { useVizStepSync } from "../../data/vizStepBus";
 
 /**
  * Префиксные суммы: 1D и 2D.
@@ -20764,6 +20797,12 @@ const Prefix1D: React.FC = () => {
   /** Что сейчас под курсором: префикс P[i] или элемент a[i]. */
   const [hover, setHover] = useState<{ kind: "pref" | "a"; i: number } | null>(null);
   const [range, setRange] = useState<{ l: number; r: number }>({ l: 2, r: 5 });
+  /**
+   * Управляемый режим (отладчик «По шагам»): P заполняется по одной ячейке
+   * за шаг. null = обычный интерактив (наведение/клик).
+   */
+  const [driven, setDriven] = useState<number | null>(null);
+  useVizStepSync(driven ?? 0, setDriven, A1.length);
 
   const covered =
     hover?.kind === "pref"
@@ -20793,6 +20832,7 @@ const Prefix1D: React.FC = () => {
             {A1.map((v, i) => {
               const inCover = covered && i >= covered.from && i <= covered.to;
               const inRange = i >= range.l && i <= range.r;
+              const isDrivenAdd = driven !== null && driven >= 1 && i === driven - 1; // a[i] сейчас прибавляем к P
               return (
                 <div
                   key={i}
@@ -20800,11 +20840,13 @@ const Prefix1D: React.FC = () => {
                   onMouseLeave={() => setHover(null)}
                   onClick={() => setRange((r) => (i < r.l ? { l: i, r: r.r } : { l: r.l, r: i }))}
                   className={`${cellBase} cursor-pointer ${
-                    inCover
-                      ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
-                      : inRange
-                        ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
-                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    isDrivenAdd
+                      ? "bg-amber-500 text-black ring-2 ring-amber-300 font-extrabold"
+                      : inCover
+                        ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
+                        : inRange
+                          ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                   }`}
                   title={`a[${i}] = ${v}`}
                 >
@@ -20821,23 +20863,29 @@ const Prefix1D: React.FC = () => {
               const active = hover?.kind === "pref" && hover.i === i;
               const isL = i === range.l;
               const isR = i === range.r + 1;
+              const masked = driven !== null && i > driven;
+              const isDrivenCur = driven !== null && i === driven && driven >= 1;
               return (
                 <div
                   key={i}
                   onMouseEnter={() => setHover({ kind: "pref", i })}
                   onMouseLeave={() => setHover(null)}
                   className={`${cellBase} cursor-help ${
-                    active
-                      ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
-                      : isR
-                        ? "bg-emerald-700 text-white"
-                        : isL
-                          ? "bg-rose-700 text-white"
-                          : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                    isDrivenCur
+                      ? "bg-emerald-600 text-white ring-2 ring-emerald-300 font-extrabold scale-110 shadow-lg shadow-emerald-500/30"
+                      : masked
+                        ? "bg-slate-800/50 text-slate-700 border border-dashed border-slate-700"
+                        : active
+                          ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
+                          : isR
+                            ? "bg-emerald-700 text-white"
+                            : isL
+                              ? "bg-rose-700 text-white"
+                              : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
                   }`}
-                  title={`P[${i}] = сумма a[0..${i - 1}]`}
+                  title={masked ? `P[${i}] — ещё не посчитано` : `P[${i}] = сумма a[0..${i - 1}]`}
                 >
-                  {v}
+                  {masked ? "·" : v}
                 </div>
               );
             })}
@@ -20847,7 +20895,14 @@ const Prefix1D: React.FC = () => {
 
       {/* Пояснение под курсором */}
       <div className="min-h-[62px] bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm">
-        {hover?.kind === "pref" ? (
+        {driven !== null && !hover ? (
+          <p className="text-slate-300">
+            <b className="text-emerald-400">По шагам отладчика:</b> посчитано P[0..{driven}]{" "}
+            (последний:P[{driven}] = {pref[driven]}) — следующая ячейка{" "}
+            P[{Math.min(driven + 1, A1.length)}] = P[{driven}] + a[{driven === A1.length ? A1.length - 1 : driven}] ·{" "}
+            <span className="font-mono text-amber-400">a[…] горит янтарным, P-приёмник изумрудным</span>
+          </p>
+        ) : hover?.kind === "pref" ? (
           hover.i === 0 ? (
             <p className="text-slate-300">
               <b className="text-emerald-400">P[0] = 0</b> — «пустой» префикс. Он нужен, чтобы формула работала и для
@@ -21035,10 +21090,11 @@ const Prefix2D: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 75/87: src/components/visualizers/SparseTableViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 709 | РАЗМЕР: 43.8 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 711 | РАЗМЕР: 43.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState } from "react";
+import { useVizStepSync } from "../../data/vizStepBus";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
@@ -21161,6 +21217,7 @@ const Viz1D: React.FC = () => {
   }
 
   const maxStep = computeSteps.length;
+  useVizStepSync(step, setStep, maxStep);
   const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
 
   return (
@@ -24184,5 +24241,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 17:19:18
+КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 18:01:32
 ==========================================================================================================================================
