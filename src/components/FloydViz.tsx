@@ -245,6 +245,8 @@ export default function FloydViz() {
                       let bg = 'bg-slate-900/40 text-slate-300';
                       if (isUpd) bg = 'bg-emerald-900/80 text-emerald-200 border-2 border-emerald-500 shadow-inner z-10 relative';
                       else if (isVia) bg = 'bg-indigo-950/80 text-indigo-200 border border-indigo-500 shadow-inner z-10 relative';
+                      else if (currentStep.i === -1 && currentStep.k >= 0 && (i === currentStep.k || j === currentStep.k))
+                        bg = 'bg-indigo-950/60 text-indigo-200 border border-indigo-800/60'; // вся строка/столбец текущего посредника k
                       else if (i === j) bg = 'bg-slate-950/60 text-slate-500';
                       return (<td key={j} className={`p-2 border-r border-rose-900/50 transition-colors ${bg}`}>{val === 999 ? '∞' : val}</td>);
                     })}

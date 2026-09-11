@@ -22,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { buildSyncTemplate, getPageSync } from "../data/vizSync";
-import { emitVizStep } from "../data/vizStepBus";
+import { emitVizStep, vizStepForTrace } from "../data/vizStepBus";
 import {
   baseVarName,
   buildDebugRunner,
@@ -176,6 +176,8 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
   const syncVarBases = useMemo(() => sync.variables.map((v) => baseVarName(v.name)), [sync]);
   const syncVarSet = useMemo(() => new Set(syncVarBases), [syncVarBases]);
   const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle), [chapterId, chapterTitle]);
+  /** Строки кода скелета (своя линейка: 1-я строка скелета = 4-я строка шаблона), каждое выполнение = шаг демо. */
+  const stepLines = useMemo(() => sync.stepCodeLines?.map((l) => l + 3), [sync]);
 
   const [code, setCode] = useState(() => {
     if (!savedEditor) return template;
@@ -289,11 +291,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
-        if (code === template) emitVizStep(chapterId, idx); // визуализация следует за шагом
+        if (code === template) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines)); // визуализация следует за шагом
         return { ...d, idx };
       });
     },
-    [code, template, chapterId]
+    [code, template, chapterId, stepLines]
   );
 
   const stepBy = useCallback(
@@ -301,11 +303,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
-        if (code === template) emitVizStep(chapterId, idx);
+        if (code === template) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines));
         return { ...d, idx };
       });
     },
-    [code, template, chapterId]
+    [code, template, chapterId, stepLines]
   );
 
   const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
@@ -335,7 +337,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: code });
-      if (code === template) emitVizStep(chapterId, 0); // старт: демонстрация на первом шаге
+      if (code === template) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, stepLines)); // старт: демонстрация на первом шаге
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
       setRuntimeMessage(
@@ -349,7 +351,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     } finally {
       setRunning(false);
     }
-  }, [code, stdin, running, runtimeReady, template, chapterId]);
+  }, [code, stdin, running, runtimeReady, template, chapterId, stepLines]);
 
   // Стрелки ← → в режиме отладки листают ШАГИ (а не страницы), Esc — выход из отладчика.
   useEffect(() => {

@@ -30,6 +30,12 @@ export interface PageSync {
    * шаг-в-шаг с подсветкой визуализации (без словесных описаний).
    */
   code?: string;
+  /**
+   * Номера строк ВНУТРИ code (с 1), каждое выполнение которых = один
+   * шаг визуализации: по ним отладчик точно переводит шаг трассы в
+   * шаг демонстрации (иначе — грубо «строчный индекс = шаг»).
+   */
+  stepCodeLines?: number[];
 }
 
 /** Справочные значения, указанные внутри самих симуляторов (демо-графы, строки и т.п.). */
@@ -346,17 +352,30 @@ print(f"V={V} E={E} F={F} непланарен={not_planar}")`,
   },
   dijkstra: {
     vizTitle: "Дейкстра",
-    stepNote: "Шаг = выбор ближайшей непосещённой вершины u и релаксация всех её рёбер (u → v).",
+    stepNote: "Шаг = старт, извлечение ближайшей вершины u из кучи или релаксация ребра (u → v) — как в демонстрации слева.",
     code: `import heapq
 
-dist = {"A": 0}             # остальные = ∞
+g = {"A": [("B", 4), ("C", 2)], "B": [("G", 4), ("D", 5)], "C": [("B", 1), ("G", 3), ("E", 8)], "G": [("D", 1), ("E", 2)], "D": [("F", 3)], "E": [("F", 1)], "F": []}
+dist = {"A": 0}
+prev = {}
+done = set()
 pq = [(0, "A")]
-
-u, v, w = "A", "B", 4       # шаг: ребро u → v веса w
-if dist.get(u, float("inf")) + w < dist.get(v, float("inf")):
-    dist[v] = dist[u] + w   # релаксация!
-    heapq.heappush(pq, (dist[v], v))
-print(dist, pq)`,
+while pq:
+    du, u = heapq.heappop(pq)
+    if u in done:
+        continue
+    done.add(u)
+    print(f"обрабатываем {u} (dist={du})")
+    for v, w in g[u]:
+        if v in done:
+            continue
+        print(f"смотрим ребро {u}→{v} (w={w})")
+        if du + w < dist.get(v, float("inf")):
+            dist[v] = du + w
+            prev[v] = u
+            heapq.heappush(pq, (dist[v], v))
+print("итог:", dist)`,
+    stepCodeLines: [4, 13, 17, 19, 22],
     variables: [
       { name: "u", role: "вершина с минимальным dist среди непосещённых — её обрабатываем", range: "argmin dist" },
       { name: "v", role: "сосед вершины u, до которого пробуем улучшить путь", range: "соседи u" },
@@ -387,14 +406,20 @@ for i in range(1, n):       # итерация i = 1 … n−1
   },
   floyd: {
     vizTitle: "Флойд—Уоршелл",
-    stepNote: "Шаг = проверка dist[i][j] > dist[i][k] + dist[k][j] для текущей промежуточной вершины k.",
-    code: `n = 7                       # матрица n×n (демо)
-dist = [[float("inf")] * n for _ in range(n)]
+    stepNote: "Шаг = инициализация матрицы, смена промежуточной вершины k или улучшение dist[i][j] — как в демонстрации слева.",
+    code: `INF = 999
 
-for k in range(n):          # промежуточная вершина
-    for i in range(n):      # откуда
-        for j in range(n):  # куда
-            pass            # шаг: dist[i][j] vs dist[i][k] + dist[k][j]`,
+d = [[0, 4, INF, 2, INF, INF, INF], [INF, 0, 3, INF, INF, 3, INF], [INF, INF, 0, INF, 2, INF, INF], [INF, INF, INF, 0, 4, 2, INF], [INF, INF, INF, INF, 0, INF, 1], [INF, INF, INF, INF, INF, 0, 5], [INF, 1, INF, INF, INF, INF, 0]]
+n = 7
+for k in range(n):
+    print(f"посредник k={k}")
+    for i in range(n):
+        for j in range(n):
+            if i != j and i != k and j != k and d[i][k] != INF and d[k][j] != INF:
+                if d[i][k] + d[k][j] < d[i][j]:
+                    d[i][j] = d[i][k] + d[k][j]
+print("итог: все пары посчитаны")`,
+    stepCodeLines: [3, 6, 11, 12],
     variables: [
       { name: "n", role: "число вершин — размер квадратной матрицы расстояний n × n", range: "7 на демо" },
       { name: "k", role: "промежуточная вершина — ВНЕШНИЙ цикл; на шаге k разрешено ходить через вершины 0 … k", range: "0 … n−1" },

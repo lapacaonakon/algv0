@@ -45,3 +45,22 @@ export function useVizStepSync(currentStep: number, goToStep: (n: number) => voi
     return () => window.removeEventListener(CHANNEL, handler);
   }, [chapterId, currentStep, maxStep, goToStep]);
 }
+
+/**
+ * Перевод индекса шага трассы (каждая исполненная строка) в номер шага
+ * визуализации. Если у страницы задан stepLines — номер шага = сколько раз
+ * к этому моменту выполнились помеченные строки минус один (каждое
+ * срабатывание помеченной строки = очередной шаг демонстрации).
+ * Без stepLines — старое приближение «шаг трассы = шаг визуализации».
+ */
+export function vizStepForTrace(
+  steps: ReadonlyArray<{ line: number }>,
+  idx: number,
+  stepLines?: readonly number[]
+): number {
+  if (!stepLines || stepLines.length === 0) return idx;
+  const set = new Set(stepLines);
+  let hits = 0;
+  for (let t = 0; t <= idx && t < steps.length; t++) if (set.has(steps[t].line)) hits++;
+  return Math.max(0, hits - 1);
+}
