@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 20:30:37
+Дата генерации:            11.09.2026, 20:51:46
 Файлов исходного кода:     87
-Суммарный объём кода:      1.20 MB
+Суммарный объём кода:      1.21 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -1829,10 +1829,11 @@ export default defineConfig({
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 11/87: src/App.tsx
-КАТЕГОРИЯ: Ядро приложения | СТРОК: 149 | РАЗМЕР: 6.4 KB
+КАТЕГОРИЯ: Ядро приложения | СТРОК: 198 | РАЗМЕР: 9.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { chapters } from "./data/content";
 import { Navbar } from "./components/Navbar";
 import { Sidebar } from "./components/Sidebar";
@@ -1849,6 +1850,39 @@ export default function App() {
   const [modalVizId, setModalVizId] = useState<string | null>(null);
   /** Боковая (на мобильном — нижняя) панель компилятора поверх текущей страницы. */
   const [compilerOpen, setCompilerOpen] = useState(false);
+  /** Ширина панели компилятора (deсктоп), растягивается ручкой — запоминаем. */
+  const [compilerWidth, setCompilerWidth] = useState<number>(() => {
+    const cached = typeof window !== "undefined" ? Number(window.localStorage.getItem("compilerWidth")) : NaN;
+    return Number.isFinite(cached) && cached >= 380 ? cached : 560;
+  });
+  useEffect(() => {
+    window.localStorage.setItem("compilerWidth", String(compilerWidth));
+  }, [compilerWidth]);
+  /** Содержание свернуто (по умолчанию сворачиваем само, если места мало). */
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    const cached = typeof window !== "undefined" ? window.localStorage.getItem("sidebarCollapsed") : null;
+    if (cached !== null) return cached === "1";
+    return typeof window !== "undefined" && window.innerWidth < 1440;
+  });
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((c) => {
+      window.localStorage.setItem("sidebarCollapsed", c ? "0" : "1");
+      return !c;
+    });
+  }, []);
+
+  // Десктопный отступ контента = ширине панели компилятора; следим и за ресайзом окна.
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const apply = () => {
+      const el = contentRef.current;
+      if (!el) return;
+      el.style.paddingRight = compilerOpen && window.innerWidth >= 1024 ? `${compilerWidth}px` : "";
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, [compilerOpen, compilerWidth]);
 
   const index = Math.max(
     0,
@@ -1898,7 +1932,7 @@ export default function App() {
       />
 
       {/* При открытой панели контент сдвигается: снизу отступ на мобильном, справа — на десктопе */}
-      <div className={compilerOpen ? "max-lg:pb-[58dvh] lg:pr-[560px] xl:pr-[620px]" : ""}>
+      <div ref={contentRef} className={compilerOpen ? "max-lg:pb-[58dvh]" : ""}>
         {activeTab === "guide" ? (
           <>
             <MobileToc
@@ -1910,10 +1944,23 @@ export default function App() {
             />
 
             <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
-              {/* Сайдбар только на десктопе — на мобильном он в шторке */}
-              <div className="hidden lg:block lg:w-80 shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
-                <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
+              {/* Сайдбар только на десктопе — на мобильном он в шторке; сворачивается, когда тесно */}
+              <div
+                className={`hidden lg:block shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] relative transition-all duration-200 ${sidebarCollapsed ? "lg:w-0 overflow-hidden border-r-0" : "lg:w-80"}`}
+              >
+                {!sidebarCollapsed && <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />}
               </div>
+              {/* Вкладка-переключатель содержания у левого края */}
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                className="hidden lg:flex items-center gap-1 sticky top-20 self-start -ml-0 mr-2 z-30 shrink-0 rounded-r-lg border border-l-0 border-slate-700 bg-slate-900/90 px-1 py-3 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                aria-label={sidebarCollapsed ? "Развернуть содержание" : "Свернуть содержание"}
+                title={sidebarCollapsed ? "Развернуть содержание" : "Свернуть содержание"}
+              >
+                {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                <span className="text-[10px] font-bold [writing-mode:vertical-rl] rotate-180">содержание</span>
+              </button>
 
               <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
                 {/* Шапка главы с быстрыми переходами */}
@@ -1973,6 +2020,8 @@ export default function App() {
         <PythonCompiler
           chapterId={activeChapter.id}
           chapterTitle={activeChapter.title}
+          width={compilerWidth}
+          onWidthChange={setCompilerWidth}
           onOpenGuide={() => setActiveTab("guide")}
           onClose={() => setCompilerOpen(false)}
         />
@@ -3744,7 +3793,7 @@ export const activeVizIds = [
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 20/87: src/data/debugRunner.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 118 | РАЗМЕР: 4.7 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 130 | РАЗМЕР: 5.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -3764,6 +3813,8 @@ export interface DebugStep {
 
 export interface DebugResult {
   steps: DebugStep[];
+  /** Локали в момент возврата из модуля — «результат» последнего шага трассы. */
+  finalLocals?: Record<string, string>;
   /** Текст последней необработанной ошибки (или пустая строка). */
   error: string;
   /** true, если уперлись в лимит шагов. */
@@ -3784,6 +3835,7 @@ export function buildDebugRunner(userSrc: string): string {
 
 __src = ${srcLiteral}
 __steps = []
+__final = {}
 __CAP = ${DEBUG_STEP_CAP}
 
 def __safe(v):
@@ -3809,6 +3861,14 @@ def __tracer(frame, event, arg):
             __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc})
         if len(__steps) >= __CAP:
             __sys.settrace(None)
+    # Финальные локали программы (после последней строки новых событий не будет):
+    # кладём отдельно в __final — UI показывает их как результат ПОСЛЕДНЕГО шага.
+    if event == "return" and frame.f_code.co_filename == "<user-code>" and frame.f_code.co_name == "<module>":
+        loc = {}
+        for k, v in frame.f_locals.items():
+            if not k.startswith("__") and type(v).__name__ != "module":
+                loc[k] = __safe(v)
+        __final.update(loc)
     return __tracer
 
 __err = ""
@@ -3823,6 +3883,7 @@ finally:
 
 __OUT = __json.dumps({
     "steps": __steps,
+    "finalLocals": __final,
     "error": __err,
     "truncated": len(__steps) >= __CAP,
 })
@@ -5012,7 +5073,7 @@ export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 25/87: src/data/vizSync.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 731 | РАЗМЕР: 43.1 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 744 | РАЗМЕР: 43.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -5122,12 +5183,14 @@ print("zig-zag: ", x, "↗", g)`,
     code: `a = [2, 3, 5, 62, 3, 21, 1, 4]
 n, LOG = 8, 4
 i, j = 0, 0
-st = [[v] + [None] * (LOG - 1) for v in a]  # пустые клетки = None, нулевой столбец = исходник
+st = []                       # сюда складываем строки таблицы: пустые клетки — None
+for row in a:
+    st.append([row] + [None] * (LOG - 1))
 
 for j in range(1, LOG):
     for i in range(n - (1 << j) + 1):
         st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1])`,
-    stepCodeLines: [4, 8],
+    stepCodeLines: [4, 10],
     variables: [
       { name: "n", role: "длина массива / сторона квадратной матрицы", range: "n = 8 на демо" },
       { name: "k", role: "уровень таблицы: ячейка хранит ответ на блоке длины 2^k", range: "0 … log₂ n" },
@@ -5299,7 +5362,9 @@ print(order[::-1])          # разворот — ответ`,
     stepDriven: true,
     stepNote: "Шаг = вершина из order (в обратном порядке) запускает DFS по транспонированному графу и красит свою SCC.",
     code: `adj = {0: [1], 1: [2], 2: [0, 3], 3: [], 4: [3]}
-adjT = {v: [] for v in adj}
+adjT = {}
+for v in adj:
+    adjT[v] = []
 for v in adj:
     for to in adj[v]:
         adjT[to].append(v)  # транспонирование
@@ -5366,7 +5431,10 @@ for u, v in edges:          # степени вершин
     deg[u] = deg.get(u, 0) + 1
     deg[v] = deg.get(v, 0) + 1
 
-odd = [v for v in deg if deg[v] % 2]
+odd = []
+for v in deg:
+    if deg[v] % 2:
+        odd.append(v)
 print(deg, "нечётных:", len(odd))
 # 0 → цикл · 2 → путь · иначе — нельзя`,
     variables: [
@@ -5493,7 +5561,9 @@ print(f"w′({u}→{v}) = {w_new}")
     code: `edges = [(3, "B", "C"), (1, "A", "B"), (2, "A", "C")]
 edges.sort()                # по весу
 
-parent = {v: v for v in "ABC"}   # DSU
+parent = {}                   # DSU: корень вершины
+for v in "ABC":
+    parent[v] = v
 def find(x):
     while parent[x] != x:
         x = parent[x]
@@ -5534,7 +5604,9 @@ print(f"берём {v} за {w} (из {parent})")`,
   "mst-boruvka": {
     vizTitle: "Борувка",
     stepNote: "Шаг = каждая компонента одновременно выбирает своё самое дешёвое исходящее ребро.",
-    code: `comp = {v: v for v in "ABC"}   # корень компоненты
+    code: `comp = {}                     # корень компоненты
+for v in "ABC":
+    comp[v] = v
 cheapest = {}               # comp → самое дешёвое ребро наружу
 
 u, v, w = "A", "B", 1       # шаг: ребро-кандидат
@@ -5670,7 +5742,9 @@ print(f"прямоугольник {h}×{w} кроется блоками уро
     code: `A = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 1, 2, 3], [4, 5, 6, 7]]
 n, m = 4, 4
 i, j = 0, 0
-S = [[0] + [None] * m for _ in range(n + 1)]  # рамка = 0, рабочие клетки пустые
+S = []                        # строки таблицы: рамка из нулей, рабочие клетки пустые (None)
+for rr in range(n + 1):
+    S.append([0] + [None] * m)
 S[0] = [0] * (m + 1)
 for i in range(1, n + 1):
     for j in range(1, m + 1):
@@ -14318,7 +14392,7 @@ export function PlanarityDemo() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 58/87: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 937 | РАЗМЕР: 48.2 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 978 | РАЗМЕР: 50.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -14366,6 +14440,9 @@ interface PythonCompilerProps {
   /** Страница, с которой синхронизируется редактор. */
   chapterId: string;
   chapterTitle: string;
+  /** Ширина панели на десктопе (px) — управляется родителем, растягивается ручкой слева. */
+  width?: number;
+  onWidthChange?: (w: number) => void;
   /** Перейти к странице пособия (посмотреть визуализацию). */
   onOpenGuide: () => void;
   /** Скрыть панель. */
@@ -14496,7 +14573,7 @@ const SNIPPETS: { group: string; items: Snippet[] }[] = [
 /** Переживает скрытие панели: код пользователя не теряется. */
 let savedEditor: { code: string; template: string; chapterId: string } | null = null;
 
-export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }: PythonCompilerProps) {
+export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, onOpenGuide, onClose }: PythonCompilerProps) {
   /** Активная вкладка демонстрации страницы (у sparse-table: 1d / 2d-build / 2d-query). */
   const [demoId, setDemoId] = useState<string | null>(null);
   const sync = useMemo(() => getPageSync(chapterId, demoId), [chapterId, demoId]);
@@ -14755,8 +14832,17 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
   }, [curDebugLine]);
 
   // производные данные шага: что изменилось, в каком порядке показать переменные
-  const debugChanged = curDebug?.step ? changedVars(curDebug.prev?.locals, curDebug.step.locals) : {};
-  const debugOrdered = curDebug?.step ? orderVars(curDebug.step.locals, syncVarBases) : [];
+  // Строка, которую назначает текущий шаг, подсвечивается вместе с её РЕЗУЛЬТАТОМ:
+  // локали берём со следующего шага трассы (для последнего — финальные, записанные
+  // трейсером на возврате из фрейма). Значит на строке `i, j = 0, 0` видны именно 0, 0.
+  const shownLocals = useMemo(() => {
+    if (!debug || !curDebug?.step) return {};
+    const next = debug.result.steps[debug.idx + 1];
+    if (next) return next.locals ?? {};
+    return debug.result.finalLocals ?? curDebug.step.locals ?? {};
+  }, [debug, curDebug]);
+  const debugChanged = curDebug?.step ? changedVars(curDebug.step.locals, shownLocals) : {};
+  const debugOrdered = curDebug?.step ? orderVars(shownLocals, syncVarBases) : [];
   /** Сколько помеченных строк кода уже выполнено к текущему шагу: 0–1 = инициализация, дальше — шаги демо. */
   const curHits =
     debug && curDebug?.step && markedContents
@@ -14786,7 +14872,36 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     <aside
       aria-label="Python-компилятор"
       className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-16 lg:bottom-0 lg:h-auto lg:w-[560px] xl:w-[620px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
+      style={width && typeof window !== "undefined" && window.innerWidth >= 1024 ? { width } : undefined}
     >
+      {/* Ручка растягивания панели за левый край (только десктоп) */}
+      {onWidthChange && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Потяните, чтобы изменить ширину панели"
+          title="Потяните, чтобы изменить ширину панели"
+          className="hidden lg:block absolute top-0 bottom-0 -left-1.5 w-3 cursor-col-resize z-50 group"
+          onPointerDown={(e) => {
+            const el = e.currentTarget;
+            el.setPointerCapture(e.pointerId);
+            const startX = e.clientX;
+            const startW = width ?? 560;
+            const onMove = (ev: PointerEvent) => {
+              const next = Math.round(startW + (startX - ev.clientX));
+              onWidthChange(Math.max(380, Math.min(next, Math.round(window.innerWidth * 0.9))));
+            };
+            const onUp = () => {
+              el.removeEventListener("pointermove", onMove as EventListener);
+              el.removeEventListener("pointerup", onUp as EventListener);
+            };
+            el.addEventListener("pointermove", onMove as EventListener);
+            el.addEventListener("pointerup", onUp as EventListener);
+          }}
+        >
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-14 w-1 rounded-full bg-slate-700 group-hover:bg-indigo-500 transition-colors" />
+        </div>
+      )}
       {/* ── Заголовок панели ─────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-2 border-b border-slate-800 bg-slate-900">
         <span className={`w-2 h-2 rounded-full shrink-0 ${desyncedFrom !== null ? "bg-amber-400" : "bg-emerald-400"}`} />
@@ -15134,7 +15249,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
               <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
                 <Variable className="w-3 h-3 text-indigo-400" />
                 Переменные на этом шаге
-                <span className="normal-case tracking-normal text-slate-600">· янтарные — изменились на этом шаге</span>
+                <span className="normal-case tracking-normal text-slate-600">· янтарные — присваивает выделенная строка</span>
               </div>
               {debug.result.error && (
                 <pre className="mt-1 whitespace-pre-wrap break-words text-[11px] leading-snug text-rose-300">{debug.result.error}</pre>
@@ -24539,5 +24654,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 20:30:37
+КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 20:51:46
 ==========================================================================================================================================
