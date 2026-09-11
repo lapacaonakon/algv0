@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 20:19:24
+Дата генерации:            11.09.2026, 20:27:15
 Файлов исходного кода:     82
 Суммарный объём кода:      1.14 MB
 Глав/билетов в пособии:    30
@@ -2316,7 +2316,7 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/82: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1005 | РАЗМЕР: 80.2 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 996 | РАЗМЕР: 79.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2435,20 +2435,9 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
             </div>
 
             <div class="bg-slate-900 p-6 rounded-lg border-2 border-rose-500/60 mb-6">
-                <p class="text-base sm:text-lg font-bold text-rose-300 uppercase leading-relaxed tracking-wide">
-                    <span class="text-white text-2xl">Малый x — огромный y: Х!Й</span><br/>
-                    «!» — приоритет: маленький знак, а держит всё слово. Убери «!» — останется набор букв, который стыдно произнести. Убери y из пары — останется обычное дерево поиска, которое при неудачном вводе превращается в палку.<br/>
-                    Х — это x (ключ): место по алфавиту. Левее по алфавиту — налево, правее — направо.<br/>
-                    «!» — это y (приоритет): кто громче, тот выше. Корень — самый «!». Каждый родитель «!»-нее своих детей. Всегда.<br/>
-                    Все стоят по алфавиту, но кричат по «!» — это treap.<br/>
-                    Два одинаковых «!»? Выше тот, кто раньше заявил заявку в списке. Два одинаковых x? Идут влево — так записано в уставе.
-                </p>
-
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        📋 Что покажет симулятор
-                    </div>
+                <p class="text-2xl sm:text-3xl font-bold text-rose-300 uppercase tracking-wide text-center">Малый x — огромный y: <span class="text-white">Х!Й</span></p>
+                <p class="text-lg text-slate-200 font-mono text-center mt-2">! = y = приоритет = вершина кучи</p>
+            </div>
                     <p class="text-slate-300 text-sm mb-2">Вкладка <b>«Собрать»</b>: точки приходят как попало → видимая сортировка по y (попробуй обе: quicksort против counting — разница есть) → соединение линиями в <b>любом</b> порядке: по y или слева-направо, результат один. Чек-лист ✅ проверяет инварианты сам: ребро вниз по y, обход по x отсортирован, линий n−1.</p>
                     <p class="text-slate-300 text-sm">Вкладки <b>Split / Merge / Erase</b> — операции по шагам; <b>«Миф 2k/2k+1»</b> и <b>«Поиск ≠ сортировка»</b> — разбор двух граблей справа вживую.</p>
                 </div>
@@ -2464,6 +2453,8 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
             </div>
 
             <p class="text-slate-300 text-sm mt-5"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code>: сортировка (n·log n сравнений или O(n) counting по целым y) плюс n спусков. Худший случай — приоритеты вытянулись в цепочку: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
+
+            <p class="text-slate-400 text-xs mt-4 leading-relaxed">Х!Й — расшифровка: «!» — это y (приоритет): маленький знак держит всё слово — убери, и останется набор букв, как treap без y останется обычным деревом поиска-палкой. Х — это x (ключ): место по алфавиту, левее — налево, правее — направо. Все стоят по алфавиту, но кричат по «!»: корень самый громкий, родитель всегда громче детей. Равные «!» — выше тот, кто раньше заявил заявку в списке; равные x — идут влево по уставу.</p>
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
@@ -18490,7 +18481,7 @@ const BuildMode: React.FC = () => {
         )}
         {parsed.errors.length === 0 && (parsed.equalX || parsed.equalY) && (
           <div className="mt-2 text-xs text-amber-300 bg-amber-950/20 border border-amber-500/50 rounded-lg px-3 py-2 space-y-1">
-            {parsed.equalY && <div>⚡ Есть <b>равные y</b> — хайп-батл: «кто выше?» не определён, дерево перестаёт быть единственным. Устав страницы: выше тот, кто <b>раньше в списке</b> (сортировка стабильная).</div>}
+            {parsed.equalY && <div>⚡ Есть <b>равные y</b> — «кто выше?» не определён, дерево перестаёт быть единственным. Устав: выше тот, кто <b>раньше в списке</b> (сортировка стабильная).</div>}
             {parsed.equalX && <div>⚡ Есть <b>равные x</b> — в BST место не однозначно. Устав: равный x идёт <b>влево</b> (в коде: key ≤ node.key → left).</div>}
           </div>
         )}
@@ -23320,5 +23311,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 11.09.2026, 20:19:24
+КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 11.09.2026, 20:27:15
 ==========================================================================================================================================
