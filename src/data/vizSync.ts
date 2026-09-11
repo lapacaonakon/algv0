@@ -36,6 +36,11 @@ export interface PageSync {
    * шаг демонстрации (иначе — грубо «строчный индекс = шаг»).
    */
   stepCodeLines?: number[];
+  /**
+   * Может ли демонстрация страницы ходить за отладчиком по шагам.
+   * false/нет — интерактив руками (клики/наведение): чип в панели скажет честно.
+   */
+  stepDriven?: boolean;
 }
 
 /** Справочные значения, указанные внутри самих симуляторов (демо-графы, строки и т.п.). */
@@ -95,22 +100,16 @@ print("zig-zag: ", x, "↗", g)`,
   },
   "sparse-table": {
     vizTitle: "Разреженная таблица (1D и 2D)",
-    stepNote: "Шаг построения = заполнение ячейки уровня k: склейка двух блоков длины 2^(k−1).",
-    code: `n = 8                       # размер массива (демо)
-log = 3                     # k ≤ log2(n)
+    stepNote: "Шаг = одна ячейка st[i][j] = min(st[i][j−1], st[i+2^(j−1)][j−1]) при построении таблицы — как в демонстрации слева.",
+    stepDriven: true,
+    code: `a = [2, 3, 5, 62, 3, 21, 1, 4]
+n, LOG = 8, 4
+st = [[2, 0, 0, 0], [3, 0, 0, 0], [5, 0, 0, 0], [62, 0, 0, 0], [3, 0, 0, 0], [21, 0, 0, 0], [1, 0, 0, 0], [4, 0, 0, 0]]
 
-# 1D: ячейка (i, j) — блок [i, i + 2^j)
-i = 0
-j = 0
-
-# 2D: 4 ключа → одна ячейка
-st2 = {}                    # (r, c, kx, ky) → ответ
-r, c, kx, ky = 0, 0, 0, 0
-st2[(r, c, kx, ky)] = 0
-
-for j in range(1, log + 1):
-    for i in range(n - 2 ** j + 1):
-        print(f"1D: st[{i}][{j}]")`,
+for j in range(1, LOG):
+    for i in range(n - (1 << j) + 1):
+        st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1])`,
+    stepCodeLines: [3, 7],
     variables: [
       { name: "n", role: "длина массива / сторона квадратной матрицы", range: "n = 8 на демо" },
       { name: "k", role: "уровень таблицы: ячейка хранит ответ на блоке длины 2^k", range: "0 … log₂ n" },
@@ -122,13 +121,15 @@ for j in range(1, log + 1):
   },
   "prefix-sums-2d": {
     vizTitle: "Префиксные суммы (1D и 2D)",
-    stepNote: "Шаг = вычисление S[i][j] по формуле включений-исключений из уже готовых соседей.",
-    code: `n, m = 3, 4                 # строк, столбцов (демо)
-S = [[0] * (m + 1) for _ in range(n + 1)]
+    stepNote: "Шаг = заполнение очередного P[i] = P[i−1] + a[i−1] в 1D-демонстрации слева.",
+    stepDriven: true,
+    code: `a = [3, 1, 4, 1, 5, 9, 2, 6]
 
-for i in range(1, n + 1):       # строка
-    for j in range(1, m + 1):   # столбец
-        print(f"S[{i}][{j}] = A + ↑S[{i-1}][{j}] + ←S[{i}][{j-1}] − ↖S[{i-1}][{j-1}]")`,
+P = [0]
+for i in range(1, len(a) + 1):
+    P.append(P[i - 1] + a[i - 1])
+print("P =", P)`,
+    stepCodeLines: [3, 5],
     variables: [
       { name: "n", role: "число строк матрицы", range: "1 … n" },
       { name: "m", role: "число столбцов матрицы", range: "1 … m" },
@@ -139,15 +140,28 @@ for i in range(1, n + 1):       # строка
   },
   "dynamic-programming": {
     vizTitle: "Динамическое программирование (мемоизация)",
-    stepNote: "Шаг = вызов fibMemo(n): попадание в кэш memo или вычисление fib(n−1) + fib(n−2).",
-    code: `n = 5                       # цель (демо)
-memo = {}                   # кэш подзадач
+    stepNote: "Шаг = событие внутри fibMemo(k): вызов, кэш-хит, база, рекурсия или запись в memo — как в демонстрации слева.",
+    code: `n = 5
+memo = {}
 
-# шаг: fib(n) → memo[n] или fib(n−1) + fib(n−2)
-print("fib(", n, ") → memo", memo, "?")`,
+def fib(k):
+    if k in memo:
+        return memo[k]
+    if k <= 2:
+        return 1
+    print(f"считаем fib({k-1}) + fib({k-2})")
+    r1 = fib(k - 1)
+    r2 = fib(k - 2)
+    memo[k] = r1 + r2
+    return memo[k]
+
+print("итог:", fib(n))`,
+    stepCodeLines: [5, 6, 8, 9, 12, 15],
+    stepDriven: true,
     variables: [
       { name: "n", role: "номер числа Фибоначчи, которое сейчас считаем", range: "1 … targetN (по умолчанию 5)" },
-      { name: "memo[n]", role: "кэш уже посчитанных значений — второй заход отдаёт ответ за O(1)", range: "заполняется снизу вверх" },
+      { name: "memo", role: "кэш уже посчитанных значений — кэш-хит отдаёт ответ за O(1)", range: "заполняется снизу вверх" },
+      { name: "r1, r2", role: "ответы двух рекурсивных вызовов fib(k−1) и fib(k−2)", range: "числа Фибоначчи" },
     ],
   },
   "heap-beam-search": {
@@ -182,6 +196,7 @@ print("pop →", top, "стек:", st)`,
   },
   "queue-bfs": {
     vizTitle: "Очередь и обход в ширину",
+    stepDriven: true,
     stepNote: "Шаг = dequeue вершины из головы очереди и enqueue всех её непосещённых соседей.",
     code: `from collections import deque
 
@@ -211,6 +226,7 @@ print("тарелка:", top, "| первый из очереди:", first)`,
   },
   "graph-dfs-bfs": {
     vizTitle: "DFS и BFS на графе",
+    stepDriven: true,
     stepNote: "Шаг = переход из текущей вершины v к непосещённому соседу to (DFS — вглубь, BFS — по слоям).",
     code: `adj = {"A": ["B", "C"], "B": ["D"], "C": [], "D": []}
 visited, order = set(), []
@@ -236,6 +252,7 @@ print(order)`,
   },
   "top-sort": {
     vizTitle: "Топологическая сортировка",
+    stepDriven: true,
     stepNote: "Шаг = выход рекурсии из вершины v: она дописывается в order, потом order разворачивается.",
     code: `adj = {0: [1, 4], 1: [2, 3], 2: [], 3: [2], 4: []}
 used, order = set(), []
@@ -260,6 +277,7 @@ print(order[::-1])          # разворот — ответ`,
   },
   "scc-kosaraju": {
     vizTitle: "Компоненты сильной связности (Косарайю)",
+    stepDriven: true,
     stepNote: "Шаг = вершина из order (в обратном порядке) запускает DFS по транспонированному графу и красит свою SCC.",
     code: `adj = {0: [1], 1: [2], 2: [0, 3], 3: [], 4: [3]}
 adjT = {v: [] for v in adj}
@@ -283,6 +301,7 @@ for i in range(len(order) - 1, -1, -1):
   },
   "graph-articulation": {
     vizTitle: "Точки сочленения",
+    stepDriven: true,
     stepNote: "Шаг = обновление low[v] по ребру; вершина v — точка сочленения, когда low[to] ≥ tin[v].",
     code: `tin, low, timer = {}, {}, 0
 
@@ -303,6 +322,7 @@ print(f"v={v} to={to} critical={critical}")`,
   },
   "bridges-code": {
     vizTitle: "Мосты: DFS + tin/low",
+    stepDriven: true,
     stepNote: "Шаг = строка псевдокода слева; ребро (v, to) — мост, когда low[to] > tin[v].",
     code: `tin, low = {"A": 1, "B": 2, "G": 3}, {"A": 1, "B": 2, "G": 3}
 timer = 3                   # как на демо
@@ -352,6 +372,7 @@ print(f"V={V} E={E} F={F} непланарен={not_planar}")`,
   },
   dijkstra: {
     vizTitle: "Дейкстра",
+    stepDriven: true,
     stepNote: "Шаг = старт, извлечение ближайшей вершины u из кучи или релаксация ребра (u → v) — как в демонстрации слева.",
     code: `import heapq
 
@@ -385,6 +406,7 @@ print("итог:", dist)`,
   },
   "bellman-ford": {
     vizTitle: "Форд—Беллман",
+    stepDriven: true,
     stepNote: "Шаг = одна релаксация ребра (u, v, w) внутри i-й итерации по всем рёбрам.",
     code: `n, m = 7, 10                # вершин, рёбер (демо)
 dist = {"S": 0}
@@ -406,6 +428,7 @@ for i in range(1, n):       # итерация i = 1 … n−1
   },
   floyd: {
     vizTitle: "Флойд—Уоршелл",
+    stepDriven: true,
     stepNote: "Шаг = инициализация матрицы, смена промежуточной вершины k или улучшение dist[i][j] — как в демонстрации слева.",
     code: `INF = 999
 
@@ -430,6 +453,7 @@ print("итог: все пары посчитаны")`,
   },
   "johnson-algo": {
     vizTitle: "Алгоритм Джонсона (перевзвешивание)",
+    stepDriven: true,
     stepNote: "Шаг = Беллман-Форд из фиктивной вершины считает h[v], затем n запусков Дейкстры в новых весах.",
     code: `# потенциалы из Беллмана-Форда от фиктивной вершины S
 h = {"A": 0, "B": -3, "C": -1, "D": 1, "E": 2, "F": 4}
@@ -506,6 +530,7 @@ print(cheapest)             # за фазу компонент станет ÷2`
   },
   "string-kmp": {
     vizTitle: "Префикс-функция (КМП)",
+    stepDriven: true,
     stepNote: "Шаг = обработка символа s[i]: откаты по j = π[j−1], пока не совпадёт s[j] с s[i].",
     code: `s = "aabaabaaa"
 n = len(s)
@@ -528,6 +553,7 @@ print(pi)`,
   },
   "string-z-func": {
     vizTitle: "Z-функция",
+    stepDriven: true,
     stepNote: "Шаг = вычисление z[i]: внутри Z-блока [l, r] берём инициализацию из z[i−l], потом досчитаем в лоб.",
     code: `s = "abacaba"
 n = len(s)

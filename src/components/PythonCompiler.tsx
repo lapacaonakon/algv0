@@ -285,17 +285,19 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
   /** Редактор на шаблоне страницы: каждая строка трассы = шаг демонстрации слева. */
   const lockedToViz = code === template;
+  /** Демонстрация реально умеет ходить по шагам за отладчиком (подписана на шину). */
+  const stepCapable = lockedToViz && !!sync.code && sync.stepDriven === true;
 
   const goDebug = useCallback(
     (nextIdx: number) => {
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
-        if (code === template) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines)); // визуализация следует за шагом
+        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines)); // визуализация следует за шагом
         return { ...d, idx };
       });
     },
-    [code, template, chapterId, stepLines]
+    [code, template, chapterId, stepLines, stepCapable]
   );
 
   const stepBy = useCallback(
@@ -303,11 +305,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
-        if (code === template) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines));
+        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines));
         return { ...d, idx };
       });
     },
-    [code, template, chapterId, stepLines]
+    [code, template, chapterId, stepLines, stepCapable]
   );
 
   const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
@@ -337,7 +339,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: code });
-      if (code === template) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, stepLines)); // старт: демонстрация на первом шаге
+      if (stepCapable) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, stepLines)); // старт: демонстрация на первом шаге
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
       setRuntimeMessage(
@@ -661,21 +663,23 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
               )}
               <Tooltip
                 content={
-                  lockedToViz
-                    ? "Код = шаблон страницы: каждая строка трассы соответствует шагу демонстрации слева — она шагает вместе с вами."
-                    : "Код изменён пользователем: демонстрация слева НЕ следует за шагами. Вернитесь к шаблону страницы (кнопка «Сбросить к шаблону» / ресинк), чтобы восстановить связь."
+                  stepCapable
+                    ? "Код = шаблон страницы: каждый помеченный шаг трассы двигает демонстрацию слева — ячейки/вершины подсвечиваются синхронно."
+                    : lockedToViz
+                      ? "На этой странице демонстрация — ручной интерактив (клики/наведение), за отладчиком по шагам она не ходит."
+                      : "Код изменён пользователем: демонстрация слева НЕ следует за шагами. Вернитесь к шаблону страницы (кнопка «Сбросить к шаблону» / ресинк), чтобы восстановить связь."
                 }
               >
                 <span
                   tabIndex={0}
                   className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${
-                    lockedToViz
+                    stepCapable
                       ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                       : "border-slate-600 bg-slate-800 text-slate-400"
                   }`}
                 >
-                  {lockedToViz ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
-                  {lockedToViz ? "демо следует" : "демо отвязано"}
+                  {stepCapable ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
+                  {stepCapable ? "демо следует" : lockedToViz ? "демо ручное" : "демо отвязано"}
                 </span>
               </Tooltip>
               <Tooltip content="Выход из отладчика (Esc)">

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useVizStepSync } from "../../data/vizStepBus";
 
 /**
  * Префиксные суммы: 1D и 2D.
@@ -60,6 +61,12 @@ const Prefix1D: React.FC = () => {
   /** Что сейчас под курсором: префикс P[i] или элемент a[i]. */
   const [hover, setHover] = useState<{ kind: "pref" | "a"; i: number } | null>(null);
   const [range, setRange] = useState<{ l: number; r: number }>({ l: 2, r: 5 });
+  /**
+   * Управляемый режим (отладчик «По шагам»): P заполняется по одной ячейке
+   * за шаг. null = обычный интерактив (наведение/клик).
+   */
+  const [driven, setDriven] = useState<number | null>(null);
+  useVizStepSync(driven ?? 0, setDriven, A1.length);
 
   const covered =
     hover?.kind === "pref"
@@ -89,6 +96,7 @@ const Prefix1D: React.FC = () => {
             {A1.map((v, i) => {
               const inCover = covered && i >= covered.from && i <= covered.to;
               const inRange = i >= range.l && i <= range.r;
+              const isDrivenAdd = driven !== null && driven >= 1 && i === driven - 1; // a[i] сейчас прибавляем к P
               return (
                 <div
                   key={i}
@@ -96,11 +104,13 @@ const Prefix1D: React.FC = () => {
                   onMouseLeave={() => setHover(null)}
                   onClick={() => setRange((r) => (i < r.l ? { l: i, r: r.r } : { l: r.l, r: i }))}
                   className={`${cellBase} cursor-pointer ${
-                    inCover
-                      ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
-                      : inRange
-                        ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
-                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    isDrivenAdd
+                      ? "bg-amber-500 text-black ring-2 ring-amber-300 font-extrabold"
+                      : inCover
+                        ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
+                        : inRange
+                          ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                   }`}
                   title={`a[${i}] = ${v}`}
                 >
@@ -117,23 +127,29 @@ const Prefix1D: React.FC = () => {
               const active = hover?.kind === "pref" && hover.i === i;
               const isL = i === range.l;
               const isR = i === range.r + 1;
+              const masked = driven !== null && i > driven;
+              const isDrivenCur = driven !== null && i === driven && driven >= 1;
               return (
                 <div
                   key={i}
                   onMouseEnter={() => setHover({ kind: "pref", i })}
                   onMouseLeave={() => setHover(null)}
                   className={`${cellBase} cursor-help ${
-                    active
-                      ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
-                      : isR
-                        ? "bg-emerald-700 text-white"
-                        : isL
-                          ? "bg-rose-700 text-white"
-                          : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                    isDrivenCur
+                      ? "bg-emerald-600 text-white ring-2 ring-emerald-300 font-extrabold scale-110 shadow-lg shadow-emerald-500/30"
+                      : masked
+                        ? "bg-slate-800/50 text-slate-700 border border-dashed border-slate-700"
+                        : active
+                          ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
+                          : isR
+                            ? "bg-emerald-700 text-white"
+                            : isL
+                              ? "bg-rose-700 text-white"
+                              : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
                   }`}
-                  title={`P[${i}] = сумма a[0..${i - 1}]`}
+                  title={masked ? `P[${i}] — ещё не посчитано` : `P[${i}] = сумма a[0..${i - 1}]`}
                 >
-                  {v}
+                  {masked ? "·" : v}
                 </div>
               );
             })}
@@ -143,7 +159,14 @@ const Prefix1D: React.FC = () => {
 
       {/* Пояснение под курсором */}
       <div className="min-h-[62px] bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm">
-        {hover?.kind === "pref" ? (
+        {driven !== null && !hover ? (
+          <p className="text-slate-300">
+            <b className="text-emerald-400">По шагам отладчика:</b> посчитано P[0..{driven}]{" "}
+            (последний:P[{driven}] = {pref[driven]}) — следующая ячейка{" "}
+            P[{Math.min(driven + 1, A1.length)}] = P[{driven}] + a[{driven === A1.length ? A1.length - 1 : driven}] ·{" "}
+            <span className="font-mono text-amber-400">a[…] горит янтарным, P-приёмник изумрудным</span>
+          </p>
+        ) : hover?.kind === "pref" ? (
           hover.i === 0 ? (
             <p className="text-slate-300">
               <b className="text-emerald-400">P[0] = 0</b> — «пустой» префикс. Он нужен, чтобы формула работала и для

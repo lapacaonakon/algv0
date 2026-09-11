@@ -45,7 +45,9 @@ def __safe(v):
     return r if len(r) <= 80 else r[:77] + "…"
 
 def __tracer(frame, event, arg):
-    if event == "line" and frame.f_code.co_filename == "<user-code>":
+    if event == "line" and frame.f_code.co_filename == "<user-code>" \
+            and not (frame.f_code.co_name.startswith("<") and frame.f_code.co_name != "<module>"):
+        # listcomp/genexpr/генераторные рамки дают ложные шаги на своей строке — пропускаем
         loc = {}
         for k, v in frame.f_locals.items():
             if not k.startswith("__") and type(v).__name__ != "module":

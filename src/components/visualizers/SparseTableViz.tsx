@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useVizStepSync } from "../../data/vizStepBus";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
@@ -121,6 +122,7 @@ const Viz1D: React.FC = () => {
   }
 
   const maxStep = computeSteps.length;
+  useVizStepSync(step, setStep, maxStep);
   const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
 
   return (
