@@ -113,6 +113,18 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
                 <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Пара (x; y) — точка на декартовой плоскости, отсюда и название.</p>
             </div>
 
+            <div class="bg-slate-900 p-6 rounded-lg border-2 border-rose-500/60 mb-6">
+                <p class="text-base sm:text-lg font-bold text-rose-300 uppercase leading-relaxed tracking-wide">
+                    <span class="text-white text-2xl">Малый X — огромный Y: Х!П</span><br/>
+                    Y — это не «какое-то число», это громкость хайпа: чем больше Y — тем громче кричит точка — тем выше она сидит.<br/>
+                    Корень — самый громкий. Каждый родитель кричит громче своих детей. Всегда. Это куча.<br/>
+                    X — место по алфавиту: левее по алфавиту — налево, правее — направо. Это поиск.<br/>
+                    Все стоят по алфавиту, но кричат по рангу — это treap.<br/>
+                    Забудешь громкость — построишь обычное дерево поиска. Забудешь алфавит — простую кучу. Treap держится на обоих сразу.<br/>
+                    Равный Y? Хайп-батл: выше тот, кто раньше заявил заявку в списке. Равный X? Идёт влево — так записано в уставе.
+                </p>
+            </div>
+
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
