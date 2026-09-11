@@ -11,6 +11,7 @@ import {
   HelpCircle,
   Link2,
   Loader2,
+  Pause,
   Play,
   Plus,
   RotateCcw,
@@ -221,6 +222,8 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
   /** Активная отладочная сессия: трасса по шагам + текущий индекс шага. */
   const [debug, setDebug] = useState<{ result: DebugResult; idx: number; src: string } | null>(null);
+  /** Автопроход: «Запустить» сам прокручивает шаги трассы до конца. */
+  const [playing, setPlaying] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -237,6 +240,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     const prev = prevTplRef.current;
     if (initTemplate === prev.base && template === prev.full) return;
     prevTplRef.current = { base: initTemplate, full: template };
+    setPlaying(false);
     setDebug(null); // трасса ссылается на строки старого источника — сбрасываем
     setShowRef(false);
     if (code === prev.base || code === prev.full || code.trim() === "") {
@@ -253,6 +257,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     setCode(initTemplate);
     setDesyncedFrom(null);
     setStripTab("vars");
+    setPlaying(false);
     setDebug(null);
     setShowRef(false);
   }, [initTemplate, template]);
@@ -309,12 +314,30 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
   const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
 
-  const stopDebug = useCallback(() => setDebug(null), []);
+  const stopDebug = useCallback(() => {
+    setPlaying(false);
+    setDebug(null);
+  }, []);
+
+  /** Интервал автопрохода шагов (мс). */
+  const AUTOPLAY_MS = 650;
+
+  // Автопроход: пока включен, шагает stepBy каждые AUTOPLAY_MS; в конце трассы стоп.
+  useEffect(() => {
+    if (!playing || !debug) return;
+    if (debug.idx >= debug.result.steps.length - 1) {
+      setPlaying(false);
+      return;
+    }
+    const t = window.setTimeout(() => stepBy(1), AUTOPLAY_MS);
+    return () => window.clearTimeout(t);
+  }, [playing, debug, stepBy]);
 
   const debugRun = useCallback(async () => {
     if (running) return;
 
     setRunning(true);
+    setPlaying(false);
     setDebug(null);
     setOutputOpen(false);
     setRuntimeMessage(runtimeReady ? "Трассирую код…" : "Загружаю Python в браузер…");
@@ -334,13 +357,14 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: code });
+      setPlaying(true); // «Запустить» — это автопроход: шаги, подсветка присваиваний и демо идут сами
       if (stepCapable) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, code.split("\n"), markedContents)); // старт: демонстрация на первом шаге
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
       setRuntimeMessage(
         result.truncated
-          ? "Трасса обрезана лимитом шагов — листайте стрелками ← →"
-          : "Трасса готова — листайте шаги стрелками ← → (Esc — выход)"
+          ? "Трасса обрезана лимитом шагов — автопроход идёт, ⏸ — пауза, ← → — ручные шаги"
+          : "Автопроход шагов: подсветка присваиваний и демо синхронно. ⏸ — пауза, ← → — вручную (Esc — выход)"
       );
     } catch (error) {
       setOutput(`Ошибка:\n${errorText(error)}`);
@@ -360,12 +384,19 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       if (e.key === "ArrowRight") {
         e.stopPropagation();
         e.preventDefault();
+        setPlaying(false);
         stepBy(1);
       }
       if (e.key === "ArrowLeft") {
         e.stopPropagation();
         e.preventDefault();
+        setPlaying(false);
         stepBy(-1);
+      }
+      if (e.key === " ") {
+        e.stopPropagation();
+        e.preventDefault();
+        setPlaying((v) => !v);
       }
       if (e.key === "Escape") stopDebug();
     };
@@ -631,23 +662,40 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
           <div className="flex-1 min-h-[80px] flex flex-col">
             {/* панель управления шагами */}
             <div className="shrink-0 flex items-center gap-0.5 px-2 py-1 border-b border-slate-800 bg-slate-900">
+              <Tooltip content={playing ? "Пауза автопрохода (пробел)" : debug.idx >= debug.result.steps.length - 1 ? "Проиграть трассу заново (пробел)" : "Продолжить автопроход (пробел)"}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!curDebug?.step) return;
+                    if (playing) setPlaying(false);
+                    else {
+                      if (debug.idx >= debug.result.steps.length - 1) stepTo(0);
+                      setPlaying(true);
+                    }
+                  }}
+                  className={`mx-0.5 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
+                  aria-label={playing ? "Пауза автопрохода" : "Пуск автопрохода"}
+                >
+                  {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </button>
+              </Tooltip>
               <Tooltip content="В начало трассы">
-                <button type="button" onClick={() => stepTo(0)} disabled={!curDebug?.step} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                <button type="button" onClick={() => { setPlaying(false); stepTo(0); }} disabled={!curDebug?.step} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
                   <SkipBack className="w-4 h-4" />
                 </button>
               </Tooltip>
-              <Tooltip content="Шаг назад (←)">
-                <button type="button" onClick={() => stepBy(-1)} disabled={!curDebug?.prev} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+              <Tooltip content="Шаг назад (←) — автопроход встанет на паузу">
+                <button type="button" onClick={() => { setPlaying(false); stepBy(-1); }} disabled={!curDebug?.prev} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
               </Tooltip>
-              <Tooltip content="Шаг вперёд (→)">
-                <button type="button" onClick={() => stepBy(1)} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+              <Tooltip content="Шаг вперёд (→) — автопроход встанет на паузу">
+                <button type="button" onClick={() => { setPlaying(false); stepBy(1); }} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </Tooltip>
               <Tooltip content="В конец трассы">
-                <button type="button" onClick={() => stepTo(debug.result.steps.length - 1)} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                <button type="button" onClick={() => { setPlaying(false); stepTo(debug.result.steps.length - 1); }} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
                   <SkipForward className="w-4 h-4" />
                 </button>
               </Tooltip>
