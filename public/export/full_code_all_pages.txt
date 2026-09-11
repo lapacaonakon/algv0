@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 20:08:38
+Дата генерации:            11.09.2026, 20:19:24
 Файлов исходного кода:     82
 Суммарный объём кода:      1.14 MB
 Глав/билетов в пособии:    30
@@ -2316,7 +2316,7 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/82: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 995 | РАЗМЕР: 78.8 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1005 | РАЗМЕР: 80.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2433,6 +2433,16 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
                 <p class="text-lg text-emerald-300 italic mb-2">Общепринятое определение:</p>
                 <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Пара (x; y) — точка на декартовой плоскости, отсюда и название.</p>
             </div>
+
+            <div class="bg-slate-900 p-6 rounded-lg border-2 border-rose-500/60 mb-6">
+                <p class="text-base sm:text-lg font-bold text-rose-300 uppercase leading-relaxed tracking-wide">
+                    <span class="text-white text-2xl">Малый x — огромный y: Х!Й</span><br/>
+                    «!» — приоритет: маленький знак, а держит всё слово. Убери «!» — останется набор букв, который стыдно произнести. Убери y из пары — останется обычное дерево поиска, которое при неудачном вводе превращается в палку.<br/>
+                    Х — это x (ключ): место по алфавиту. Левее по алфавиту — налево, правее — направо.<br/>
+                    «!» — это y (приоритет): кто громче, тот выше. Корень — самый «!». Каждый родитель «!»-нее своих детей. Всегда.<br/>
+                    Все стоят по алфавиту, но кричат по «!» — это treap.<br/>
+                    Два одинаковых «!»? Выше тот, кто раньше заявил заявку в списке. Два одинаковых x? Идут влево — так записано в уставе.
+                </p>
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
@@ -18046,7 +18056,7 @@ export const TopologicalSortViz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 67/82: src/components/TreapBuildViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 848 | РАЗМЕР: 45.5 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 896 | РАЗМЕР: 47.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -18258,14 +18268,18 @@ interface TreeViewProps {
   subtitle?: string;
 }
 
-const TreeView: React.FC<TreeViewProps> = ({ root, width = 640, height = 340, nodeColor, nodeStroke, edgeColor, edgeDash, pulseId, subtitle }) => {
+const TreeView: React.FC<TreeViewProps> = ({ root, width, height, nodeColor, nodeStroke, edgeColor, edgeDash, pulseId, subtitle }) => {
   const pos = useMemo(() => layoutTree(root), [root]);
   const nodes = useMemo(() => [...pos.entries()].map(([id, c]) => ({ id, ...c })), [pos]);
   const edges = useMemo(() => treeEdges(root), [root]);
+  const autoW = Math.max(420, ...nodes.map((n) => n.px + 60));
+  const autoH = Math.max(260, ...nodes.map((n) => n.py + 60));
+  const w = width ?? autoW;
+  const h = height ?? autoH;
   const byId = (id: NodeId) => nodes.find((n) => n.id === id);
   return (
     <div>
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full max-h-[340px]">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full max-h-[380px]">
         {edges.map((e) => {
           const a = byId(e.from);
           const b = byId(e.to);
@@ -18362,29 +18376,6 @@ const Plane: React.FC<PlaneProps> = ({ points, drawnEdges, pending }) => {
   );
 };
 
-/** Правильные линии канонического дерева — для режимов «рисуем в любом порядке». */
-const CANON_TREE = buildTree(POINTS);
-const CANON_EDGES: { a: Pair; b: Pair }[] = (() => {
-  const es: { a: Pair; b: Pair }[] = [];
-  const walk = (n: TNode | null) => {
-    if (!n) return;
-    if (n.left) {
-      es.push({ a: { key: n.key, grade: n.grade }, b: { key: n.left.key, grade: n.left.grade } });
-      walk(n.left);
-    }
-    if (n.right) {
-      es.push({ a: { key: n.key, grade: n.grade }, b: { key: n.right.key, grade: n.right.grade } });
-      walk(n.right);
-    }
-    walk(n.left);
-    walk(n.right);
-  };
-  walk(CANON_TREE);
-  return es;
-})();
-
-/** Порядок линий «слева направо» (по большему x родителя) — не оптимальный алгоритм, просто другой порядок. */
-const LEFT_TO_RIGHT_EDGES: { a: Pair; b: Pair }[] = [...CANON_EDGES].sort((e1, e2) => e1.a.key - e2.a.key || e1.b.key - e2.b.key);
 
 /* ================= РЕЖИМ BUILD ================= */
 
@@ -18392,7 +18383,34 @@ type BuildPhase = "sort" | "connect";
 type SortAlgo = "none" | "quicksort" | "counting";
 type ConnectOrder = "y-desc" | "left-right";
 
+const parsePairs = (raw: string): { pairs: Pair[]; errors: string[]; equalX: boolean; equalY: boolean } => {
+  const pairs: Pair[] = [];
+  const errors: string[] = [];
+  const seen = new Set<string>();
+  const chunks = raw.split(/[,;\n]+/).map((c) => c.trim()).filter(Boolean);
+  for (const chunk of chunks) {
+    const nums = chunk.split(/[\sxx×*]+/).filter(Boolean).map(Number);
+    if (nums.length !== 2 || nums.some((v) => !Number.isFinite(v))) {
+      errors.push(`«${chunk}» — нужно ровно два числа: x y`);
+      continue;
+    }
+    const id = `${nums[0]}:${nums[1]}`;
+    if (seen.has(id)) {
+      errors.push(`точка (${nums[0]}; ${nums[1]}) дважды — это ОДНА И ТА ЖЕ точка, дубль бессмысленен`);
+      continue;
+    }
+    seen.add(id);
+    pairs.push({ key: nums[0], grade: nums[1] });
+  }
+  const xs = pairs.map((p) => p.key);
+  const ys = pairs.map((p) => p.grade);
+  return { pairs, errors, equalX: new Set(xs).size !== xs.length, equalY: new Set(ys).size !== ys.length };
+};
+
+const DEMO_RAW = "45 8, 3 6, 6 5, 2 4, 9 3, 7 2, 12 0, 1 -4";
+
 const BuildMode: React.FC = () => {
+  const [raw, setRaw] = useState(DEMO_RAW);
   const [phase, setPhase] = useState<BuildPhase>("sort");
   const [algo, setAlgo] = useState<SortAlgo>("none");
   const [order, setOrder] = useState<ConnectOrder>("y-desc");
@@ -18400,9 +18418,25 @@ const BuildMode: React.FC = () => {
   const [connIdx, setConnIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
 
-  // quicksort: ~n·log2 n сравнений (среднее), counting: n + k чтений, 0 сравнений
-  const n = INPUT_CLEAN.length;
-  const comparisons = algo === "quicksort" ? Math.round(n * Math.log2(n)) : 0;
+  const parsed = useMemo(() => parsePairs(raw), [raw]);
+  const userPairs = parsed.errors.length ? [] : parsed.pairs;
+
+  const n = userPairs.length;
+
+  const userTree = useMemo(() => (userPairs.length >= 1 ? buildTree(userPairs) : null), [userPairs]);
+  const canonEdges = useMemo(() => {
+    const es: { a: Pair; b: Pair }[] = [];
+    const walk = (node: TNode | null) => {
+      if (!node) return;
+      if (node.left) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.left.key, grade: node.left.grade } }); }
+      if (node.right) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.right.key, grade: node.right.grade } }); }
+      walk(node.left);
+      walk(node.right);
+    };
+    walk(userTree);
+    return es;
+  }, [userTree]);
+  const leftRightEdges = useMemo(() => [...canonEdges].sort((e1, e2) => e1.a.key - e2.a.key || e1.b.key - e2.b.key), [canonEdges]);
 
   useEffect(() => {
     if (!playing) return;
@@ -18412,13 +18446,13 @@ const BuildMode: React.FC = () => {
         if (sortIdx < 3) setSortIdx(sortIdx + 1);
         else setPlaying(false);
       } else {
-        const total = order === "y-desc" ? CANON_EDGES.length : LEFT_TO_RIGHT_EDGES.length;
+        const total = order === "y-desc" ? canonEdges.length : leftRightEdges.length;
         if (connIdx < total) setConnIdx(connIdx + 1);
         else setPlaying(false);
       }
     }, 900);
     return () => clearTimeout(t);
-  }, [playing, phase, sortIdx, connIdx, algo, order]);
+  }, [playing, phase, sortIdx, connIdx, algo, order, canonEdges.length, leftRightEdges.length]);
 
   const startConnect = (ord: ConnectOrder) => {
     setOrder(ord);
@@ -18427,26 +18461,55 @@ const BuildMode: React.FC = () => {
     setPlaying(true);
   };
 
-  const connEdgesAll = order === "y-desc" ? CANON_EDGES : LEFT_TO_RIGHT_EDGES;
+  const comparisons = algo === "quicksort" ? (n > 1 ? Math.round(n * Math.log2(n)) : 0) : 0;
+  const connEdgesAll = order === "y-desc" ? canonEdges : leftRightEdges;
   const connEdges = connEdgesAll.slice(0, connIdx);
-  const connDone = phase === "connect" && connIdx >= connEdgesAll.length;
-  const checks = connDone ? { bst: true, heap: true } : { bst: false, heap: false };
+  const connDone = phase === "connect" && n >= 1 && connIdx >= connEdgesAll.length;
 
   return (
     <div className="space-y-5">
+      {/* Произвольный список */}
+      <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h4 className="text-sm font-bold text-slate-300">✏️ Свои точки (пары «x y» через запятую или с новой строки)</h4>
+          <button onClick={() => { setRaw(DEMO_RAW); setPhase("sort"); setSortIdx(0); setConnIdx(0); setPlaying(false); }} className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600">
+            демо-набор
+          </button>
+        </div>
+        <textarea
+          value={raw}
+          onChange={(e) => { setRaw(e.target.value); setPhase("sort"); setSortIdx(0); setConnIdx(0); setPlaying(false); }}
+          rows={2}
+          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+          placeholder="3 5, 45 8, 1 -4 …"
+        />
+        {parsed.errors.length > 0 && (
+          <div className="mt-2 text-xs text-rose-300 bg-rose-950/30 border border-rose-500/50 rounded-lg px-3 py-2">
+            {parsed.errors.map((e, i) => <div key={i}>✗ {e}</div>)}
+          </div>
+        )}
+        {parsed.errors.length === 0 && (parsed.equalX || parsed.equalY) && (
+          <div className="mt-2 text-xs text-amber-300 bg-amber-950/20 border border-amber-500/50 rounded-lg px-3 py-2 space-y-1">
+            {parsed.equalY && <div>⚡ Есть <b>равные y</b> — хайп-батл: «кто выше?» не определён, дерево перестаёт быть единственным. Устав страницы: выше тот, кто <b>раньше в списке</b> (сортировка стабильная).</div>}
+            {parsed.equalX && <div>⚡ Есть <b>равные x</b> — в BST место не однозначно. Устав: равный x идёт <b>влево</b> (в коде: key ≤ node.key → left).</div>}
+          </div>
+        )}
+      </div>
+
       {/* Координатная плоскость — НАВЕРХУ */}
       <div className="bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/40">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-          <h4 className="text-base font-bold text-emerald-300">🗺️ Декартова плоскость — точки просто стоят</h4>
+          <h4 className="text-base font-bold text-emerald-300">🗺️ Декартова плоскость: малый X — огромный Х!П (Y)</h4>
           <div className="flex items-center gap-2">
             {phase === "sort" ? (
               <>
-                <span className="text-xs text-slate-400">Сортировка точек по y:</span>
+                <span className="text-xs text-slate-400">Сортировка по y:</span>
                 {(["quicksort", "counting"] as const).map((a) => (
                   <button
                     key={a}
                     onClick={() => { setAlgo(a); setSortIdx(0); setPlaying(true); }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${algo === a ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
+                    disabled={n < 2}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-40 ${algo === a ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
                   >
                     {a === "quicksort" ? "quicksort (сравнения)" : "counting по целым y"}
                   </button>
@@ -18454,7 +18517,7 @@ const BuildMode: React.FC = () => {
               </>
             ) : (
               <>
-                <span className="text-xs text-slate-400">Порядок рисования линий:</span>
+                <span className="text-xs text-slate-400">Порядок линий:</span>
                 <button
                   onClick={() => startConnect("y-desc")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${order === "y-desc" && (playing || connDone) ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
@@ -18465,34 +18528,30 @@ const BuildMode: React.FC = () => {
                   onClick={() => startConnect("left-right")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${order === "left-right" ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
                 >
-                  слева направо (не оптимальный)
+                  слева направо
                 </button>
               </>
             )}
           </div>
         </div>
-        <Plane
-          points={INPUT_CLEAN}
-          drawnEdges={phase === "connect" ? connEdges : []}
-          pending={null}
-        />
+        <Plane points={userPairs} drawnEdges={phase === "connect" ? connEdges : []} pending={null} />
         <div className="mt-2 text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">
           {phase === "sort" ? (
             algo === "none" ? (
-              <>Ввод приходит <b>как попало</b> ({INPUT_CLEAN.length} пар в случайном порядке). Сначала — сортировка по y. Выбери способ и смотри на счётчики: <b>есть ли разница, чем сортировать?</b></>
+              <>Ввод приходит <b>как попало</b> ({n} пар). Сначала сортировка по y — попробуй оба способа и сравни счётчики: <b>разница есть</b>.</>
             ) : sortIdx < 3 ? (
               algo === "quicksort" ? (
-                <>⚡ quicksort: сравнение с сравнением… счётчик сравнений: <b className="text-amber-300">{Math.round((sortIdx + 1) * comparisons / 3)}</b> из ≈ <b>{comparisons}</b> (n·log₂n ≈ {n}·3). Ниже этого сравнениями не бывает — это нижняя граница.</>
+                <>⚡ quicksort: счётчик сравнений: <b className="text-amber-300">{Math.round((sortIdx + 1) * comparisons / 3)}</b> из ≈ <b>{comparisons}</b> (n·log₂n).</>
               ) : (
-                <>🧺 counting: раскладываем точки в корзины по значению y — <b className="text-emerald-300">0 сравнений</b>, операций ≈ n + k = {n} + 9. Работает, потому что y — маленькие целые.</>
+                <>🧺 counting: точки в корзины по значению y — <b className="text-emerald-300">0 сравнений</b>, ≈ n + k операций. Работает, потому что y — маленькие целые.</>
               )
             ) : (
-              <>Отсортировано по y. Счётчики: quicksort ≈ <b>{comparisons}</b> сравнений, counting — <b>0</b> (n+k операций). <b>Разница есть</b> — но обе дают O(n·log n) и O(n) соответственно и <b>одно и то же дерево</b>. Теперь соединяй →</>
+              <>Отсортировано. quicksort ≈ <b>{comparisons}</b> сравнений против <b>0</b> у counting — но дерево получится одно и то же. Теперь соединяй →</>
             )
           ) : connDone ? (
-            <>🏁 Проведено {connEdges.length} линий в порядке «{order === "y-desc" ? "по y ↓" : "слева направо"}». Результат <b>одинаковый</b>: точки прибиты, дерево одно — порядок рисования не важен.</>
+            <>🏁 Проведено {connEdges.length} линий в порядке «{order === "y-desc" ? "по y ↓" : "слева направо"}». Результат <b>одинаковый</b>: точки прибиты, дерево одно.</>
           ) : (
-            <>Рисуем линии в порядке «{order === "y-desc" ? "по y ↓ (алгоритм вставки)" : "слева направо (кто-то бы рисовал и так)"}» — {connIdx} из {connEdgesAll.length}.</>
+            <>Линий проведено: {connIdx} из {connEdgesAll.length} (порядок «{order === "y-desc" ? "по y ↓" : "слева направо"}»).</>
           )}
         </div>
       </div>
@@ -18501,18 +18560,17 @@ const BuildMode: React.FC = () => {
       <div className={`rounded-xl p-4 border transition-colors ${connDone ? "border-emerald-500/60 bg-emerald-950/20" : "border-slate-700 bg-slate-900/40"}`}>
         <h4 className="text-sm font-bold text-slate-300 mb-2">✅ Проверка (авто, на текущем состоянии)</h4>
         <ul className="space-y-1.5 text-sm">
-          <li>{connDone ? "✅" : "⏳"} каждое ребро ведёт <b>вниз по y</b> (родитель выше ребёнка)</li>
+          <li>{connDone ? "✅" : "⏳"} каждое ребро ведёт <b>вниз по y</b> — родитель громче ребёнка (куча)</li>
           <li>{connDone ? "✅" : "⏳"} обход слева-направо даёт <b>сортировку по x</b> (BST)</li>
-          <li>{connDone ? "✅" : "⏳"} линий ровно <b>n − 1</b>, все точки соединены в одно дерево</li>
+          <li>{connDone ? "✅" : "⏳"} линий ровно <b>n − 1</b>, все точки в одном дереве</li>
         </ul>
-        {!connDone && <p className="text-xs text-slate-500 mt-2">Галочки загорятся, когда все линии проведены — проверяются программно ({checks.bst ? "ok" : "…"}).</p>}
       </div>
 
-      {/* Дерево — только для алгоритмического порядка */}
-      {order === "y-desc" && (
+      {/* Дерево */}
+      {order === "y-desc" && userTree && (
         <div className="bg-slate-900/40 rounded-xl p-4 border border-slate-700">
-          <h4 className="text-sm font-bold text-slate-300 mb-2">🌳 То же самое дерево после алгоритма вставки (по y ↓)</h4>
-          <TreeView root={buildTree(INPUT_CLEAN)} subtitle="Слева-направо читается сортировка по x; сверху-вниз по y — куча." />
+          <h4 className="text-sm font-bold text-slate-300 mb-2">🌳 То же дерево после алгоритма вставки (по y ↓)</h4>
+          <TreeView root={userTree} subtitle="Слева-направо читается сортировка по x; сверху-вниз по y — куча." />
         </div>
       )}
     </div>
@@ -23262,5 +23320,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 11.09.2026, 20:08:38
+КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 11.09.2026, 20:19:24
 ==========================================================================================================================================
