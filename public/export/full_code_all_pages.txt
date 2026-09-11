@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 16:32:07
+Дата генерации:            11.09.2026, 16:34:45
 Файлов исходного кода:     86
-Суммарный объём кода:      1.16 MB
+Суммарный объём кода:      1.17 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -14010,14 +14010,17 @@ export function PlanarityDemo() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 57/86: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 530 | РАЗМЕР: 24.1 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 769 | РАЗМЕР: 36.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRightLeft,
+  Bug,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Copy,
   HelpCircle,
   Link2,
@@ -14025,12 +14028,23 @@ import {
   Play,
   Plus,
   RotateCcw,
+  SkipBack,
+  SkipForward,
+  Square,
   Terminal,
   Unlink,
   Variable,
   X,
 } from "lucide-react";
 import { buildSyncTemplate, getPageSync } from "../data/vizSync";
+import {
+  baseVarName,
+  buildDebugRunner,
+  changedVars,
+  DEBUG_STEP_CAP,
+  orderVars,
+  type DebugResult,
+} from "../data/debugRunner";
 import { Tooltip } from "./Tooltip";
 
 const PYODIDE_VERSION = "0.27.7";
@@ -14173,6 +14187,8 @@ let savedEditor: { code: string; template: string; chapterId: string } | null = 
 
 export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }: PythonCompilerProps) {
   const sync = useMemo(() => getPageSync(chapterId), [chapterId]);
+  const syncVarBases = useMemo(() => sync.variables.map((v) => baseVarName(v.name)), [sync]);
+  const syncVarSet = useMemo(() => new Set(syncVarBases), [syncVarBases]);
   const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle), [chapterId, chapterTitle]);
 
   const [code, setCode] = useState(() => {
@@ -14201,6 +14217,10 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
   );
   const prevTemplateRef = useRef(template);
 
+  /** Активная отладочная сессия: трасса по шагам + текущий индекс шага. */
+  const [debug, setDebug] = useState<{ result: DebugResult; idx: number; src: string } | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     savedEditor = { code, template, chapterId };
   }, [code, template, chapterId]);
@@ -14211,6 +14231,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     if (template === prevTemplateRef.current) return;
     const prevTemplate = prevTemplateRef.current;
     prevTemplateRef.current = template;
+    setDebug(null); // трасса ссылается на строки старого источника — сбрасываем
     if (code === prevTemplate || code.trim() === "") {
       setCode(template);
       setDesyncedFrom(null);
@@ -14225,6 +14246,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     setCode(template);
     setDesyncedFrom(null);
     setStripTab("vars");
+    setDebug(null);
   }, [template]);
 
   const runCode = useCallback(async () => {
@@ -14232,6 +14254,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
     setRunning(true);
     setOutputOpen(true);
+    setDebug(null);
     setOutput("");
     setRuntimeMessage(runtimeReady ? "Выполняю код…" : "Загружаю Python в браузер…");
 
@@ -14269,6 +14292,96 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       setRuntimeMessage("Не получилось скопировать — буфер обмена недоступен");
     }
   }, [code]);
+
+  /* ── Пошаговый отладчик ────────────────────────────────────────────── */
+
+  const stepBy = useCallback((delta: number) => {
+    setDebug((d) =>
+      d ? { ...d, idx: Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta)) } : d
+    );
+  }, []);
+
+  const stepTo = useCallback((idx: number) => {
+    setDebug((d) => (d ? { ...d, idx: Math.max(0, Math.min(d.result.steps.length - 1, idx)) } : d));
+  }, []);
+
+  const stopDebug = useCallback(() => setDebug(null), []);
+
+  const debugRun = useCallback(async () => {
+    if (running) return;
+
+    setRunning(true);
+    setDebug(null);
+    setOutputOpen(false);
+    setRuntimeMessage(runtimeReady ? "Трассирую код…" : "Загружаю Python в браузер…");
+
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const inputLines = stdin.split(/\r?\n/);
+
+    try {
+      const runtime = await getPythonRuntime();
+      setRuntimeReady(true);
+      runtime.setStdout({ batched: (message) => stdout.push(message) });
+      runtime.setStderr({ batched: (message) => stderr.push(message) });
+      runtime.setStdin({ stdin: () => (inputLines.length > 0 ? inputLines.shift() ?? "" : null) });
+
+      const raw = await runtime.runPythonAsync(buildDebugRunner(code));
+      const result = JSON.parse(String(raw)) as DebugResult;
+
+      setDebug({ result, idx: 0, src: code });
+      const printed = [...stdout, ...stderr].join("");
+      setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
+      setRuntimeMessage(
+        result.truncated
+          ? "Трасса обрезана лимитом шагов — листайте стрелками ← →"
+          : "Трасса готова — листайте шаги стрелками ← → (Esc — выход)"
+      );
+    } catch (error) {
+      setOutput(`Ошибка:\n${errorText(error)}`);
+      setRuntimeMessage("Не удалось протрассировать — проверьте код и доступ к CDN Pyodide");
+    } finally {
+      setRunning(false);
+    }
+  }, [code, stdin, running, runtimeReady]);
+
+  // Стрелки ← → в режиме отладки листают ШАГИ (а не страницы), Esc — выход из отладчика.
+  useEffect(() => {
+    if (!debug) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowRight") {
+        e.stopPropagation();
+        e.preventDefault();
+        stepBy(1);
+      }
+      if (e.key === "ArrowLeft") {
+        e.stopPropagation();
+        e.preventDefault();
+        stepBy(-1);
+      }
+      if (e.key === "Escape") stopDebug();
+    };
+    // capture-фаза: чтобы глобальный обработчик навигации по главам не сработал
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [debug, stepBy, stopDebug]);
+
+  // держим текущую строку листинга в видимой области
+  const curDebug = debug ? { step: debug.result.steps[debug.idx], prev: debug.result.steps[debug.idx - 1] } : null;
+  const curDebugLine = curDebug?.step?.line;
+  useEffect(() => {
+    if (curDebugLine === undefined || !listRef.current) return;
+    listRef.current
+      .querySelector(`[data-line="${curDebugLine}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [curDebugLine]);
+
+  // производные данные шага: что изменилось, в каком порядке показать переменные
+  const debugChanged = curDebug?.step ? changedVars(curDebug.prev?.locals, curDebug.step.locals) : {};
+  const debugOrdered = curDebug?.step ? orderVars(curDebug.step.locals, syncVarBases) : [];
 
   /** Вставка сниппета из шпаргалки в позицию курсора. */
   const insertSnippet = useCallback((snippet: string) => {
@@ -14332,7 +14445,20 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
               <X className="w-4 h-4" />
             </button>
           </Tooltip>
-          <Tooltip side="bottom" content="Запустить код (Ctrl/Cmd + Enter). Первый запуск скачивает Python в браузер.">
+          <Tooltip
+            side="bottom"
+            content="Пошаговый отладчик: выполняет код построчно и показывает значения переменных на каждом шаге — как Variables в IDE. Шаги листаются стрелками ← →."
+          >
+            <button
+              type="button"
+              onClick={() => void debugRun()}
+              disabled={running}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
+            >
+              <Bug className="w-3.5 h-3.5" /> По шагам
+            </button>
+          </Tooltip>
+          <Tooltip side="bottom" content="Запустить код целиком (Ctrl/Cmd + Enter). Первый запуск скачивает Python в браузер.">
             <button
               type="button"
               onClick={() => void runCode()}
@@ -14484,22 +14610,137 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
       {/* ── Редактор + ввод ──────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 flex flex-col">
-        <textarea
-          ref={editorRef}
-          value={code}
-          onChange={(event) => setCode(event.target.value)}
-          onKeyDown={(event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
-              event.preventDefault();
-              void runCode();
-            }
-            event.stopPropagation();
-          }}
-          spellCheck={false}
-          aria-label="Код Python"
-          className="flex-1 min-h-[90px] w-full resize-none bg-[#0b1220] px-3 py-2.5 font-mono text-[12px] leading-5 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/40 placeholder:text-slate-600"
-          placeholder="Напишите Python-код…"
-        />
+        {debug ? (
+          <div className="flex-1 min-h-[80px] flex flex-col">
+            {/* панель управления шагами */}
+            <div className="shrink-0 flex items-center gap-0.5 px-2 py-1 border-b border-slate-800 bg-slate-900">
+              <Tooltip content="В начало трассы">
+                <button type="button" onClick={() => stepTo(0)} disabled={!curDebug?.step} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <SkipBack className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Шаг назад (←)">
+                <button type="button" onClick={() => stepBy(-1)} disabled={!curDebug?.prev} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Шаг вперёд (→)">
+                <button type="button" onClick={() => stepBy(1)} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="В конец трассы">
+                <button type="button" onClick={() => stepTo(debug.result.steps.length - 1)} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <SkipForward className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <span className="ml-1.5 text-[10px] text-slate-400 font-mono truncate">
+                {curDebug?.step ? (
+                  <>
+                    шаг {debug.idx + 1}/{debug.result.steps.length} · строка {curDebug.step.line}
+                    {curDebug.step.func !== "<module>" && <> · {curDebug.step.func}()</>}
+                  </>
+                ) : (
+                  "шагов нет — программа не выполнила ни одной строки"
+                )}
+              </span>
+              {debug.result.truncated && (
+                <Tooltip content={`Трасса обрезана: лимит ${DEBUG_STEP_CAP} шагов, чтобы браузер не завис. Сократите цикл или введите меньшие данные.`}>
+                  <span tabIndex={0} className="cursor-help text-[9px] font-bold text-amber-400 border border-amber-500/40 bg-amber-500/10 rounded-full px-1.5 py-0.5">
+                    лимит
+                  </span>
+                </Tooltip>
+              )}
+              <Tooltip content="Выход из отладчика (Esc)">
+                <button type="button" onClick={stopDebug} className="ml-auto p-1 rounded-md text-rose-400 hover:text-white hover:bg-rose-500/30 transition-colors">
+                  <Square className="w-3.5 h-3.5" />
+                </button>
+              </Tooltip>
+            </div>
+
+            {/* листинг с подсветкой текущей строки */}
+            <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto bg-[#0b1220] py-1 font-mono text-[11.5px] leading-5">
+              {debug.src.split("\n").map((line, i) => {
+                const ln = i + 1;
+                const active = ln === curDebug?.step?.line;
+                return (
+                  <div
+                    key={i}
+                    data-line={ln}
+                    className={`flex whitespace-pre px-2 ${
+                      active ? "bg-emerald-500/15 text-emerald-200" : "text-slate-500"
+                    }`}
+                  >
+                    <span
+                      className={`w-7 shrink-0 select-none text-right pr-2 ${
+                        active ? "text-emerald-300" : "text-slate-700"
+                      }`}
+                    >
+                      {active ? "▶" : ln}
+                    </span>
+                    <span>{line || " "}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* панель переменных — «Variables», как в обычном отладчике */}
+            <div className="shrink-0 max-h-[34%] overflow-y-auto border-t border-slate-800 bg-slate-950/80 px-2.5 py-1.5">
+              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                <Variable className="w-3 h-3 text-indigo-400" />
+                Переменные на этом шаге
+                <span className="normal-case tracking-normal text-slate-600">· янтарные — изменились на этом шаге</span>
+              </div>
+              {debug.result.error && (
+                <pre className="mt-1 whitespace-pre-wrap break-words text-[11px] leading-snug text-rose-300">{debug.result.error}</pre>
+              )}
+              {debugOrdered.length === 0 && !debug.result.error && (
+                <div className="mt-1 text-[11px] text-slate-600">на этом шаге значений пока нет (заголовок/комментарий или пустая строка)</div>
+              )}
+              <div className="mt-1 flex flex-wrap gap-1">
+                {debugOrdered.map(([name, value]) => {
+                  const changed = debugChanged[name];
+                  const synced = syncVarSet.has(name);
+                  return (
+                    <span
+                      key={name}
+                      className={`inline-flex items-baseline gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[10.5px] leading-4 ${
+                        changed
+                          ? "border-amber-500/50 bg-amber-500/10"
+                          : synced
+                            ? "border-emerald-500/40 bg-emerald-500/10"
+                            : "border-slate-700 bg-slate-800/60"
+                      }`}
+                    >
+                      <span className={changed ? "text-amber-300 font-bold" : synced ? "text-emerald-300" : "text-indigo-300"}>
+                        {name}
+                      </span>
+                      <span className="text-slate-500">=</span>
+                      <span className={changed ? "text-amber-200" : "text-slate-200"}>{value}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <textarea
+            ref={editorRef}
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            onKeyDown={(event) => {
+              if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                event.preventDefault();
+                void runCode();
+              }
+              event.stopPropagation();
+            }}
+            spellCheck={false}
+            aria-label="Код Python"
+            className="flex-1 min-h-[90px] w-full resize-none bg-[#0b1220] px-3 py-2.5 font-mono text-[12px] leading-5 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/40 placeholder:text-slate-600"
+            placeholder="Напишите Python-код…"
+          />
+        )}
         <div className="shrink-0 border-t border-slate-800 bg-slate-950/70 flex items-center gap-2 px-3 py-1.5">
           <label htmlFor="python-stdin" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 shrink-0">
             stdin для input()
@@ -14531,13 +14772,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
           </span>
         </button>
         {outputOpen && (
-          <>
-            <pre className="flex-1 min-h-[70px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] px-3 py-2 font-mono text-[11.5px] leading-5 text-slate-300">
-              {output}
-            </pre>
-            <div className="px-3 py-1.5 border-t border-slate-800 text-[10px] text-slate-500 truncate">{runtimeMessage}</div>
-          </>
+          <pre className="flex-1 min-h-[70px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] px-3 py-2 font-mono text-[11.5px] leading-5 text-slate-300">
+            {output}
+          </pre>
         )}
+        <div className="px-3 py-1.5 border-t border-slate-800 text-[10px] text-slate-500 truncate">{runtimeMessage}</div>
       </div>
     </aside>
   );
@@ -23775,5 +24014,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 86 файлов • сгенерировано 11.09.2026, 16:32:07
+КОНЕЦ ДОКУМЕНТА • 86 файлов • сгенерировано 11.09.2026, 16:34:45
 ==========================================================================================================================================
