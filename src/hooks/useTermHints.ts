@@ -8,18 +8,33 @@ import { GLOSSARY_LABELS } from "../data/glossary";
  * написание». Иначе в главе про splay первые же «Splay-дерево» и «Splay(v)» съедали
  * лимит, и слова «Zig-Zag», «вращений», «AVL-дереве» оставались без подсказки.
  */
-const MAX_PER_SURFACE = 2;
-const MAX_PER_TERM = 8;
+const MAX_PER_SURFACE = 3;
+const MAX_PER_TERM = 10;
 
 const SKIP_SELECTOR = "code, pre, script, style, a, textarea, input, .term-hint, [data-no-hint]";
 
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&");
+
+// Проверяем, поддерживает ли движок lookbehind с \p{L}
+let supportsLookbehind = true;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  new RegExp("(?<![\\p{L}])test", "giu");
+} catch {
+  supportsLookbehind = false;
+}
 
 /** Одна большая регулярка из всех меток: длинные раньше коротких. */
 function buildRegex(): RegExp {
-  const alternation = GLOSSARY_LABELS.map((l) => escapeRe(l.label)).join("|");
-  // границы «не буква/цифра» — \b не работает с кириллицей
-  return new RegExp(`(?<![\\p{L}\\p{N}_-])(${alternation})(?![\\p{L}\\p{N}_-])`, "giu");
+  // Сортируем по длине убыв., чтобы длинные метки имели приоритет
+  const sorted = [...GLOSSARY_LABELS].sort((a, b) => b.label.length - a.label.length);
+  const alternation = sorted.map((l) => escapeRe(l.label)).join("|");
+  if (supportsLookbehind) {
+    // границы «не буква/цифра» — \b не работает с кириллицей
+    return new RegExp(`(?<![\\p{L}\\p{N}_-])(${alternation})(?![\\p{L}\\p{N}_-])`, "giu");
+  }
+  // Фолбэк без lookbehind: захватываем границы в группы и проверяем вручную
+  return new RegExp(`(^|[^\\p{L}\\p{N}_-])(${alternation})(?=[^\\p{L}\\p{N}_-]|$)`, "giu");
 }
 
 let cachedRegex: RegExp | null = null;
@@ -64,7 +79,12 @@ export function annotateTerms(root: HTMLElement): void {
     let m: RegExpExecArray | null;
 
     while ((m = re.exec(text)) !== null) {
-      const surface = m[1].toLowerCase();
+      // Для фолбэка без lookbehind: группа 1 — разделитель, группа 2 — сам термин
+      const hasPrefixGroup = !supportsLookbehind;
+      const prefix = hasPrefixGroup ? m[1] ?? "" : "";
+      const surfaceRaw = hasPrefixGroup ? m[2] : m[1];
+      if (!surfaceRaw) continue;
+      const surface = surfaceRaw.toLowerCase();
       const id = labelToId.get(surface);
       if (!id) continue;
 
@@ -74,16 +94,29 @@ export function annotateTerms(root: HTMLElement): void {
       perTerm.set(id, usedTerm + 1);
       perSurface.set(surface, usedSurface + 1);
 
-      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      // m.index указывает на начало всего совпадения (включая префикс в фолбэке)
+      const matchStart = hasPrefixGroup ? m.index + prefix.length : m.index;
+      const matchEnd = matchStart + surfaceRaw.length;
+
+      if (matchStart > last) frag.appendChild(document.createTextNode(text.slice(last, matchStart)));
+      // Если был префикс (пробел/знак), он уже в предыдущем текстовом узле, не дублируем
+      if (hasPrefixGroup && prefix && last === m.index) {
+        // prefix уже будет вставлен как часть slice выше? Нет, slice от last до matchStart исключает prefix,
+        // поэтому нужно вставить prefix отдельно если он не пробел? Но prefix — это разделитель, который должен остаться.
+        // Вставим его как текст перед термином.
+        if (prefix) frag.appendChild(document.createTextNode(prefix));
+      } else if (hasPrefixGroup && prefix && matchStart !== m.index) {
+        // already handled
+      }
       const span = document.createElement("span");
       span.className = "term-hint";
       span.dataset.termId = id;
       span.tabIndex = 0;
       span.setAttribute("role", "button");
-      span.setAttribute("aria-label", `Подсказка: ${m[1]}`);
-      span.textContent = m[1];
+      span.setAttribute("aria-label", `Подсказка: ${surfaceRaw}`);
+      span.textContent = surfaceRaw;
       frag.appendChild(span);
-      last = m.index + m[1].length;
+      last = matchEnd;
     }
 
     if (last === 0) continue;
@@ -118,6 +151,14 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Если подсказок нет, сразу пробуем
     if (!el.querySelector(".term-hint")) run();
+
+    // MutationObserver — ловим перерисовку innerHTML и повторно аннотируем
+    const obs = new MutationObserver(() => {
+      if (!el.querySelector(".term-hint")) run();
+    });
+    obs.observe(el, { childList: true, subtree: true, characterData: true });
+    return () => obs.disconnect();
   });
 }

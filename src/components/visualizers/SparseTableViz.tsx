@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useVizSync } from "../../hooks/useVizSync";
+import { useVizControl } from "../../hooks/useVizControl";
 import {
   Play,
   RotateCcw,
@@ -122,6 +124,14 @@ const Viz1D: React.FC = () => {
 
   const maxStep = computeSteps.length;
   const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
+  const cur = step > 0 && step <= maxStep ? computeSteps[step - 1] : null;
+  // подсветка в визуализации = строка в компиляторе; отдельный объект Vars+Code
+  useVizSync("sparse-table", { n: N, m: LOG, i: cur?.i ?? 0, j: cur?.j ?? 0, k: cur?.j ?? 0, a: cur ? st1D[cur.i][cur.j] : st1D[0][0] });
+  useVizControl("sparse-table", {
+    onStep: () => setStep((s) => Math.min(s + 1, maxStep)),
+    onReset: () => setStep(0),
+    onPrev: () => setStep((s) => Math.max(0, s - 1)),
+  });
 
   return (
     <div className="flex flex-col gap-5">
@@ -370,6 +380,20 @@ const Viz2DBuild: React.FC = () => {
 
   const L = 1 << k;
   const activeCell = locked || hover;
+  const ac = activeCell ?? { r: 0, c: 0 };
+  useVizSync("sparse-table", {
+    i: ac.r,
+    j: ac.c,
+    k,
+    n: 8,
+    m: 8,
+    a: ST2D[ac.r][ac.c][Math.max(0, k - 1)][Math.max(0, k - 1)],
+    b: ST2D[ac.r][Math.min(7, ac.c + (1 << Math.max(0, k - 1)))][Math.max(0, k - 1)][Math.max(0, k - 1)],
+  });
+  useVizControl("sparse-table", {
+    onStep: () => setK((v) => Math.min(3, v + 1)),
+    onReset: () => setK(0),
+  });
 
   return (
     <div className="flex flex-col xl:flex-row gap-6">

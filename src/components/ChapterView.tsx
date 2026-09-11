@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles } from "lucide-react";
+import { Check, Download, Loader2, Printer, Sparkles, Terminal, Eye, MousePointerClick } from "lucide-react";
 import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
 import { getViz } from "./vizRegistry";
 import { ChapterNav } from "./ChapterNav";
 import { downloadChapterHtml } from "../utils/exportHtml";
+import { getFallbackMeta, getFullCode } from "../data/compilerVars";
 
 interface Props {
   chapter: Chapter;
@@ -14,12 +15,12 @@ interface Props {
   index: number;
   total: number;
   onGo: (id: string) => void;
-  onOpenSimulator: (vizId: string) => void;
+  onOpenCompiler?: () => void;
 }
 
 const isTouch = () => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
 
-export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator }) => {
+export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenCompiler }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [anchor, setAnchor] = useState<HintAnchor | null>(null);
   const hideTimer = useRef<number | null>(null);
@@ -91,35 +92,60 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
   };
 
   const viz = getViz(chapter.id);
+  const meta = getFallbackMeta(chapter.id);
+  const fullCode = getFullCode(chapter.id);
+  const [showCode, setShowCode] = useState(false);
+  useEffect(() => setShowCode(false), [chapter.id]);
 
   return (
     <>
       <article className="chapter-body">
-        {/* панель выгрузки: сохранить именно эту страницу */}
         <div className="flex flex-wrap items-center gap-2 mb-4 -mt-1">
           <button
             onClick={saveHtml}
             disabled={saving === "work"}
-            title="Сохранить эту тему одним автономным HTML-файлом (стили внутри, интернет не нужен)"
+            title="Сохранить эту тему одним автономным HTML-файлом"
             className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500 disabled:opacity-60 transition-colors"
           >
-            {saving === "work" ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : saving === "done" ? (
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-            ) : (
-              <Download className="w-3.5 h-3.5" />
-            )}
+            {saving === "work" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : saving === "done" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Download className="w-3.5 h-3.5" />}
             {saving === "done" ? "Файл сохранён" : "Скачать HTML этой страницы"}
           </button>
           <button
             onClick={() => window.print()}
-            title="Распечатать или сохранить в PDF средствами браузера"
+            title="Распечатать или сохранить в PDF"
             className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
           >
             <Printer className="w-3.5 h-3.5" /> Печать
           </button>
-          <span className="text-[11px] text-slate-500">одна тема = один файл, открывается без интернета</span>
+          <span className="text-[11px] text-slate-500 hidden sm:inline">одна тема = один файл, без интернета</span>
+          {onOpenCompiler && (
+            <button
+              onClick={onOpenCompiler}
+              className="ml-auto hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-colors"
+              title="Открыть компилятор — i,j и 4→1"
+            >
+              <Terminal className="w-3.5 h-3.5" /> Компилятор
+            </button>
+          )}
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-300">
+            <Eye className="w-3.5 h-3.5" /> {meta.title}
+          </span>
+          <span className="hidden sm:inline text-slate-600">·</span>
+          <span className="flex flex-wrap gap-1.5">
+            {Object.entries(meta.vars).map(([k, v]) => (
+              <span key={k} className="font-mono text-[11px] bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded" title={`${k} — ${v.desc}`}>
+                {k}={v.example}
+              </span>
+            ))}
+          </span>
+          {onOpenCompiler && (
+            <button onClick={onOpenCompiler} className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white">
+              <Terminal className="w-3 h-3" /> Компилятор
+            </button>
+          )}
         </div>
 
         <div
@@ -134,10 +160,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
 
         <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
           <MousePointerClick className="w-4 h-4 shrink-0 text-indigo-400 mt-px" />
-          <span>
-            Подчёркнутые термины — интерактивные: наведите курсор (или тапните на телефоне), чтобы увидеть
-            объяснение на пальцах, мини-анимацию и кнопку запуска полного симулятора.
-          </span>
+          <span>Подчёркнутые термины — интерактивные: наведите или тапните, всплывёт подсказка.</span>
         </p>
 
         {viz && (
@@ -147,15 +170,42 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 Демонстрация: {viz.title}
               </h3>
-              <button
-                onClick={() => onOpenSimulator(chapter.id)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
-              >
-                <Maximize2 className="w-3.5 h-3.5" /> Развернуть
-              </button>
+              <div className="flex items-center gap-2">
+                {fullCode && (
+                  <button
+                    onClick={() => setShowCode((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> {showCode ? "скрыть код" : "показать код"}
+                  </button>
+                )}
+                {onOpenCompiler && (
+                  <button
+                    onClick={onOpenCompiler}
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-900/40 border border-emerald-700 text-emerald-300 hover:text-white hover:bg-emerald-800 transition-colors"
+                  >
+                    <Terminal className="w-3.5 h-3.5" /> Компилятор · Шаг
+                  </button>
+                )}
+              </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
-            <viz.Component />
+            <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-1">
+              <viz.Component />
+            </div>
+            {fullCode && showCode && (
+              <div className="mt-3 rounded-xl border border-indigo-900/40 bg-[#0b1220] overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-indigo-900/30 bg-indigo-950/20">
+                  <span className="text-xs font-mono text-indigo-300">код под визуализацией — отдельный объект (наследники: Code + Vars)</span>
+                  <button onClick={() => navigator.clipboard.writeText(fullCode).catch(()=>{})} className="text-[11px] text-slate-400 hover:text-white">копировать</button>
+                </div>
+                <pre className="p-3 text-xs leading-5 font-mono text-slate-300 whitespace-pre-wrap break-words">{fullCode}</pre>
+              </div>
+            )}
+            <div className="mt-2 text-[11px] text-slate-500 flex items-center gap-1.5">
+              <Terminal className="w-3 h-3 text-emerald-400" />
+              Визуализация — отдельный объект (Vars + Code). Терминал по дефолту пустой с <span className="font-mono text-slate-400">i,j=0,0 и a,b,c,d</span> — пиши код сам. Кнопка выше показывает реализацию.
+            </div>
           </section>
         )}
 
@@ -165,10 +215,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
       <TermPopover
         anchor={anchor}
         onClose={() => setAnchor(null)}
-        onOpenSimulator={(id) => {
-          setAnchor(null);
-          onOpenSimulator(id);
-        }}
+        onOpenSimulator={() => {}}
         onCardEnter={cancelHide}
         onCardLeave={scheduleHide}
       />

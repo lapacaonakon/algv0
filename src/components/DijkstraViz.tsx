@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useVizSync } from '../hooks/useVizSync';
+import { useVizControl } from '../hooks/useVizControl';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -142,6 +144,20 @@ export default function DijkstraViz() {
   }, [isPlaying, currentStepIndex, steps.length]);
 
   const currentStep = steps[currentStepIndex] || null;
+
+  useVizSync("dijkstra", {
+    n: 7,
+    m: 11,
+    i: currentStep?.currentNode ?? "—",
+    j: currentStep?.checkingEdge?.v ?? "—",
+    k: currentStep?.checkingEdge ? edges.find((e) => e.u === currentStep.checkingEdge!.u && e.v === currentStep.checkingEdge!.v)?.w ?? "—" : "—",
+  });
+  useVizControl("dijkstra", {
+    onStep: () => { setIsPlaying(false); setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
+    onReset: () => { setIsPlaying(false); setCurrentStepIndex(0); },
+    onPlay: () => setIsPlaying(true),
+    onPause: () => setIsPlaying(false),
+  });
 
   if (!currentStep) return <div className="text-white">Загрузка симулятора...</div>;
 
