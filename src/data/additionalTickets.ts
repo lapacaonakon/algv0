@@ -75,13 +75,13 @@ int minimum = min(ans1, ans2);</pre>
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         🗡️ Аналогия 1: Удар катаной (Split)
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Split — это удар самурайского меча, который разрезает дерево на две части ровно по значению X. Все, кто меньше X улетают влево, остальные — вправо. Разрез идет сверху вниз, спускаясь по веткам.</p>
+                    <p class="text-slate-300 text-sm mb-4">Split(t, x) — таможня с двумя коридорами: зелёный «все x ≤ x₀», красный «все x &gt; x₀». Спуск от корня: узел, который вместе со своим поддеревом целиком проходит по одному коридору, отправляется туда <b>без вскрытия</b> — дальше досматривается только одна ветка. Поэтому split стоит O(h), а не O(n).</p>
                 </div>
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         🧲 Аналогия 2: Слияние капель (Merge)
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Merge — это склеивание двух деревьев (где все элементы левого строго меньше правого). Мы просто смотрим на корни: у кого Y (приоритет) больше, тот и становится общим корнем, а второй прилипает к нему сбоку как потомок.</p>
+                    <p class="text-slate-300 text-sm mb-4">Merge(a, b) склеивает два дерева при условии «все x в a меньше всех x в b». Каждый шаг — одно сравнение: чей y у корня больше, тот и принимает колонну, а «стыковка» продолжается в одном его поддереве (том, что сохраняет порядок x). Итого O(h) сравнений y — без перестроек и поворотов.</p>
                 </div>
             </div>
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
@@ -109,32 +109,30 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-emerald-400 mb-4">Как построить: точки и линии</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-emerald-500/30">
-                <p class="text-lg text-emerald-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Каждая пара — точка (x; y): x = ключ, y = приоритет. Точки неподвижны. Соединяем по убыванию y: линия всегда идёт вниз, а левее/правее решает x — проверкой на каждом шаге спуска от корня.</p>
+                <p class="text-lg text-emerald-300 italic mb-2">Общепринятое определение:</p>
+                <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Пара (x; y) — точка на декартовой плоскости, отсюда и название.</p>
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <!-- Аналогия: клетчатая бумага -->
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        📐 Аналогия: Клетчатая бумага
+                        📋 Что покажет симулятор
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Каждая пара — точка, прибитая к клетчатой бумаге: координаты не двигаются никогда. Построить дерево = правильно соединить точки: линия всегда падает вниз по y, сторону подсказывает x. Ошибиться точкой нельзя — только линией, и такую ошибку сразу видно.</p>
-                    <p class="text-slate-400 text-xs">В демо все x и все y различны — поэтому дерево ровно одно. Совпавший y ломает единственность («кто выше?»), поэтому приоритеты договорились делать различными — например, случайными.</p>
+                    <p class="text-slate-300 text-sm mb-2">Вкладка <b>«Собрать»</b>: точки приходят как попало → видимая сортировка по y (попробуй обе: quicksort против counting — разница есть) → соединение линиями в <b>любом</b> порядке: по y или слева-направо, результат один. Чек-лист ✅ проверяет инварианты сам: ребро вниз по y, обход по x отсортирован, линий n−1.</p>
+                    <p class="text-slate-300 text-sm">Вкладки <b>Split / Merge / Erase</b> — операции по шагам; <b>«Миф 2k/2k+1»</b> и <b>«Поиск ≠ сортировка»</b> — разбор двух граблей справа вживую.</p>
                 </div>
 
-                <!-- Ты путаешь -->
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         💀 Ты путаешь
                     </div>
-                    <p class="text-slate-300 text-sm mb-2">· «Отсортирую бинарным поиском»: поиск не сортирует; quicksort — не O(log n).</p>
+                    <p class="text-slate-300 text-sm mb-2">· «Отсортирую бинарным поиском»: поиск не сортирует; сравнительная сортировка — не быстрее n·log n.</p>
                     <p class="text-slate-300 text-sm mb-2">· Дети «в массиве по 2k/2k+1» — только у полных деревьев; treap растёт кривым.</p>
                     <p class="text-slate-300 text-sm">· «Убрать можно только самый верхний»: произвольная точка тоже вырезается — её дети сшиваются merge за O(h).</p>
                 </div>
             </div>
 
-            <p class="text-slate-300 text-sm mt-5"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code> (сортировка дороже сборки). Худший случай — приоритеты вытянулись в цепочку: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
+            <p class="text-slate-300 text-sm mt-5"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code>: сортировка (n·log n сравнений или O(n) counting по целым y) плюс n спусков. Худший случай — приоритеты вытянулись в цепочку: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
@@ -144,26 +142,26 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
 def insert(root, key, pri):
     if root is None:
-        return Node(key, pri)          # пустое место — точка «прибита»
+        return Node(key, pri)
     if key &lt;= root.key:                # равные x — влево
         root.left = insert(root.left, key, pri)
     else:
         root.right = insert(root.right, key, pri)
     return root
 
-for key, pri in pairs_sorted_by_pri_desc:   # порядок: y по убыванию
+for key, pri in pairs_sorted_by_pri_desc:   # порядок задаёт y
     root = insert(root, key, pri)</pre>
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
 def merge(a, b):                   # все x в a &lt; всех x в b
     if not a or not b: return a or b
-    if a.pri &gt; b.pri:              # наверх — больший y
+    if a.pri &gt; b.pri:
         a.right = merge(a.right, b); return a
     b.left = merge(a, b.left); return b
 
 def erase(root, key):              # удалить произвольную точку
     if key &lt; root.key:  root.left  = erase(root.left, key)
     elif key &gt; root.key: root.right = erase(root.right, key)
-    else: root = merge(root.left, root.right)   # детей сшили
+    else: root = merge(root.left, root.right)
     return root</pre>
                 </div>
             </details>

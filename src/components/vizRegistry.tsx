@@ -96,8 +96,8 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     Component: SparseTableViz,
   },
   treap: {
-    title: "Строим Treap по точкам: x — ключ, y — приоритет",
-    hint: "Точки (x = ключ, y = приоритет) прибиты к клетчатой бумаге — соединяем по правилам: спуск по x, линия вниз по y. Путь, линии и код синхронизированы.",
+    title: "Treap: плоскость → дерево → Split/Merge/Erase",
+    hint: "6 вкладок: Собрать (сортировка + соединение в любом порядке + автопроверка инвариантов), Split, Merge, Erase произвольной точки, миф про 2k/2k+1, поиск ≠ сортировка.",
     Component: TreapBuildViz,
   },
   "prefix-sums-2d": {
