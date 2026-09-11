@@ -47,12 +47,17 @@ def __safe(v):
 def __tracer(frame, event, arg):
     if event == "line" and frame.f_code.co_filename == "<user-code>" \
             and not (frame.f_code.co_name.startswith("<") and frame.f_code.co_name != "<module>"):
-        # listcomp/genexpr/генераторные рамки дают ложные шаги на своей строке — пропускаем
         loc = {}
         for k, v in frame.f_locals.items():
             if not k.startswith("__") and type(v).__name__ != "module":
                 loc[k] = __safe(v)
-        __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc})
+        # PEP 709: с 3.12 компрехеншны встроены во фрейм модуля и шлют событие
+        # на своей строке каждую итерацию (9 ложных «шагов», v протекает в локали).
+        # Склеиваем ПОДРЯД идущие события одной строки в один шаг — последнее состояние.
+        if __steps and __steps[-1]["line"] == frame.f_lineno and __steps[-1]["func"] == frame.f_code.co_name:
+            __steps[-1]["locals"] = loc
+        else:
+            __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc})
         if len(__steps) >= __CAP:
             __sys.settrace(None)
     return __tracer

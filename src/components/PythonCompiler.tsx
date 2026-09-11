@@ -284,20 +284,36 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
   }, [code, markedContents]);
   /** Демонстрация реально умеет ходить по шагам за отладчиком (подписана на шину). */
   const stepCapable = !!sync.code && sync.stepDriven === true && !!markedContents && markedContents.size > 0;
-  /** Связь кода с демонстрацией: по эталону, по перепечатанным строкам, или отсутствует. */
-  type VizLink = "exact" | "content" | "none";
-  const vizLink: VizLink = stepCapable ? (lockedToViz ? "exact" : contentMatched ? "content" : "none") : "exact";
+  /** Хотя бы одна помеченная строка эталона присутствует в коде — такие строки двигают демо (init-шаблон → шаг 0). */
+  const hasAnyMarked = useMemo(() => {
+    if (!markedContents || markedContents.size === 0) return false;
+    const written = new Set(code.split("\n").map((l) => l.trim()).filter(Boolean));
+    return [...markedContents].some((m) => written.has(m));
+  }, [code, markedContents]);
+  /** Связь кода с демонстрацией: эталон / ваши строки (все пометки) / частично (инициализация) / нет. */
+  type VizLink = "exact" | "content" | "partial" | "none";
+  const vizLink: VizLink = stepCapable ? (lockedToViz ? "exact" : contentMatched ? "content" : hasAnyMarked ? "partial" : "none") : "exact";
+
+  /** Демо двигаем только если в ПРОТРАССИРОВАННОМ коде есть помеченные строки (трасса могла быть от старого текста). */
+  const vizActiveNow = useCallback(
+    (src: string) => {
+      if (!stepCapable || !markedContents || markedContents.size === 0) return false;
+      const written = new Set(src.split("\n").map((l) => l.trim()).filter(Boolean));
+      return [...markedContents].some((m) => written.has(m));
+    },
+    [stepCapable, markedContents]
+  );
 
   const goDebug = useCallback(
     (nextIdx: number) => {
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
-        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents)); // визуализация следует за шагом
+        if (vizActiveNow(d.src)) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents)); // визуализация следует за шагом
         return { ...d, idx };
       });
     },
-    [chapterId, markedContents, stepCapable]
+    [chapterId, markedContents, stepCapable, vizActiveNow]
   );
 
   const stepBy = useCallback(
@@ -305,11 +321,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
-        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents));
+        if (vizActiveNow(d.src)) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents));
         return { ...d, idx };
       });
     },
-    [chapterId, markedContents, stepCapable]
+    [chapterId, markedContents, stepCapable, vizActiveNow]
   );
 
   const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
@@ -358,7 +374,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
       setDebug({ result, idx: 0, src: code });
       setPlaying(true); // «Запустить» — это автопроход: шаги, подсветка присваиваний и демо идут сами
-      if (stepCapable) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, code.split("\n"), markedContents)); // старт: демонстрация на первом шаге
+      if (vizActiveNow(code)) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, code.split("\n"), markedContents)); // старт: демонстрация на первом шаге
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
       setRuntimeMessage(
@@ -372,7 +388,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     } finally {
       setRunning(false);
     }
-  }, [code, stdin, running, runtimeReady, chapterId, markedContents, stepCapable]);
+  }, [code, stdin, running, runtimeReady, chapterId, markedContents, stepCapable, vizActiveNow]);
 
   // Стрелки ← → в режиме отладки листают ШАГИ (а не страницы), Esc — выход из отладчика.
   useEffect(() => {
@@ -704,8 +720,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
                   <>
                     шаг {debug.idx + 1}/{debug.result.steps.length} · строка {curDebug.step.line}
                     {curDebug.step.func !== "<module>" && <> · {curDebug.step.func}()</>}
-                    {stepCapable && markedContents && (
-                      <span className="text-indigo-300"> · {curHits <= 1 ? "инициализация" : `демо шаг ${curHits - 1}`}</span>
+                    {vizActiveNow(debug.src) && (
+                      <span className="text-indigo-300">
+                        {" · "}{curHits <= 1 ? "инициализация" : `демо шаг ${curHits - 1}`}
+                        {vizLink === "partial" && curHits > 0 && " (только init-строки)"}
+                      </span>
                     )}
                   </>
                 ) : (
@@ -727,14 +746,18 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
                       ? "Код = эталон: каждый помеченный шаг трассы двигает демонстрацию слева — ячейки/вершины подсвечиваются синхронно (см. бейдж фазы: инициализация / демо шаг N)."
                       : vizLink === "content"
                         ? "Вы дописали тело сами, но помеченные строки совпадают с эталоном — демонстрация следует за вашим кодом, как за эталоном."
-                        : "В коде нет помеченных строк эталона (см. кнопку-глаз): демонстрация слева НЕ следует за шагами. Перепечатайте их дословно или нажмите «Сбросить к шаблону»."
+                        : vizLink === "partial"
+                          ? "В коде только строки инициализации эталона: демонстрация встанет на начальный кадр (шаг 0), дальше за вашим кодом не ходит — допишите остальные помеченные строки (см. «глаз»)."
+                          : "В коде нет помеченных строк эталона (см. кнопку-глаз): демонстрация слева НЕ следует за шагами. Перепечатайте их дословно или нажмите «Сбросить к шаблону»."
                 }
               >
                 <span
                   tabIndex={0}
                   className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${
                     stepCapable && vizLink !== "none"
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                      ? vizLink === "partial"
+                        ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                        : "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                       : "border-slate-600 bg-slate-800 text-slate-400"
                   }`}
                 >
@@ -744,7 +767,9 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
                       ? "демо следует (эталон)"
                       : vizLink === "content"
                         ? "демо следует (ваши строки)"
-                        : "демо отвязано"
+                        : vizLink === "partial"
+                          ? "демо: инициализация"
+                          : "демо отвязано"
                     : "демо ручное"}
                 </span>
               </Tooltip>
