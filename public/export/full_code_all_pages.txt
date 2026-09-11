@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 16:34:45
-Файлов исходного кода:     86
-Суммарный объём кода:      1.17 MB
+Дата генерации:            11.09.2026, 16:58:03
+Файлов исходного кода:     87
+Суммарный объём кода:      1.18 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -74,83 +74,84 @@
    21. src/data/glossary.ts
    22. src/data/graphContent.ts
    23. src/data/quizzes.ts
-   24. src/data/vizSync.ts
+   24. src/data/vizStepBus.ts
+   25. src/data/vizSync.ts
 
   # Билеты (учебный контент)
-   25. src/data/tickets/ticket1_5.ts
-   26. src/data/tickets/ticket14_20.ts
-   27. src/data/tickets/ticket21_24.ts
-   28. src/data/tickets/ticket6_13.ts
+   26. src/data/tickets/ticket1_5.ts
+   27. src/data/tickets/ticket14_20.ts
+   28. src/data/tickets/ticket21_24.ts
+   29. src/data/tickets/ticket6_13.ts
 
   # Интерактивные компоненты и симуляторы
-   29. src/components/ArticulationPointsViz.tsx
-   30. src/components/BellmanFordViz.tsx
-   31. src/components/BfsViz.tsx
-   32. src/components/ChapterImage.tsx
-   33. src/components/ChapterNav.tsx
-   34. src/components/ChapterView.tsx
-   35. src/components/DfsBridgesSimulator.tsx
-   36. src/components/DijkstraViz.tsx
-   37. src/components/DPVisualizer.tsx
-   38. src/components/EulerSimulator.tsx
-   39. src/components/ExpressQuiz.tsx
-   40. src/components/FloydViz.tsx
-   41. src/components/GraphTraversalViz.tsx
-   42. src/components/HeapViz.tsx
-   43. src/components/hints/demoKit.tsx
-   44. src/components/hints/demosExtra.tsx
-   45. src/components/hints/demosGraph.tsx
-   46. src/components/hints/demosStruct.tsx
-   47. src/components/hints/MiniDemo.tsx
-   48. src/components/hints/SimulatorModal.tsx
-   49. src/components/hints/TermPopover.tsx
-   50. src/components/JohnsonViz.tsx
-   51. src/components/KosarajuViz.tsx
-   52. src/components/KruskalSimulator.tsx
-   53. src/components/MnemonicCards.tsx
-   54. src/components/MobileToc.tsx
-   55. src/components/Navbar.tsx
-   56. src/components/PlanarityDemo.tsx
-   57. src/components/PythonCompiler.tsx
-   58. src/components/QueueViz.tsx
-   59. src/components/SalmonAutomatonWidget.tsx
-   60. src/components/SegmentTreeVisualizer.tsx
-   61. src/components/Sidebar.tsx
-   62. src/components/Simulator.tsx
-   63. src/components/SimulatorHub.tsx
-   64. src/components/SplayRotationSandbox.tsx
-   65. src/components/SplayRotationsViz.tsx
-   66. src/components/SplayTreeViz.tsx
-   67. src/components/StackViz.tsx
-   68. src/components/StringAlgorithmsViz.tsx
-   69. src/components/Tooltip.tsx
-   70. src/components/TopologicalSortViz.tsx
-   71. src/components/vizRegistry.tsx
-   72. src/components/WaterfallAnimationWidget.tsx
+   30. src/components/ArticulationPointsViz.tsx
+   31. src/components/BellmanFordViz.tsx
+   32. src/components/BfsViz.tsx
+   33. src/components/ChapterImage.tsx
+   34. src/components/ChapterNav.tsx
+   35. src/components/ChapterView.tsx
+   36. src/components/DfsBridgesSimulator.tsx
+   37. src/components/DijkstraViz.tsx
+   38. src/components/DPVisualizer.tsx
+   39. src/components/EulerSimulator.tsx
+   40. src/components/ExpressQuiz.tsx
+   41. src/components/FloydViz.tsx
+   42. src/components/GraphTraversalViz.tsx
+   43. src/components/HeapViz.tsx
+   44. src/components/hints/demoKit.tsx
+   45. src/components/hints/demosExtra.tsx
+   46. src/components/hints/demosGraph.tsx
+   47. src/components/hints/demosStruct.tsx
+   48. src/components/hints/MiniDemo.tsx
+   49. src/components/hints/SimulatorModal.tsx
+   50. src/components/hints/TermPopover.tsx
+   51. src/components/JohnsonViz.tsx
+   52. src/components/KosarajuViz.tsx
+   53. src/components/KruskalSimulator.tsx
+   54. src/components/MnemonicCards.tsx
+   55. src/components/MobileToc.tsx
+   56. src/components/Navbar.tsx
+   57. src/components/PlanarityDemo.tsx
+   58. src/components/PythonCompiler.tsx
+   59. src/components/QueueViz.tsx
+   60. src/components/SalmonAutomatonWidget.tsx
+   61. src/components/SegmentTreeVisualizer.tsx
+   62. src/components/Sidebar.tsx
+   63. src/components/Simulator.tsx
+   64. src/components/SimulatorHub.tsx
+   65. src/components/SplayRotationSandbox.tsx
+   66. src/components/SplayRotationsViz.tsx
+   67. src/components/SplayTreeViz.tsx
+   68. src/components/StackViz.tsx
+   69. src/components/StringAlgorithmsViz.tsx
+   70. src/components/Tooltip.tsx
+   71. src/components/TopologicalSortViz.tsx
+   72. src/components/vizRegistry.tsx
+   73. src/components/WaterfallAnimationWidget.tsx
 
   # Визуализаторы (вложенные)
-   73. src/components/visualizers/PrefixSumViz.tsx
-   74. src/components/visualizers/SparseTableViz.tsx
+   74. src/components/visualizers/PrefixSumViz.tsx
+   75. src/components/visualizers/SparseTableViz.tsx
 
   # HTML-разметка (layout)
-   75. src/layout/footer.html
-   76. src/layout/header.html
+   76. src/layout/footer.html
+   77. src/layout/header.html
 
   # Утилиты
-   77. src/utils/cn.ts
-   78. src/utils/exportHtml.ts
+   78. src/utils/cn.ts
+   79. src/utils/exportHtml.ts
 
   # Скрипты сборки и экспорта
-   79. scripts/audit-coverage.mjs
-   80. scripts/audit-terms.mjs
-   81. scripts/export/build-pdf.mjs
-   82. scripts/export/collect-code.mjs
-   83. scripts/export/common.mjs
-   84. scripts/export/render-pages.mjs
+   80. scripts/audit-coverage.mjs
+   81. scripts/audit-terms.mjs
+   82. scripts/export/build-pdf.mjs
+   83. scripts/export/collect-code.mjs
+   84. scripts/export/common.mjs
+   85. scripts/export/render-pages.mjs
 
   # CI / автоматизация
-   85. .github/workflows/deploy-pages.yml
-   86. .github/workflows/rebuild-pdf.yml
+   86. .github/workflows/deploy-pages.yml
+   87. .github/workflows/rebuild-pdf.yml
 
 
 ==========================================================================================================================================
@@ -158,7 +159,7 @@
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 1/86: add.md
+ФАЙЛ 1/87: add.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 1224 | РАЗМЕР: 48.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1388,7 +1389,7 @@ index c0456e7..e19d945 100644
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 2/86: AGENTS.md
+ФАЙЛ 2/87: AGENTS.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 12 | РАЗМЕР: 728 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1406,7 +1407,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 3/86: GEMINI.md
+ФАЙЛ 3/87: GEMINI.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 16 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1428,7 +1429,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 4/86: index.html
+ФАЙЛ 4/87: index.html
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 14 | РАЗМЕР: 601 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1448,7 +1449,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 5/86: metadata.json
+ФАЙЛ 5/87: metadata.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 8 | РАЗМЕР: 310 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1463,7 +1464,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 6/86: package.json
+ФАЙЛ 6/87: package.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 41 | РАЗМЕР: 1.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1510,7 +1511,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 7/86: README.md
+ФАЙЛ 7/87: README.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 115 | РАЗМЕР: 7.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1631,7 +1632,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 8/86: TOPICS_AUDIT.md
+ФАЙЛ 8/87: TOPICS_AUDIT.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 106 | РАЗМЕР: 8.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1743,7 +1744,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 9/86: tsconfig.json
+ФАЙЛ 9/87: tsconfig.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 32 | РАЗМЕР: 681 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1781,7 +1782,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 10/86: vite.config.ts
+ФАЙЛ 10/87: vite.config.ts
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 36 | РАЗМЕР: 1.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1827,7 +1828,7 @@ export default defineConfig({
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 11/86: src/App.tsx
+ФАЙЛ 11/87: src/App.tsx
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 149 | РАЗМЕР: 6.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1982,7 +1983,7 @@ export default function App() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 12/86: src/hooks/useTermHints.ts
+ФАЙЛ 12/87: src/hooks/useTermHints.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 124 | РАЗМЕР: 5.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2112,7 +2113,7 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 13/86: src/index.css
+ФАЙЛ 13/87: src/index.css
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 175 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2293,7 +2294,7 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 14/86: src/main.tsx
+ФАЙЛ 14/87: src/main.tsx
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 11 | РАЗМЕР: 230 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2310,7 +2311,7 @@ createRoot(document.getElementById("root")!).render(
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 15/86: src/types.ts
+ФАЙЛ 15/87: src/types.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 9 | РАЗМЕР: 153 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2325,7 +2326,7 @@ export interface Chapter {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 16/86: src/vite-env.d.ts
+ФАЙЛ 16/87: src/vite-env.d.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 19 | РАЗМЕР: 324 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2354,7 +2355,7 @@ declare module '*.png' {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 17/86: src/data/additionalTickets.ts
+ФАЙЛ 17/87: src/data/additionalTickets.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 934 | РАЗМЕР: 72.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3294,7 +3295,7 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 18/86: src/data/content_temp.ts
+ФАЙЛ 18/87: src/data/content_temp.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 385 | РАЗМЕР: 27.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3685,7 +3686,7 @@ void dfs(int v, int p = -1) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 19/86: src/data/content.ts
+ФАЙЛ 19/87: src/data/content.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 51 | РАЗМЕР: 1.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3742,7 +3743,7 @@ export const activeVizIds = [
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 20/86: src/data/debugRunner.ts
+ФАЙЛ 20/87: src/data/debugRunner.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 111 | РАЗМЕР: 4.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3859,7 +3860,7 @@ export function orderVars(
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 21/86: src/data/glossary.ts
+ФАЙЛ 21/87: src/data/glossary.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 626 | РАЗМЕР: 40.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4491,7 +4492,7 @@ export const GLOSSARY_LABELS: { label: string; id: string }[] = GLOSSARY.flatMap
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 22/86: src/data/graphContent.ts
+ФАЙЛ 22/87: src/data/graphContent.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 275 | РАЗМЕР: 18.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4772,7 +4773,7 @@ void buildLinks() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 23/86: src/data/quizzes.ts
+ФАЙЛ 23/87: src/data/quizzes.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 106 | РАЗМЕР: 6.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4884,7 +4885,61 @@ export const quizzes: Record<string, QuizQuestion[]> = {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 24/86: src/data/vizSync.ts
+ФАЙЛ 24/87: src/data/vizStepBus.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 48 | РАЗМЕР: 2.1 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import { createContext, useContext, useEffect } from "react";
+
+/**
+ * Связь «компилятор ↔ открытая визуализация».
+ *
+ * Панель компилятора в режиме пошагового отладчика транслирует номер
+ * текущего шага трассы вместе с id текущей главы; пошаговые демонстрации
+ * главы (через useVizStepSync) подхватывают его и прыгают на тот же шаг —
+ * визуализация идёт в ногу с листингом (каждая исполняемая строка шаблона
+ * = очередной шаг подсветки, см. vizSync.ts).
+ */
+
+export const VizChapterContext = createContext("");
+
+const CHANNEL = "algo:viz-step";
+
+export interface VizStepEventDetail {
+  chapterId: string;
+  step: number;
+}
+
+/** Транслировать текущий шаг отладчика визуализациям текущей главы. */
+export function emitVizStep(chapterId: string, step: number) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new window.CustomEvent<VizStepEventDetail>(CHANNEL, { detail: { chapterId, step } }));
+}
+
+/**
+ * Подписка визуализации на шаги отладчика.
+ * Вызывается внутри компонента демонстрации:
+ *   useVizStepSync(currentStep, setCurrentStep, steps.length - 1);
+ */
+export function useVizStepSync(currentStep: number, goToStep: (n: number) => void, maxStep: number) {
+  const chapterId = useContext(VizChapterContext);
+
+  useEffect(() => {
+    if (!chapterId) return;
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<VizStepEventDetail>).detail;
+      if (!detail || detail.chapterId !== chapterId) return;
+      const target = Math.max(0, Math.min(maxStep, detail.step));
+      if (target !== currentStep) goToStep(target);
+    };
+    window.addEventListener(CHANNEL, handler);
+    return () => window.removeEventListener(CHANNEL, handler);
+  }, [chapterId, currentStep, maxStep, goToStep]);
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 25/87: src/data/vizSync.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 575 | РАЗМЕР: 35.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5469,7 +5524,7 @@ export function buildSyncTemplate(chapterId: string, chapterTitle: string): stri
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 25/86: src/data/tickets/ticket1_5.ts
+ФАЙЛ 26/87: src/data/tickets/ticket1_5.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 277 | РАЗМЕР: 21.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5752,7 +5807,7 @@ function rotate(x) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 26/86: src/data/tickets/ticket14_20.ts
+ФАЙЛ 27/87: src/data/tickets/ticket14_20.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 248 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6006,7 +6061,7 @@ export const tickets14to20: Chapter[] = [
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 27/86: src/data/tickets/ticket21_24.ts
+ФАЙЛ 28/87: src/data/tickets/ticket21_24.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 262 | РАЗМЕР: 19.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6274,7 +6329,7 @@ int go(int v, char c) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 28/86: src/data/tickets/ticket6_13.ts
+ФАЙЛ 29/87: src/data/tickets/ticket6_13.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 486 | РАЗМЕР: 35.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6770,11 +6825,12 @@ void dfs(int v, int p = -1) {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 29/86: src/components/ArticulationPointsViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 371 | РАЗМЕР: 12.0 KB
+ФАЙЛ 30/87: src/components/ArticulationPointsViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 373 | РАЗМЕР: 12.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, Info } from "lucide-react";
 
 interface Node {
@@ -6832,6 +6888,7 @@ interface StepInfo {
 export const ArticulationPointsViz: React.FC = () => {
   const [steps, setSteps] = useState<StepInfo[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -7147,11 +7204,12 @@ export const ArticulationPointsViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 30/86: src/components/BellmanFordViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 307 | РАЗМЕР: 16.6 KB
+ФАЙЛ 31/87: src/components/BellmanFordViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 309 | РАЗМЕР: 16.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -7169,6 +7227,7 @@ export default function BellmanFordViz() {
   const [hasCycle, setHasCycle] = useState(false);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodes: Node[] = [
@@ -7460,11 +7519,12 @@ export default function BellmanFordViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 31/86: src/components/BfsViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 306 | РАЗМЕР: 11.4 KB
+ФАЙЛ 32/87: src/components/BfsViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 308 | РАЗМЕР: 11.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useCallback } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, StepForward } from 'lucide-react';
 
 const NODES = [
@@ -7588,6 +7648,7 @@ const STEPS = generateBfsSteps();
 export default function BfsViz() {
   const [stepIdx, setStepIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  useVizStepSync(stepIdx, setStepIdx, STEPS.length - 1);
 
   const step = STEPS[stepIdx];
 
@@ -7772,7 +7833,7 @@ export default function BfsViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 32/86: src/components/ChapterImage.tsx
+ФАЙЛ 33/87: src/components/ChapterImage.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -7820,7 +7881,7 @@ export default function ChapterImage({ vizType }: { vizType: string }) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 33/86: src/components/ChapterNav.tsx
+ФАЙЛ 34/87: src/components/ChapterNav.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 77 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -7903,8 +7964,8 @@ export const ChapterNav: React.FC<Props> = ({ prev, next, index, total, onGo, co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 34/86: src/components/ChapterView.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 191 | РАЗМЕР: 7.8 KB
+ФАЙЛ 35/87: src/components/ChapterView.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 194 | РАЗМЕР: 8.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -7913,6 +7974,7 @@ import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
 import { getViz } from "./vizRegistry";
+import { VizChapterContext } from "../data/vizStepBus";
 import { ChapterNav } from "./ChapterNav";
 import { downloadChapterHtml } from "../utils/exportHtml";
 
@@ -8077,7 +8139,9 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
               </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
-            <viz.Component />
+            <VizChapterContext.Provider value={chapter.id}>
+              <viz.Component />
+            </VizChapterContext.Provider>
           </section>
         )}
 
@@ -8100,11 +8164,12 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 35/86: src/components/DfsBridgesSimulator.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 344 | РАЗМЕР: 15.5 KB
+ФАЙЛ 36/87: src/components/DfsBridgesSimulator.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 346 | РАЗМЕР: 15.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useRef } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import { Undo, Play, Pause, SkipForward, RefreshCw } from "lucide-react";
 
 interface CodeLine {
@@ -8285,6 +8350,7 @@ const DFS_STEPS: DfsStep[] = [
 
 export function DfsBridgesSimulator() {
   const [dfsIdx, setDfsIdx] = useState(0);
+  useVizStepSync(dfsIdx, setDfsIdx, DFS_STEPS.length - 1);
   const [dfsAuto, setDfsAuto] = useState(false);
   const dfsTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -8450,11 +8516,12 @@ export function DfsBridgesSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 36/86: src/components/DijkstraViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 386 | РАЗМЕР: 18.1 KB
+ФАЙЛ 37/87: src/components/DijkstraViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 388 | РАЗМЕР: 18.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -8515,6 +8582,7 @@ export default function DijkstraViz() {
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -8842,11 +8910,12 @@ export default function DijkstraViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 37/86: src/components/DPVisualizer.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 331 | РАЗМЕР: 14.1 KB
+ФАЙЛ 38/87: src/components/DPVisualizer.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 333 | РАЗМЕР: 14.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Code, Eye, RefreshCw } from 'lucide-react';
 
 interface DPStep {
@@ -8871,6 +8940,7 @@ export function DPVisualizer() {
   const [targetN, setTargetN] = useState<number>(5);
   const [steps, setSteps] = useState<DPStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed] = useState<number>(800);
   const [activeTab, setActiveTab] = useState<'table' | 'code'>('table');
@@ -9179,7 +9249,7 @@ export function DPVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 38/86: src/components/EulerSimulator.tsx
+ФАЙЛ 39/87: src/components/EulerSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 120 | РАЗМЕР: 5.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9305,7 +9375,7 @@ export function EulerSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 39/86: src/components/ExpressQuiz.tsx
+ФАЙЛ 40/87: src/components/ExpressQuiz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 233 | РАЗМЕР: 12.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9544,11 +9614,12 @@ export const ExpressQuiz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 40/86: src/components/FloydViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 274 | РАЗМЕР: 15.0 KB
+ФАЙЛ 41/87: src/components/FloydViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 276 | РАЗМЕР: 15.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 
 interface Step {
   k: number; i: number; j: number;
@@ -9559,6 +9630,7 @@ interface Step {
 export default function FloydViz() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodeNames = ['А 0', 'Б 1', 'В 2', 'Г 3', 'Д 4', 'Е 5', 'Ж 6'];
@@ -9824,11 +9896,12 @@ export default function FloydViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 41/86: src/components/GraphTraversalViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 253 | РАЗМЕР: 12.7 KB
+ФАЙЛ 42/87: src/components/GraphTraversalViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 255 | РАЗМЕР: 12.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useMemo } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from 'lucide-react';
 
 type Node = { id: string; label: string; x: number; y: number };
@@ -9928,6 +10001,7 @@ export function GraphTraversalViz() {
     const [stepIdx, setStepIdx] = useState(0);
 
     const steps = useMemo(() => mode === 'dfs' ? generateDFSSteps('A') : generateBFSSteps('A'), [mode]);
+    useVizStepSync(stepIdx, setStepIdx, steps.length - 1);
 
     useEffect(() => {
         setStepIdx(0);
@@ -10083,7 +10157,7 @@ export function GraphTraversalViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 42/86: src/components/HeapViz.tsx
+ФАЙЛ 43/87: src/components/HeapViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 416 | РАЗМЕР: 18.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10505,7 +10579,7 @@ export const HeapViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 43/86: src/components/hints/demoKit.tsx
+ФАЙЛ 44/87: src/components/hints/demoKit.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 102 | РАЗМЕР: 3.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10613,7 +10687,7 @@ export const Edge: React.FC<{
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 44/86: src/components/hints/demosExtra.tsx
+ФАЙЛ 45/87: src/components/hints/demosExtra.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 240 | РАЗМЕР: 9.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10859,7 +10933,7 @@ export const ZigZagDemo: React.FC = () => (
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 45/86: src/components/hints/demosGraph.tsx
+ФАЙЛ 46/87: src/components/hints/demosGraph.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 192 | РАЗМЕР: 8.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11057,7 +11131,7 @@ export const SccDemo: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 46/86: src/components/hints/demosStruct.tsx
+ФАЙЛ 47/87: src/components/hints/demosStruct.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 310 | РАЗМЕР: 14.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11373,7 +11447,7 @@ export const DpDemo: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 47/86: src/components/hints/MiniDemo.tsx
+ФАЙЛ 48/87: src/components/hints/MiniDemo.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 2.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11447,7 +11521,7 @@ export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 48/86: src/components/hints/SimulatorModal.tsx
+ФАЙЛ 49/87: src/components/hints/SimulatorModal.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 55 | РАЗМЕР: 2.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11508,7 +11582,7 @@ export const SimulatorModal: React.FC<Props> = ({ vizId, onClose }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 49/86: src/components/hints/TermPopover.tsx
+ФАЙЛ 50/87: src/components/hints/TermPopover.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 123 | РАЗМЕР: 4.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11637,16 +11711,18 @@ export const TermPopover: React.FC<Props> = ({ anchor, onClose, onOpenSimulator,
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 50/86: src/components/JohnsonViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 315 | РАЗМЕР: 16.9 KB
+ФАЙЛ 51/87: src/components/JohnsonViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 317 | РАЗМЕР: 17.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState } from 'react';
 import { RotateCcw, SkipForward, Undo } from 'lucide-react';
+import { useVizStepSync } from '../data/vizStepBus';
 
 export function JohnsonViz() {
     const [step, setStep] = useState(0);
     const MAX_STEP = 7;
+    useVizStepSync(step, setStep, MAX_STEP);
 
     const nodes = [
         { id: 'S', x: 200, y: 150, label: 'S' },
@@ -11958,11 +12034,12 @@ export function JohnsonViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 51/86: src/components/KosarajuViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 505 | РАЗМЕР: 16.0 KB
+ФАЙЛ 52/87: src/components/KosarajuViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 507 | РАЗМЕР: 16.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import {
   Play,
   Pause,
@@ -12014,6 +12091,7 @@ interface AlgoStep {
 export const KosarajuViz: React.FC = () => {
   const [steps, setSteps] = useState<AlgoStep[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -12469,7 +12547,7 @@ export const KosarajuViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 52/86: src/components/KruskalSimulator.tsx
+ФАЙЛ 53/87: src/components/KruskalSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1117 | РАЗМЕР: 56.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13592,7 +13670,7 @@ def prim(graph, start):
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 53/86: src/components/MnemonicCards.tsx
+ФАЙЛ 54/87: src/components/MnemonicCards.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 2.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13666,7 +13744,7 @@ export default function MnemonicCards() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 54/86: src/components/MobileToc.tsx
+ФАЙЛ 55/87: src/components/MobileToc.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 81 | РАЗМЕР: 3.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13753,7 +13831,7 @@ export const MobileToc: React.FC<Props> = ({ selectedChapterId, setSelectedChapt
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 55/86: src/components/Navbar.tsx
+ФАЙЛ 56/87: src/components/Navbar.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 115 | РАЗМЕР: 5.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13874,7 +13952,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, compile
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 56/86: src/components/PlanarityDemo.tsx
+ФАЙЛ 57/87: src/components/PlanarityDemo.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 129 | РАЗМЕР: 6.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14009,8 +14087,8 @@ export function PlanarityDemo() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 57/86: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 769 | РАЗМЕР: 36.4 KB
+ФАЙЛ 58/87: src/components/PythonCompiler.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 809 | РАЗМЕР: 38.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -14037,6 +14115,7 @@ import {
   X,
 } from "lucide-react";
 import { buildSyncTemplate, getPageSync } from "../data/vizSync";
+import { emitVizStep } from "../data/vizStepBus";
 import {
   baseVarName,
   buildDebugRunner,
@@ -14295,15 +14374,34 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
   /* ── Пошаговый отладчик ────────────────────────────────────────────── */
 
-  const stepBy = useCallback((delta: number) => {
-    setDebug((d) =>
-      d ? { ...d, idx: Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta)) } : d
-    );
-  }, []);
+  /** Редактор на шаблоне страницы: каждая строка трассы = шаг демонстрации слева. */
+  const lockedToViz = code === template;
 
-  const stepTo = useCallback((idx: number) => {
-    setDebug((d) => (d ? { ...d, idx: Math.max(0, Math.min(d.result.steps.length - 1, idx)) } : d));
-  }, []);
+  const goDebug = useCallback(
+    (nextIdx: number) => {
+      setDebug((d) => {
+        if (!d) return d;
+        const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
+        if (code === template) emitVizStep(chapterId, idx); // визуализация следует за шагом
+        return { ...d, idx };
+      });
+    },
+    [code, template, chapterId]
+  );
+
+  const stepBy = useCallback(
+    (delta: number) => {
+      setDebug((d) => {
+        if (!d) return d;
+        const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
+        if (code === template) emitVizStep(chapterId, idx);
+        return { ...d, idx };
+      });
+    },
+    [code, template, chapterId]
+  );
+
+  const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
 
   const stopDebug = useCallback(() => setDebug(null), []);
 
@@ -14330,6 +14428,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: code });
+      if (code === template) emitVizStep(chapterId, 0); // старт: демонстрация на первом шаге
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
       setRuntimeMessage(
@@ -14343,7 +14442,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     } finally {
       setRunning(false);
     }
-  }, [code, stdin, running, runtimeReady]);
+  }, [code, stdin, running, runtimeReady, template, chapterId]);
 
   // Стрелки ← → в режиме отладки листают ШАГИ (а не страницы), Esc — выход из отладчика.
   useEffect(() => {
@@ -14651,6 +14750,25 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
                   </span>
                 </Tooltip>
               )}
+              <Tooltip
+                content={
+                  lockedToViz
+                    ? "Код = шаблон страницы: каждая строка трассы соответствует шагу демонстрации слева — она шагает вместе с вами."
+                    : "Код изменён пользователем: демонстрация слева НЕ следует за шагами. Вернитесь к шаблону страницы (кнопка «Сбросить к шаблону» / ресинк), чтобы восстановить связь."
+                }
+              >
+                <span
+                  tabIndex={0}
+                  className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${
+                    lockedToViz
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                      : "border-slate-600 bg-slate-800 text-slate-400"
+                  }`}
+                >
+                  {lockedToViz ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
+                  {lockedToViz ? "демо следует" : "демо отвязано"}
+                </span>
+              </Tooltip>
               <Tooltip content="Выход из отладчика (Esc)">
                 <button type="button" onClick={stopDebug} className="ml-auto p-1 rounded-md text-rose-400 hover:text-white hover:bg-rose-500/30 transition-colors">
                   <Square className="w-3.5 h-3.5" />
@@ -14784,7 +14902,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 58/86: src/components/QueueViz.tsx
+ФАЙЛ 59/87: src/components/QueueViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 304 | РАЗМЕР: 16.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15094,7 +15212,7 @@ export const QueueViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 59/86: src/components/SalmonAutomatonWidget.tsx
+ФАЙЛ 60/87: src/components/SalmonAutomatonWidget.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 645 | РАЗМЕР: 27.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15745,7 +15863,7 @@ export const SalmonAutomatonWidget: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 60/86: src/components/SegmentTreeVisualizer.tsx
+ФАЙЛ 61/87: src/components/SegmentTreeVisualizer.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 531 | РАЗМЕР: 29.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16282,7 +16400,7 @@ export function SegmentTreeVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 61/86: src/components/Sidebar.tsx
+ФАЙЛ 62/87: src/components/Sidebar.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 111 | РАЗМЕР: 5.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16399,7 +16517,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 62/86: src/components/Simulator.tsx
+ФАЙЛ 63/87: src/components/Simulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 587 | РАЗМЕР: 29.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16992,7 +17110,7 @@ export const Simulator: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 63/86: src/components/SimulatorHub.tsx
+ФАЙЛ 64/87: src/components/SimulatorHub.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 104 | РАЗМЕР: 4.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -17102,7 +17220,7 @@ export const SimulatorHub: React.FC<Props> = ({ onOpen, onGoChapter }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 64/86: src/components/SplayRotationSandbox.tsx
+ФАЙЛ 65/87: src/components/SplayRotationSandbox.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 368 | РАЗМЕР: 13.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -17476,7 +17594,7 @@ export const SplayRotationSandbox: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 65/86: src/components/SplayRotationsViz.tsx
+ФАЙЛ 66/87: src/components/SplayRotationsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 506 | РАЗМЕР: 21.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -17988,7 +18106,7 @@ export const SplayRotationsViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 66/86: src/components/SplayTreeViz.tsx
+ФАЙЛ 67/87: src/components/SplayTreeViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 507 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18501,7 +18619,7 @@ export const SplayTreeViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 67/86: src/components/StackViz.tsx
+ФАЙЛ 68/87: src/components/StackViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 290 | РАЗМЕР: 14.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18797,11 +18915,12 @@ export const StackViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 68/86: src/components/StringAlgorithmsViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 322 | РАЗМЕР: 18.9 KB
+ФАЙЛ 69/87: src/components/StringAlgorithmsViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 324 | РАЗМЕР: 19.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from "lucide-react";
 
 function generateKmpSteps(pattern: string, text: string) {
@@ -18902,6 +19021,7 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
 
     const [autoPlay, setAutoPlay] = useState(false);
     const [stepIdx, setStepIdx] = useState(0);
+    useVizStepSync(stepIdx, setStepIdx, steps.length - 1);
     const timer = useRef<NodeJS.Timeout | null>(null);
 
     // Reset when inputs or mode change
@@ -19125,7 +19245,7 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 69/86: src/components/Tooltip.tsx
+ФАЙЛ 70/87: src/components/Tooltip.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 47 | РАЗМЕР: 1.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19178,11 +19298,12 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, side = "top
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 70/86: src/components/TopologicalSortViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 384 | РАЗМЕР: 12.9 KB
+ФАЙЛ 71/87: src/components/TopologicalSortViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 386 | РАЗМЕР: 13.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import {
   Play,
   Pause,
@@ -19231,6 +19352,7 @@ interface TStep {
 export const TopologicalSortViz: React.FC = () => {
   const [steps, setSteps] = useState<TStep[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -19568,7 +19690,7 @@ export const TopologicalSortViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 71/86: src/components/vizRegistry.tsx
+ФАЙЛ 72/87: src/components/vizRegistry.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 182 | РАЗМЕР: 8.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19756,7 +19878,7 @@ export const getViz = (id?: string): VizEntry | undefined => (id ? VIZ_REGISTRY[
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 72/86: src/components/WaterfallAnimationWidget.tsx
+ФАЙЛ 73/87: src/components/WaterfallAnimationWidget.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 762 | РАЗМЕР: 42.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20528,7 +20650,7 @@ export const WaterfallAnimationWidget: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 73/86: src/components/visualizers/PrefixSumViz.tsx
+ФАЙЛ 74/87: src/components/visualizers/PrefixSumViz.tsx
 КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 330 | РАЗМЕР: 13.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20864,7 +20986,7 @@ const Prefix2D: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 74/86: src/components/visualizers/SparseTableViz.tsx
+ФАЙЛ 75/87: src/components/visualizers/SparseTableViz.tsx
 КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 709 | РАЗМЕР: 43.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -21583,7 +21705,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 75/86: src/layout/footer.html
+ФАЙЛ 76/87: src/layout/footer.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 137 | РАЗМЕР: 7.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -21726,7 +21848,7 @@ const Viz2DQuery: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 76/86: src/layout/header.html
+ФАЙЛ 77/87: src/layout/header.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 1169 | РАЗМЕР: 89.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -22906,7 +23028,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 77/86: src/utils/cn.ts
+ФАЙЛ 78/87: src/utils/cn.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 7 | РАЗМЕР: 169 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -22919,7 +23041,7 @@ export function cn(...inputs: ClassValue[]) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 78/86: src/utils/exportHtml.ts
+ФАЙЛ 79/87: src/utils/exportHtml.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 228 | РАЗМЕР: 9.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23157,7 +23279,7 @@ ${bodies.join("\n")}`;
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 79/86: scripts/audit-coverage.mjs
+ФАЙЛ 80/87: scripts/audit-coverage.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 83 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23246,7 +23368,7 @@ if (process.argv.includes("--md")) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 80/86: scripts/audit-terms.mjs
+ФАЙЛ 81/87: scripts/audit-terms.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 68 | РАЗМЕР: 2.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23320,7 +23442,7 @@ console.log("Не встретились:", GLOSSARY.filter((g) => !used.has(g.i
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 81/86: scripts/export/build-pdf.mjs
+ФАЙЛ 82/87: scripts/export/build-pdf.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 64 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23390,7 +23512,7 @@ main().catch((err) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 82/86: scripts/export/collect-code.mjs
+ФАЙЛ 83/87: scripts/export/collect-code.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 196 | РАЗМЕР: 7.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23592,7 +23714,7 @@ main();
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 83/86: scripts/export/common.mjs
+ФАЙЛ 84/87: scripts/export/common.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 66 | РАЗМЕР: 2.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23664,7 +23786,7 @@ export function imageMagickCmd() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 84/86: scripts/export/render-pages.mjs
+ФАЙЛ 85/87: scripts/export/render-pages.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 117 | РАЗМЕР: 4.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23791,7 +23913,7 @@ main().catch((err) => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 85/86: .github/workflows/deploy-pages.yml
+ФАЙЛ 86/87: .github/workflows/deploy-pages.yml
 КАТЕГОРИЯ: CI / автоматизация | СТРОК: 83 | РАЗМЕР: 2.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23880,7 +24002,7 @@ jobs:
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 86/86: .github/workflows/rebuild-pdf.yml
+ФАЙЛ 87/87: .github/workflows/rebuild-pdf.yml
 КАТЕГОРИЯ: CI / автоматизация | СТРОК: 128 | РАЗМЕР: 4.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -24014,5 +24136,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 86 файлов • сгенерировано 11.09.2026, 16:34:45
+КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 16:58:03
 ==========================================================================================================================================
