@@ -105,6 +105,149 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
                 </div>
             </details>
         </div>
+
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-emerald-400 mb-4">Как построить: сортировка по чину, спуск по адресу</h3>
+            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-emerald-500/30">
+                <p class="text-lg text-emerald-300 italic mb-2">Строгое правило / Формула:</p>
+                <p class="text-xl font-mono text-white">Отсортируй пары по приоритету (Y) по убыванию. Вставляй ключи (X) спуском от корня: меньше — влево, больше — вправо, равные — влево. Приоритет решает, КТО наверху. Ключ решает, ГДЕ стоять.</p>
+            </div>
+
+            <p class="text-slate-300 text-sm mb-3">Демо-набор страницы (он же канонический пример для компилятора): <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-slate-200 border border-slate-800">3 5 · 3 6 · 1 -4 · 7 2 · 6 5 · 2 4 · 9 3 · 45 8</code>. После сортировки по второму числу (по убыванию): <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-slate-200 border border-slate-800">45 8 → 3 6 → 3 5 → 6 5 → 2 4 → 9 3 → 7 2 → 1 -4</code>.</p>
+
+            <p class="text-slate-300 text-sm mb-4">Три показательных спуска. Сравнивать надо с <b>текущей вершиной на пути от корня</b>, а не с соседом по отсортированному списку — проверяется весь путь:</p>
+            <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-800 text-sm text-slate-300 font-mono mb-6 space-y-1">
+                <p>· <b class="text-white">9</b>: 9&lt;45 → влево; 9&gt;3 → вправо; 9&gt;6 → вправо; пусто ⇒ правый ребёнок «6 5»</p>
+                <p>· <b class="text-white">7</b>: 7&lt;45 → влево; 7&gt;3 → вправо; 7&gt;6 → вправо; 7&lt;9 → влево ⇒ левый ребёнок «9 3»</p>
+                <p>· <b class="text-white">1</b>: 1&lt;45 → влево; 1&lt;3 → влево; 1&lt;3 → влево; 1&lt;2 → влево ⇒ левый ребёнок «2 4»</p>
+            </div>
+
+            <div class="img-placeholder">
+                <svg viewBox="0 0 680 400" class="w-full max-w-2xl mx-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Декартово дерево демо-набора: BST по ключу, куча по приоритету">
+                    <g stroke="#334155" stroke-width="2">
+                        <line x1="626" y1="40" x2="338" y2="120"/>
+                        <line x1="338" y1="120" x2="266" y2="200"/>
+                        <line x1="338" y1="120" x2="410" y2="200"/>
+                        <line x1="266" y1="200" x2="194" y2="280"/>
+                        <line x1="410" y1="200" x2="554" y2="280"/>
+                        <line x1="194" y1="280" x2="122" y2="360"/>
+                        <line x1="554" y1="280" x2="482" y2="360"/>
+                    </g>
+                    <g font-family="monospace" text-anchor="middle">
+                        <circle cx="626" cy="40" r="24" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+                        <text x="626" y="38" font-size="13" font-weight="bold" fill="#ffffff">45</text><text x="626" y="53" font-size="10" fill="#94a3b8">8</text>
+                        <circle cx="338" cy="120" r="24" fill="#0f172a" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3"/>
+                        <text x="338" y="118" font-size="13" font-weight="bold" fill="#ffffff">3</text><text x="338" y="133" font-size="10" fill="#94a3b8">6</text>
+                        <circle cx="266" cy="200" r="24" fill="#0f172a" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3"/>
+                        <text x="266" y="198" font-size="13" font-weight="bold" fill="#ffffff">3</text><text x="266" y="213" font-size="10" fill="#94a3b8">5</text>
+                        <circle cx="410" cy="200" r="24" fill="#0f172a" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3"/>
+                        <text x="410" y="198" font-size="13" font-weight="bold" fill="#ffffff">6</text><text x="410" y="213" font-size="10" fill="#94a3b8">5</text>
+                        <circle cx="194" cy="280" r="24" fill="#0f172a" stroke="#6366f1" stroke-width="2"/>
+                        <text x="194" y="278" font-size="13" font-weight="bold" fill="#ffffff">2</text><text x="194" y="293" font-size="10" fill="#94a3b8">4</text>
+                        <circle cx="554" cy="280" r="24" fill="#0f172a" stroke="#6366f1" stroke-width="2"/>
+                        <text x="554" y="278" font-size="13" font-weight="bold" fill="#ffffff">9</text><text x="554" y="293" font-size="10" fill="#94a3b8">3</text>
+                        <circle cx="122" cy="360" r="24" fill="#0f172a" stroke="#6366f1" stroke-width="2"/>
+                        <text x="122" y="358" font-size="13" font-weight="bold" fill="#ffffff">1</text><text x="122" y="373" font-size="10" fill="#94a3b8">-4</text>
+                        <circle cx="482" cy="360" r="24" fill="#0f172a" stroke="#6366f1" stroke-width="2"/>
+                        <text x="482" y="358" font-size="13" font-weight="bold" fill="#ffffff">7</text><text x="482" y="373" font-size="10" fill="#94a3b8">2</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="img-caption">Та же точечная карта, что в черновике (по горизонтали — порядок ключа, высота — приоритет), достроенная рёбрами. Без рёбер «где стоит» не отличить от «чей ребёнок» — на этом черновик и сломался. Пунктир — близнецы по ключу или по приоритету (см. граблю 2).</div>
+        </div>
+
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-rose-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-rose-400 mb-4">Пять граблей: как черновик этой страницы собрался неправильно</h3>
+            <p class="text-slate-300 text-sm mb-6">Каждая грабля — реальная ошибка из первого черновика. Аналогия-прививка под неё подобрана так, чтобы ошибка не собралась заново: ломать структуру становилось бы сразу стыдно.</p>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">🪖 Грабля 1 · оси перепутаны</div>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-rose-300">Ошибка:</b> «приоритет (ox) и дерево поиска (oy)» — а строить начали наоборот.</p>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-emerald-300">Аналогия-прививка:</b> в роте две вертикали власти: слева-направо — по фамилии (ключ), по вертикали — по званию (приоритет). Перепутать их — значит построить роту по званиям в шеренгу, а старшим назначить того, кто стоит левее: формально армия, фактически самосуд.</p>
+                    <p class="text-slate-400 text-xs"><b>Почему не соберётся:</b> второе число — всегда в сортировку, первое — всегда в спуск. Чин командует высотой, фамилия — стороной.</p>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">👯 Грабля 2 · близнецы</div>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-rose-300">Ошибка:</b> «дерево всегда одно и то же» — в наборе с повторами («3 6»/«3 5» и «3 5»/«6 5»).</p>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-emerald-300">Аналогия-прививка:</b> два генерала с одинаковым званием и одинаковым приказом — строй решает конфликт кулаками. Теорема единственности честна только для различных пар; с близнецами нужен устав.</p>
+                    <p class="text-slate-400 text-xs"><b>Почему не соберётся:</b> устав страницы: равный ключ — влево, равный приоритет — тот, кто раньше встал, родитель. «Всегда одинаково» — по договорённости, а не по волшебству.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">🚪 Грабля 3 · ребро не туда</div>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-rose-300">Ошибка:</b> «9 3» повешено правым ребёнком корня «45 8», хотя 9 &lt; 45.</p>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-emerald-300">Аналогия-прививка:</b> правое поддерево корня — закрытый клуб «строго больше 45». Пропуск с суммой 9 не пройдёт: сканер на двери читает всю ветку предков от корня, а не только родителя. Свойство BST наследуется каждым потомком.</p>
+                    <p class="text-slate-400 text-xs"><b>Почему не соберётся:</b> вставка — это спуск от корня со сравнением с текущей вершиной: меньше — влево, больше — вправо. Соседство по отсортированному списку позицию не определяет.</p>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">🅿️ Грабля 4 · арифметика слоёв</div>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-rose-300">Ошибка:</b> адресация «tree[k*2**layout ± 1]» — как будто дерево полное и лежит в массиве по слоям.</p>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-emerald-300">Аналогия-прививка:</b> формула «дети в 2k и 2k+1» — это парковка аэропорта: все ряды полные, место B12 вычисляется. Treap — парковка у бара в пятницу: рыхлая, с дырками. Чертить разметку по туману бесполезно — детей находят записками-указателями (left/right), а не арифметикой.</p>
+                    <p class="text-slate-400 text-xs"><b>Почему не соберётся:</b> массив по слоям — привилегия полных деревьев (куча, дерево отрезков). У treap из 8 узлов глубина 4 — слоёв просто нет.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8 xl:col-span-2">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">🧾 Грабля 5 · бухгалтерия сложности</div>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-rose-300">Ошибка:</b> «O(n) для сортировки, O(log n) для quicksort, итоговая O(n) (формально O(2n))» — три иллюзии в одной строке.</p>
+                    <p class="text-slate-300 text-sm mb-3"><b class="text-emerald-300">Аналогия-прививка:</b> «quicksort за O(log n)» — это разобрать весь гардероб, тронув одну полку. Сравнительная сортировка платит налог n·log n — это нижняя граница, а не организационная слабость; O(n) у сортировки бывает только когда ключи — маленькие целые (radix/counting), а не произвольные пары. А «формально 2n» — как «опоздал всего на два часа, формально на 120 минут»: константы в O-нотации не пишут.</p>
+                    <p class="text-slate-400 text-xs"><b>Почему не соберётся:</b> честная смета метода черновика: сортировка O(n log n) + n вставок по высоте ⇒ в среднем O(n log n), худший случай (приоритеты в цепочку) — O(n²). Линейная O(n) существует у стековой сборки — но после той же сортировки, которая налог всё равно заберёт.</p>
+                </div>
+            </div>
+
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🕵️ Музей: фрагменты сломанного решения (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
+a.binsec(a.x)                     # «сортировка бинарным поиском» — binsect в чистом виде
+tree[k*2**layout + 1] = a.(x+1)   # адресация по слоям на неполном дереве
+if a.(x+1) &gt; a.x: ...             # сравнение с соседом по списку вместо спуска от корня
+O(n) + O(log n) = O(n)            # «формально 2n»: налог n·log n отменён указом</pre>
+                    <p>Шаг «a.binsec(a.x)» — фирменный: слово <b>binsect</b> ведёт на всплывающую подсказку, где объяснено, почему бинарный поиск ничего не сортирует и quicksort не заменяет. Каждый экспонат музея разобран в граблях 1–5 выше.</p>
+                </div>
+            </details>
+
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🔍 Честный код и сложность (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
+class Node:
+    def __init__(self, key, pri):
+        self.key, self.pri = key, pri
+        self.left = self.right = None
+
+def insert(root, key, pri):
+    if root is None:
+        return Node(key, pri)
+    if key &lt;= root.key:            # равные — влево (устав страницы)
+        root.left = insert(root.left, key, pri)
+    else:
+        root.right = insert(root.right, key, pri)
+    return root
+
+# пары уже отсортированы по приоритету по убыванию —
+# куча соблюдается сама, повороты не нужны
+root = None
+for key, pri in pairs_by_pri_desc:
+    root = insert(root, key, pri)</pre>
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
+# То же дерево за O(n) ПОСЛЕ сортировки ПО КЛЮЧУ: правая ветка — стек.
+# Две совершенно разные сборки дают одно дерево — вот что значит «всегда одинаковый».
+spine = []
+for key, pri in pairs_by_key_asc:
+    node, last = Node(key, pri), None
+    while spine and spine[-1].pri &lt; pri:
+        last = spine.pop()
+    node.left = last
+    if spine:
+        spine[-1].right = node
+    spine.append(node)
+root = spine[0]</pre>
+                    <p><b class="text-white">Сложность:</b> сортировка O(n log n) + вставки O(n·h). У случайных приоритетов высота h ≈ log n в среднем ⇒ <b class="text-white">O(n log n) ожидаемо</b>, худший случай (приоритеты вытянулись в цепочку) — O(n²). Стековой сборке после сортировки по ключу хватает O(n), но сортировка остаётся O(n log n). Заметь: оба алгоритма из этого спойлера построили одно и то же дерево на схеме выше.</p>
+                </div>
+            </details>
+        </div>
     </div>
 </section>`,
   },
