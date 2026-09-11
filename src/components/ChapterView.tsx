@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles } from "lucide-react";
+import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles, Terminal } from "lucide-react";
 import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
@@ -15,11 +15,13 @@ interface Props {
   total: number;
   onGo: (id: string) => void;
   onOpenSimulator: (vizId: string) => void;
+  /** Перейти во вкладку компилятора — там уже подставлены переменные этой демонстрации. */
+  onOpenCompiler?: () => void;
 }
 
 const isTouch = () => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
 
-export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator }) => {
+export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator, onOpenCompiler }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [anchor, setAnchor] = useState<HintAnchor | null>(null);
   const hideTimer = useRef<number | null>(null);
@@ -147,12 +149,23 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 Демонстрация: {viz.title}
               </h3>
-              <button
-                onClick={() => onOpenSimulator(chapter.id)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
-              >
-                <Maximize2 className="w-3.5 h-3.5" /> Развернуть
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenSimulator(chapter.id)}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" /> Развернуть
+                </button>
+                {onOpenCompiler && (
+                  <button
+                    onClick={onOpenCompiler}
+                    title="Открыть Python-компилятор: он синхронизирован с этой демонстрацией — покажет её переменные (i, j, k, n, m…) в комментарии"
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 hover:text-white hover:border-emerald-500 transition-colors"
+                  >
+                    <Terminal className="w-3.5 h-3.5" /> Переменные в компиляторе
+                  </button>
+                )}
+              </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
             <viz.Component />

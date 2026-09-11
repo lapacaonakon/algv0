@@ -7,9 +7,10 @@ import { ChapterView } from "./components/ChapterView";
 import { ChapterNav } from "./components/ChapterNav";
 import { SimulatorModal } from "./components/hints/SimulatorModal";
 import { SimulatorHub } from "./components/SimulatorHub";
+import { PythonCompiler } from "./components/PythonCompiler";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
+  const [activeTab, setActiveTab] = useState<"guide" | "simulator" | "compiler">("guide");
   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
   const [modalVizId, setModalVizId] = useState<string | null>(null);
 
@@ -91,11 +92,12 @@ export default function App() {
                 total={chapters.length}
                 onGo={goTo}
                 onOpenSimulator={setModalVizId}
+                onOpenCompiler={() => setActiveTab("compiler")}
               />
             </main>
           </div>
         </>
-      ) : (
+      ) : activeTab === "simulator" ? (
         <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
           <SimulatorHub
             onOpen={setModalVizId}
@@ -105,6 +107,12 @@ export default function App() {
             }}
           />
         </main>
+      ) : (
+        <PythonCompiler
+          chapterId={activeChapter.id}
+          chapterTitle={activeChapter.title}
+          onOpenGuide={() => setActiveTab("guide")}
+        />
       )}
 
       <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />

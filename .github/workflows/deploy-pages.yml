@@ -1,0 +1,82 @@
+name: Deploy app to GitHub Pages
+
+# ДВЕ настройки репозитория нужно сделать один раз ВРУЧНУЮ
+# (у бота-интеграции нет admin-прав на них — API отвечает 403):
+#
+#   1. Settings → Pages → Build and deployment → Source = «GitHub Actions».
+#      Если там «Deploy from a branch» (legacy) — шаг Deploy падает.
+#   2. Settings → Environments → github-pages → Deployment branches and tags:
+#      добавьте паттерн «arena/**» и ветку «main» (или выберите «No restriction»),
+#      иначе деплой из новой рабочей ветки отклоняется защитой окружения.
+
+on:
+  push:
+    branches:
+      - main
+      # Позволяет проверить Pages прямо из рабочей ветки до слияния.
+      - "arena/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build for the repository subpath
+        env:
+          VITE_BASE: /algv0/
+        run: npm run build
+
+      - name: Make GitHub Pages fallback
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Ранняя и понятная ошибка вместо невнятного «Failed to deploy» от deploy-pages,
+      # когда в репозитории Pages не переключён на сборку через GitHub Actions.
+      - name: Preflight — Pages собирается через GitHub Actions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bt=$(gh api "repos/${{ github.repository }}/pages" --jq .build_type 2>/dev/null || echo "unknown")
+          echo "Pages build_type: ${bt}"
+          if [ "${bt}" != "workflow" ]; then
+            echo "::error title=Pages не настроен::Settings → Pages → Source сейчас «${bt}». Переключите на «GitHub Actions» и перезапустите этот запуск. См. комментарий в начале deploy-pages.yml."
+            exit 1
+          fi
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
