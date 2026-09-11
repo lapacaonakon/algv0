@@ -43,6 +43,9 @@ interface PythonCompilerProps {
   /** Страница, с которой синхронизируется редактор. */
   chapterId: string;
   chapterTitle: string;
+  /** Ширина панели на десктопе (px) — управляется родителем, растягивается ручкой слева. */
+  width?: number;
+  onWidthChange?: (w: number) => void;
   /** Перейти к странице пособия (посмотреть визуализацию). */
   onOpenGuide: () => void;
   /** Скрыть панель. */
@@ -173,7 +176,7 @@ const SNIPPETS: { group: string; items: Snippet[] }[] = [
 /** Переживает скрытие панели: код пользователя не теряется. */
 let savedEditor: { code: string; template: string; chapterId: string } | null = null;
 
-export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }: PythonCompilerProps) {
+export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, onOpenGuide, onClose }: PythonCompilerProps) {
   /** Активная вкладка демонстрации страницы (у sparse-table: 1d / 2d-build / 2d-query). */
   const [demoId, setDemoId] = useState<string | null>(null);
   const sync = useMemo(() => getPageSync(chapterId, demoId), [chapterId, demoId]);
@@ -432,8 +435,17 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
   }, [curDebugLine]);
 
   // производные данные шага: что изменилось, в каком порядке показать переменные
-  const debugChanged = curDebug?.step ? changedVars(curDebug.prev?.locals, curDebug.step.locals) : {};
-  const debugOrdered = curDebug?.step ? orderVars(curDebug.step.locals, syncVarBases) : [];
+  // Строка, которую назначает текущий шаг, подсвечивается вместе с её РЕЗУЛЬТАТОМ:
+  // локали берём со следующего шага трассы (для последнего — финальные, записанные
+  // трейсером на возврате из фрейма). Значит на строке `i, j = 0, 0` видны именно 0, 0.
+  const shownLocals = useMemo(() => {
+    if (!debug || !curDebug?.step) return {};
+    const next = debug.result.steps[debug.idx + 1];
+    if (next) return next.locals ?? {};
+    return debug.result.finalLocals ?? curDebug.step.locals ?? {};
+  }, [debug, curDebug]);
+  const debugChanged = curDebug?.step ? changedVars(curDebug.step.locals, shownLocals) : {};
+  const debugOrdered = curDebug?.step ? orderVars(shownLocals, syncVarBases) : [];
   /** Сколько помеченных строк кода уже выполнено к текущему шагу: 0–1 = инициализация, дальше — шаги демо. */
   const curHits =
     debug && curDebug?.step && markedContents
@@ -463,7 +475,36 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     <aside
       aria-label="Python-компилятор"
       className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-16 lg:bottom-0 lg:h-auto lg:w-[560px] xl:w-[620px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
+      style={width && typeof window !== "undefined" && window.innerWidth >= 1024 ? { width } : undefined}
     >
+      {/* Ручка растягивания панели за левый край (только десктоп) */}
+      {onWidthChange && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Потяните, чтобы изменить ширину панели"
+          title="Потяните, чтобы изменить ширину панели"
+          className="hidden lg:block absolute top-0 bottom-0 -left-1.5 w-3 cursor-col-resize z-50 group"
+          onPointerDown={(e) => {
+            const el = e.currentTarget;
+            el.setPointerCapture(e.pointerId);
+            const startX = e.clientX;
+            const startW = width ?? 560;
+            const onMove = (ev: PointerEvent) => {
+              const next = Math.round(startW + (startX - ev.clientX));
+              onWidthChange(Math.max(380, Math.min(next, Math.round(window.innerWidth * 0.9))));
+            };
+            const onUp = () => {
+              el.removeEventListener("pointermove", onMove as EventListener);
+              el.removeEventListener("pointerup", onUp as EventListener);
+            };
+            el.addEventListener("pointermove", onMove as EventListener);
+            el.addEventListener("pointerup", onUp as EventListener);
+          }}
+        >
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-14 w-1 rounded-full bg-slate-700 group-hover:bg-indigo-500 transition-colors" />
+        </div>
+      )}
       {/* ── Заголовок панели ─────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-2 border-b border-slate-800 bg-slate-900">
         <span className={`w-2 h-2 rounded-full shrink-0 ${desyncedFrom !== null ? "bg-amber-400" : "bg-emerald-400"}`} />
@@ -811,7 +852,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
               <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
                 <Variable className="w-3 h-3 text-indigo-400" />
                 Переменные на этом шаге
-                <span className="normal-case tracking-normal text-slate-600">· янтарные — изменились на этом шаге</span>
+                <span className="normal-case tracking-normal text-slate-600">· янтарные — присваивает выделенная строка</span>
               </div>
               {debug.result.error && (
                 <pre className="mt-1 whitespace-pre-wrap break-words text-[11px] leading-snug text-rose-300">{debug.result.error}</pre>

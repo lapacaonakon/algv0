@@ -15,6 +15,8 @@ export interface DebugStep {
 
 export interface DebugResult {
   steps: DebugStep[];
+  /** Локали в момент возврата из модуля — «результат» последнего шага трассы. */
+  finalLocals?: Record<string, string>;
   /** Текст последней необработанной ошибки (или пустая строка). */
   error: string;
   /** true, если уперлись в лимит шагов. */
@@ -35,6 +37,7 @@ export function buildDebugRunner(userSrc: string): string {
 
 __src = ${srcLiteral}
 __steps = []
+__final = {}
 __CAP = ${DEBUG_STEP_CAP}
 
 def __safe(v):
@@ -60,6 +63,14 @@ def __tracer(frame, event, arg):
             __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc})
         if len(__steps) >= __CAP:
             __sys.settrace(None)
+    # Финальные локали программы (после последней строки новых событий не будет):
+    # кладём отдельно в __final — UI показывает их как результат ПОСЛЕДНЕГО шага.
+    if event == "return" and frame.f_code.co_filename == "<user-code>" and frame.f_code.co_name == "<module>":
+        loc = {}
+        for k, v in frame.f_locals.items():
+            if not k.startswith("__") and type(v).__name__ != "module":
+                loc[k] = __safe(v)
+        __final.update(loc)
     return __tracer
 
 __err = ""
@@ -74,6 +85,7 @@ finally:
 
 __OUT = __json.dumps({
     "steps": __steps,
+    "finalLocals": __final,
     "error": __err,
     "truncated": len(__steps) >= __CAP,
 })

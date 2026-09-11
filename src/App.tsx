@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { chapters } from "./data/content";
 import { Navbar } from "./components/Navbar";
 import { Sidebar } from "./components/Sidebar";
@@ -15,6 +16,39 @@ export default function App() {
   const [modalVizId, setModalVizId] = useState<string | null>(null);
   /** Боковая (на мобильном — нижняя) панель компилятора поверх текущей страницы. */
   const [compilerOpen, setCompilerOpen] = useState(false);
+  /** Ширина панели компилятора (deсктоп), растягивается ручкой — запоминаем. */
+  const [compilerWidth, setCompilerWidth] = useState<number>(() => {
+    const cached = typeof window !== "undefined" ? Number(window.localStorage.getItem("compilerWidth")) : NaN;
+    return Number.isFinite(cached) && cached >= 380 ? cached : 560;
+  });
+  useEffect(() => {
+    window.localStorage.setItem("compilerWidth", String(compilerWidth));
+  }, [compilerWidth]);
+  /** Содержание свернуто (по умолчанию сворачиваем само, если места мало). */
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    const cached = typeof window !== "undefined" ? window.localStorage.getItem("sidebarCollapsed") : null;
+    if (cached !== null) return cached === "1";
+    return typeof window !== "undefined" && window.innerWidth < 1440;
+  });
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((c) => {
+      window.localStorage.setItem("sidebarCollapsed", c ? "0" : "1");
+      return !c;
+    });
+  }, []);
+
+  // Десктопный отступ контента = ширине панели компилятора; следим и за ресайзом окна.
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const apply = () => {
+      const el = contentRef.current;
+      if (!el) return;
+      el.style.paddingRight = compilerOpen && window.innerWidth >= 1024 ? `${compilerWidth}px` : "";
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, [compilerOpen, compilerWidth]);
 
   const index = Math.max(
     0,
@@ -64,7 +98,7 @@ export default function App() {
       />
 
       {/* При открытой панели контент сдвигается: снизу отступ на мобильном, справа — на десктопе */}
-      <div className={compilerOpen ? "max-lg:pb-[58dvh] lg:pr-[560px] xl:pr-[620px]" : ""}>
+      <div ref={contentRef} className={compilerOpen ? "max-lg:pb-[58dvh]" : ""}>
         {activeTab === "guide" ? (
           <>
             <MobileToc
@@ -76,10 +110,23 @@ export default function App() {
             />
 
             <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
-              {/* Сайдбар только на десктопе — на мобильном он в шторке */}
-              <div className="hidden lg:block lg:w-80 shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
-                <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
+              {/* Сайдбар только на десктопе — на мобильном он в шторке; сворачивается, когда тесно */}
+              <div
+                className={`hidden lg:block shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] relative transition-all duration-200 ${sidebarCollapsed ? "lg:w-0 overflow-hidden border-r-0" : "lg:w-80"}`}
+              >
+                {!sidebarCollapsed && <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />}
               </div>
+              {/* Вкладка-переключатель содержания у левого края */}
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                className="hidden lg:flex items-center gap-1 sticky top-20 self-start -ml-0 mr-2 z-30 shrink-0 rounded-r-lg border border-l-0 border-slate-700 bg-slate-900/90 px-1 py-3 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                aria-label={sidebarCollapsed ? "Развернуть содержание" : "Свернуть содержание"}
+                title={sidebarCollapsed ? "Развернуть содержание" : "Свернуть содержание"}
+              >
+                {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                <span className="text-[10px] font-bold [writing-mode:vertical-rl] rotate-180">содержание</span>
+              </button>
 
               <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
                 {/* Шапка главы с быстрыми переходами */}
@@ -139,6 +186,8 @@ export default function App() {
         <PythonCompiler
           chapterId={activeChapter.id}
           chapterTitle={activeChapter.title}
+          width={compilerWidth}
+          onWidthChange={setCompilerWidth}
           onOpenGuide={() => setActiveTab("guide")}
           onClose={() => setCompilerOpen(false)}
         />

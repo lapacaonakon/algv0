@@ -105,12 +105,14 @@ print("zig-zag: ", x, "↗", g)`,
     code: `a = [2, 3, 5, 62, 3, 21, 1, 4]
 n, LOG = 8, 4
 i, j = 0, 0
-st = [[v] + [None] * (LOG - 1) for v in a]  # пустые клетки = None, нулевой столбец = исходник
+st = []                       # сюда складываем строки таблицы: пустые клетки — None
+for row in a:
+    st.append([row] + [None] * (LOG - 1))
 
 for j in range(1, LOG):
     for i in range(n - (1 << j) + 1):
         st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1])`,
-    stepCodeLines: [4, 8],
+    stepCodeLines: [4, 10],
     variables: [
       { name: "n", role: "длина массива / сторона квадратной матрицы", range: "n = 8 на демо" },
       { name: "k", role: "уровень таблицы: ячейка хранит ответ на блоке длины 2^k", range: "0 … log₂ n" },
@@ -282,7 +284,9 @@ print(order[::-1])          # разворот — ответ`,
     stepDriven: true,
     stepNote: "Шаг = вершина из order (в обратном порядке) запускает DFS по транспонированному графу и красит свою SCC.",
     code: `adj = {0: [1], 1: [2], 2: [0, 3], 3: [], 4: [3]}
-adjT = {v: [] for v in adj}
+adjT = {}
+for v in adj:
+    adjT[v] = []
 for v in adj:
     for to in adj[v]:
         adjT[to].append(v)  # транспонирование
@@ -349,7 +353,10 @@ for u, v in edges:          # степени вершин
     deg[u] = deg.get(u, 0) + 1
     deg[v] = deg.get(v, 0) + 1
 
-odd = [v for v in deg if deg[v] % 2]
+odd = []
+for v in deg:
+    if deg[v] % 2:
+        odd.append(v)
 print(deg, "нечётных:", len(odd))
 # 0 → цикл · 2 → путь · иначе — нельзя`,
     variables: [
@@ -476,7 +483,9 @@ print(f"w′({u}→{v}) = {w_new}")
     code: `edges = [(3, "B", "C"), (1, "A", "B"), (2, "A", "C")]
 edges.sort()                # по весу
 
-parent = {v: v for v in "ABC"}   # DSU
+parent = {}                   # DSU: корень вершины
+for v in "ABC":
+    parent[v] = v
 def find(x):
     while parent[x] != x:
         x = parent[x]
@@ -517,7 +526,9 @@ print(f"берём {v} за {w} (из {parent})")`,
   "mst-boruvka": {
     vizTitle: "Борувка",
     stepNote: "Шаг = каждая компонента одновременно выбирает своё самое дешёвое исходящее ребро.",
-    code: `comp = {v: v for v in "ABC"}   # корень компоненты
+    code: `comp = {}                     # корень компоненты
+for v in "ABC":
+    comp[v] = v
 cheapest = {}               # comp → самое дешёвое ребро наружу
 
 u, v, w = "A", "B", 1       # шаг: ребро-кандидат
@@ -653,7 +664,9 @@ print(f"прямоугольник {h}×{w} кроется блоками уро
     code: `A = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 1, 2, 3], [4, 5, 6, 7]]
 n, m = 4, 4
 i, j = 0, 0
-S = [[0] + [None] * m for _ in range(n + 1)]  # рамка = 0, рабочие клетки пустые
+S = []                        # строки таблицы: рамка из нулей, рабочие клетки пустые (None)
+for rr in range(n + 1):
+    S.append([0] + [None] * m)
 S[0] = [0] * (m + 1)
 for i in range(1, n + 1):
     for j in range(1, m + 1):
