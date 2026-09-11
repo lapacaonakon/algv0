@@ -47,20 +47,66 @@ export function useVizStepSync(currentStep: number, goToStep: (n: number) => voi
 }
 
 /**
- * Перевод индекса шага трассы (каждая исполненная строка) в номер шага
- * визуализации. Если у страницы задан stepLines — номер шага = сколько раз
- * к этому моменту выполнились помеченные строки минус один (каждое
- * срабатывание помеченной строки = очередной шаг демонстрации).
- * Без stepLines — старое приближение «шаг трассы = шаг визуализации».
+ * Перевод индекса шага трассы в номер шага визуализации ПО СОДЕРЖИМУ строк.
+ * Номер шага = сколько раз к этому моменту выполнилась «помеченная» строка
+ * (`markedContents`, нормализовано trim) минус один — каждое срабатывание
+ * помеченной строки = очередной шаг демонстрации. Работает и для эталонного
+ * шаблона, и для кода, написанного руками: совпадающие по смыслу строки двигают
+ * демонстрацию, остальные — нет. Пустое множество — грубое приближение (idx).
  */
 export function vizStepForTrace(
   steps: ReadonlyArray<{ line: number }>,
   idx: number,
-  stepLines?: readonly number[]
+  srcLines: readonly string[],
+  markedContents?: ReadonlySet<string>
 ): number {
-  if (!stepLines || stepLines.length === 0) return idx;
-  const set = new Set(stepLines);
+  if (!markedContents || markedContents.size === 0) return idx;
   let hits = 0;
-  for (let t = 0; t <= idx && t < steps.length; t++) if (set.has(steps[t].line)) hits++;
+  for (let t = 0; t <= idx && t < steps.length; t++) {
+    const content = srcLines[steps[t].line - 1];
+    if (content !== undefined && markedContents.has(content.trim())) hits++;
+  }
   return Math.max(0, hits - 1);
+}
+
+/** Сколько шаговых («помеченных») строк успело выполниться к индексу трассы. */
+export function vizHitsAtTrace(
+  steps: ReadonlyArray<{ line: number }>,
+  idx: number,
+  srcLines: readonly string[],
+  markedContents: ReadonlySet<string>
+): number {
+  let hits = 0;
+  for (let t = 0; t <= idx && t < steps.length; t++) {
+    const content = srcLines[steps[t].line - 1];
+    if (content !== undefined && markedContents.has(content.trim())) hits++;
+  }
+  return hits;
+}
+
+/* ── Выбор демонстрации внутри страницы (вкладки 1D / 2D build / 2D query) ─ */
+
+const DEMO_CHANNEL = "algo:viz-demo";
+
+export interface VizDemoEventDetail {
+  chapterId: string;
+  /** base-запись страницы — demoId пустой; подписанные демо: "2d-build" и т.п. */
+  demoId: string;
+}
+
+/** Демонстрация сообщает, какая её вкладка сейчас открыта (код компилятора следует за ней). */
+export function emitVizDemo(chapterId: string, demoId: string) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new window.CustomEvent<VizDemoEventDetail>(DEMO_CHANNEL, { detail: { chapterId, demoId } }));
+}
+
+/** Подписка: панель компилятора следует за активной вкладкой демонстрации страницы. */
+export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
+  if (typeof window === "undefined") return () => {};
+  const handler = (e: Event) => {
+    const detail = (e as CustomEvent<VizDemoEventDetail>).detail;
+    if (detail && detail.chapterId === chapterId) cb(detail.demoId);
+  };
+  window.addEventListener(DEMO_CHANNEL, handler);
+  return () => window.removeEventListener(DEMO_CHANNEL, handler);
 }

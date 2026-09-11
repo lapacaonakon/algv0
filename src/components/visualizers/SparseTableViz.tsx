@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useVizStepSync } from "../../data/vizStepBus";
+import React, { useContext, useEffect, useState } from "react";
+import { emitVizDemo, useVizStepSync, VizChapterContext } from "../../data/vizStepBus";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
@@ -72,6 +72,12 @@ for (let kx = 0; kx <= 3; kx++) {
 
 export const SparseTableViz: React.FC = () => {
   const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("1d");
+  const chapterId = useContext(VizChapterContext);
+
+  // Каждая вкладка = своё демо с собственным скелетом: компилятор переключает код вслед за вкладкой.
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, tab === "2d_build" ? "2d-build" : tab === "2d_query" ? "2d-query" : "");
+  }, [chapterId, tab]);
 
   return (
     <div className="w-full bg-slate-950 p-3 sm:p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl font-sans">
@@ -369,6 +375,13 @@ const Viz2DBuild: React.FC = () => {
   const [k, setK] = useState(1);
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null);
   const [locked, setLocked] = useState<{ r: number; c: number } | null>(null);
+
+  // Отладчик переключает уровень k: строка с A=… = k0 (оригинал), каждая итерация for — следующий k.
+  useVizStepSync(k, setK, 3);
+  useEffect(() => {
+    setHover(null);
+    setLocked(null);
+  }, [k]);
 
   const L = 1 << k;
   const activeCell = locked || hover;

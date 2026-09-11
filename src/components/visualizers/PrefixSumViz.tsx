@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useVizStepSync } from "../../data/vizStepBus";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { emitVizDemo, useVizStepSync, VizChapterContext } from "../../data/vizStepBus";
 
 /**
  * Префиксные суммы: 1D и 2D.
@@ -26,6 +26,13 @@ const cellBase =
 
 export const PrefixSumViz: React.FC = () => {
   const [mode, setMode] = useState<"1d" | "2d">("1d");
+  const chapterId = useContext(VizChapterContext);
+
+  // Вкладка 2D = своё демо (свой скелет): компилятор подхватывает переключение.
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, mode === "2d" ? "2d" : "");
+  }, [chapterId, mode]);
+
   return (
     <div className="w-full bg-slate-950 rounded-2xl border border-slate-800 p-3 sm:p-5 shadow-xl">
       <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">

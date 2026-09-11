@@ -599,11 +599,73 @@ print(f"δ({state!r}, {c!r}) → {nxt!r}")`,
   "alg-map": {
     variables: [],
   },
+
+  /* ── Дополнительные демонстрации внутри страниц (вкладки) ─────────────── */
+
+  "sparse-table#2d-build": {
+    vizTitle: "Разреженная таблица 2D: построение",
+    stepNote: "Шаг = новый уровень k: блоки 2^k×2^k дописываются из четырёх квадрантов предыдущего уровня.",
+    stepDriven: true,
+    code: `A = [[45, 12, 88, 34, 11, 76, 23, 90], [67, 19, 44, 55, 33, 21, 65, 87], [14, 51, 99, 13, 22, 64, 43, 76], [89, 32, 54, 71, 15, 88, 29, 60], [25, 41, 16, 92, 9, 17, 56, 31], [59, 18, 77, 24, 61, 82, 35, 12], [73, 8, 38, 85, 47, 95, 19, 58], [39, 81, 62, 28, 51, 42, 85, 14]]
+st2 = {}
+for r in range(8):
+    for c in range(8):
+        st2[(r, c, 0, 0)] = A[r][c]
+for k in range(1, 4):
+    print(f"уровень k={k}: блоки {1 << k}x{1 << k}")
+    size = 9 - (1 << k)
+    half = 1 << (k - 1)
+    for r in range(size):
+        for c in range(size):
+            st2[(r, c, k, k)] = min(st2[(r, c, k - 1, k - 1)], st2[(r + half, c, k - 1, k - 1)], st2[(r, c + half, k - 1, k - 1)], st2[(r + half, c + half, k - 1, k - 1)])`,
+    stepCodeLines: [1, 7],
+    variables: [
+      { name: "r, c", role: "левый верхний угол блока, для которого считаем минимум", range: "0 … 8−2^k" },
+      { name: "k", role: "уровень: блоки 2^k × 2^k (шаг демонстрации)", range: "0 … 3" },
+      { name: "st2[(r,c,k,k)]", role: "минимум квадратного блока — склеен из четырёх квадрантов уровня k−1", range: "4 ключа → значение" },
+    ],
+  },
+  "sparse-table#2d-query": {
+    vizTitle: "Разреженная таблица 2D: запрос",
+    stepNote: "Демонстрация кликабельна вручную: выберите прямоугольник и смотрите разложение на блоки.",
+    code: `# st2[(r, c, kx, ky)] из вкладки «построение» — min блока 2^kx × 2^ky
+r1, c1, r2, c2 = 1, 1, 6, 6
+
+h, w = r2 - r1 + 1, c2 - c1 + 1
+kx, ky = h.bit_length() - 1, w.bit_length() - 1
+print(f"прямоугольник {h}×{w} кроется блоками уровня ({kx},{ky})")`,
+    variables: [
+      { name: "r1, c1, r2, c2", role: "углы запрашиваемого прямоугольника", range: "индексы матрицы" },
+      { name: "kx, ky", role: "уровень самого крупного блока, который влезает в высоту/ширину", range: "log₂ размеров" },
+    ],
+  },
+  "prefix-sums-2d#2d": {
+    vizTitle: "Префиксные суммы 2D (прямоугольники)",
+    stepNote: "Демонстрация кликабельна вручную: наведите на ячейку — подсветятся её четыре угла формулы.",
+    code: `A = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 1, 2, 3], [4, 5, 6, 7]]
+n, m = 4, 4
+
+S = [[0] * (m + 1) for _ in range(n + 1)]
+for i in range(1, n + 1):
+    for j in range(1, m + 1):
+        S[i][j] = A[i - 1][j - 1] + S[i - 1][j] + S[i][j - 1] - S[i - 1][j - 1]
+
+r1, c1, r2, c2 = 1, 1, 2, 2
+ans = S[r2 + 1][c2 + 1] - S[r1][c2 + 1] - S[r2 + 1][c1] + S[r1][c1]
+print("итого:", ans)`,
+    variables: [
+      { name: "i, j", role: "текущая ячейка таблицы S (1-индексация)", range: "1 … n, 1 … m" },
+      { name: "S[i][j]", role: "сумма прямоугольника (0,0)–(i−1,j−1) — по двум соседям минус перекрытие", range: "пересчёт на каждом шаге" },
+      { name: "r1, c1, r2, c2", role: "углы запроса; ответ = четыре угла формулы включений-исключений", range: "индексы матрицы" },
+    ],
+  },
 };
 
 /** Безопасный доступ: страница без записи получает пустую синхронизацию. */
-export const getPageSync = (chapterId?: string | null): PageSync =>
-  (chapterId && PAGE_SYNC[chapterId]) || { variables: [] };
+export const getPageSync = (chapterId?: string | null, demoId?: string | null): PageSync =>
+  (demoId && chapterId && PAGE_SYNC[`${chapterId}#${demoId}`]) ||
+  (chapterId && PAGE_SYNC[chapterId]) ||
+  { variables: [] };
 
 /**
  * Стартовое содержимое редактора для страницы.
@@ -613,8 +675,8 @@ export const getPageSync = (chapterId?: string | null): PageSync =>
  * (i = 0, j = 0…; структуры вида «4 ключа → значение» для 2D).
  * Никаких словесных описаний внутри — только код.
  */
-export function buildSyncTemplate(chapterId: string, chapterTitle: string): string {
-  const sync = getPageSync(chapterId);
+export function buildSyncTemplate(chapterId: string, chapterTitle: string, demoId?: string | null): string {
+  const sync = getPageSync(chapterId, demoId);
 
   const head = sync.vizTitle
     ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle} · строки ниже = шаги подсветки\n`
@@ -622,4 +684,38 @@ export function buildSyncTemplate(chapterId: string, chapterTitle: string): stri
 
   if (!sync.code) return head;
   return `${head}\n${sync.code}\n`;
+}
+
+/**
+ * Инициализация скелета: только объявление демо-данных, без тела алгоритма
+ * (без for/while/def/if/print). Именно это показывается в редакторе по
+ * умолчанию — дальше пользователь пишет свой вариант, а полный эталон
+ * подсматривает через кнопку-«глаз».
+ */
+function extractInit(code: string): string {
+  const keep: string[] = [];
+  for (const line of code.split("\n")) {
+    const t = line.trim();
+    if (/^(for|while|def|class|if\s|elif\s|else|try|except|print\()/.test(t)) break;
+    keep.push(line);
+  }
+  // убрать пустые строки с конца
+  while (keep.length > 0 && keep[keep.length - 1].trim() === "") keep.pop();
+  return keep.join("\n");
+}
+
+/**
+ * Дефолтное содержимое редактора: шапка + ТОЛЬКО инициализированные
+ * переменные демо (без всего кода алгоритма).
+ */
+export function buildInitTemplate(chapterId: string, chapterTitle: string, demoId?: string | null): string {
+  const sync = getPageSync(chapterId, demoId);
+
+  const head = sync.vizTitle
+    ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle}\n# ниже — инициализация данных демо; допишите свой вариант, или подсмотрите эталон кнопкой-«глазом»\n`
+    : `# «${chapterTitle}»\n# демо на странице нет — свободный режим (стрелки ← → листают страницы)\n`;
+
+  if (!sync.code) return head;
+  const init = extractInit(sync.code);
+  return `${head}\n${init}\n`;
 }
