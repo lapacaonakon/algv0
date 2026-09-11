@@ -9,7 +9,7 @@ type Action = "step" | "play" | "pause" | "reset" | "prev";
 export function useVizControl(
   chapterId: string,
   handlers: {
-    onStep?: () => void;
+    onStep?: (line?: number) => void;
     onPlay?: () => void;
     onPause?: () => void;
     onReset?: () => void;
@@ -22,7 +22,7 @@ export function useVizControl(
       if (!d) return;
       if (d.chapterId && d.chapterId !== chapterId) return;
       const action: Action = d.action;
-      if (action === "step") handlers.onStep?.();
+      if (action === "step") handlers.onStep?.(d.line);
       else if (action === "play") handlers.onPlay?.();
       else if (action === "pause") handlers.onPause?.();
       else if (action === "reset") handlers.onReset?.();

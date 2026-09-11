@@ -166,9 +166,9 @@ export default function BellmanFordViz() {
     i: currentStep?.iteration ?? "—",
     k: currentStep?.checkingEdge?.u ?? "—",
     j: currentStep?.checkingEdge?.v ?? "—",
-  });
+  }, currentStepIndex);
   useVizControl("bellman-ford", {
-    onStep: () => { setIsPlaying(false); setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
+    onStep: (line) => { setIsPlaying(false); if (typeof line === "number") setCurrentStepIndex(Math.min(line, steps.length - 1)); else setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
     onReset: () => { setIsPlaying(false); setCurrentStepIndex(0); },
     onPlay: () => setIsPlaying(true),
     onPause: () => setIsPlaying(false),

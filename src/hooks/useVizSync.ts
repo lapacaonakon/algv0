@@ -10,13 +10,16 @@ import { useEffect } from "react";
  *
  * Или событие: window.dispatchEvent(new CustomEvent('viz:sync', {detail:{chapterId, vars:{...}}}))
  */
-export function useVizSync(chapterId: string, vars: Record<string, string | number | null | undefined>) {
+export function useVizSync(
+  chapterId: string,
+  vars: Record<string, string | number | null | undefined>,
+  line?: number
+) {
   useEffect(() => {
     const clean: Record<string, string | number> = {};
     for (const [k, v] of Object.entries(vars)) {
       if (v !== null && v !== undefined && v !== "") clean[k] = v as string | number;
     }
-    // also expose via global for SideCompilerDrawer polling
     // @ts-ignore
     window.__liveVizVars = clean;
     // @ts-ignore
@@ -27,8 +30,8 @@ export function useVizSync(chapterId: string, vars: Record<string, string | numb
     }
     window.dispatchEvent(
       new CustomEvent("viz:sync", {
-        detail: { chapterId, vars: clean },
+        detail: { chapterId, vars: clean, line },
       })
     );
-  }, [chapterId, JSON.stringify(vars)]);
+  }, [chapterId, JSON.stringify(vars), line]);
 }

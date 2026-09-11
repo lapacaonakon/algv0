@@ -119,9 +119,9 @@ export default function FloydViz() {
     k: currentStep ? (currentStep.k >= 0 ? currentStep.k : "—") : "—",
     i: currentStep ? (currentStep.i >= 0 ? currentStep.i : "—") : "—",
     j: currentStep ? (currentStep.j >= 0 ? currentStep.j : "—") : "—",
-  });
+  }, currentStepIndex);
   useVizControl("floyd", {
-    onStep: () => { setIsPlaying(false); setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
+    onStep: (line) => { setIsPlaying(false); if (typeof line === "number") setCurrentStepIndex(Math.min(line, steps.length - 1)); else setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
     onReset: () => { setIsPlaying(false); setCurrentStepIndex(0); },
     onPlay: () => setIsPlaying(true),
     onPause: () => setIsPlaying(false),

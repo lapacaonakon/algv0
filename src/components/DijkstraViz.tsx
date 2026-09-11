@@ -151,9 +151,9 @@ export default function DijkstraViz() {
     i: currentStep?.currentNode ?? "—",
     j: currentStep?.checkingEdge?.v ?? "—",
     k: currentStep?.checkingEdge ? edges.find((e) => e.u === currentStep.checkingEdge!.u && e.v === currentStep.checkingEdge!.v)?.w ?? "—" : "—",
-  });
+  }, currentStepIndex);
   useVizControl("dijkstra", {
-    onStep: () => { setIsPlaying(false); setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
+    onStep: (line) => { setIsPlaying(false); if (typeof line === "number") setCurrentStepIndex(Math.min(line, steps.length - 1)); else setCurrentStepIndex((v) => Math.min(v + 1, steps.length - 1)); },
     onReset: () => { setIsPlaying(false); setCurrentStepIndex(0); },
     onPlay: () => setIsPlaying(true),
     onPause: () => setIsPlaying(false),

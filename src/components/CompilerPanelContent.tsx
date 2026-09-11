@@ -24,30 +24,40 @@ export function CompilerPanelContent({ chapterId, onOpenFull, onClose }: Props) 
   useEffect(() => {
     const handler = (e: Event) => {
       const d = (e as CustomEvent).detail;
-      if (d?.chapterId === chapterId || !d?.chapterId) setLive(d.vars ?? null);
+      if (d?.chapterId === chapterId || !d?.chapterId) {
+        setLive(d.vars ?? null);
+        if (typeof d.line === "number") setLine(Math.min(d.line, lines.length - 1));
+      }
     };
     window.addEventListener("viz:sync", handler as EventListener);
     return () => window.removeEventListener("viz:sync", handler as EventListener);
-  }, [chapterId]);
+  }, [chapterId, lines.length]);
 
   const sendControl = (action: "step" | "play" | "pause" | "reset") => {
-    window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action } }));
-    const viz = document.getElementById("chapter-viz");
     if (action === "step") {
-      setLine((v) => Math.min(v + 1, lines.length - 1));
+      const next = Math.min(line + 1, lines.length - 1);
+      setLine(next);
+      window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action, line: next } }));
+      const viz = document.getElementById("chapter-viz");
       const btn = Array.from(viz?.querySelectorAll("button") ?? []).find((b) => /Шаг|Step/i.test(b.textContent || ""));
       (btn as HTMLButtonElement | undefined)?.click();
-    } else if (action === "reset") {
+      if (!viz) setLine((v) => Math.min(v + 1, lines.length - 1));
+      return;
+    }
+    if (action === "reset") {
       setLine(0);
+      window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action, line: 0 } }));
+      const viz = document.getElementById("chapter-viz");
       const btn = Array.from(viz?.querySelectorAll("button") ?? []).find((b) => /Сброс|Reset/i.test(b.textContent || ""));
       (btn as HTMLButtonElement | undefined)?.click();
-    } else if (action === "play" || action === "pause") {
+      return;
+    }
+    window.dispatchEvent(new CustomEvent("viz:control", { detail: { chapterId, action } }));
+    const viz = document.getElementById("chapter-viz");
+    if (action === "play" || action === "pause") {
       const btn = Array.from(viz?.querySelectorAll("button") ?? []).find((b) => /Пуск|Пауза|Play|Pause/i.test(b.textContent || ""));
       (btn as HTMLButtonElement | undefined)?.click();
       setPlaying(action === "play");
-    }
-    if (action === "step" && !viz) {
-      setLine((v) => Math.min(v + 1, lines.length - 1));
     }
   };
 

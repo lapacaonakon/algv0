@@ -534,7 +534,10 @@ export function getMinimalStarter(id: string): string {
   if (id === "prefix-sums-2d") {
     return `i, j = 0, 0  # 1D\na, b, c, d = 1, 2, 3, 4  # 2D: блок\ns = a + b + c + d  # 4 → 1`;
   }
-  if (id === "dynamic-programming" || id === "floyd") {
+  if (id === "floyd") {
+    return `def floyd_warshall(matrix, V):\n    dist = copy(matrix)\n    for k in range(V):  # ${meta.vars.k?.example ?? 0}\n        for i in range(V):\n            for j in range(V):\n                if dist[i][k] + dist[k][j] < dist[i][j]:\n                    dist[i][j] = dist[i][k] + dist[k][j]\n    return dist`;
+  }
+  if (id === "dynamic-programming") {
     return `k, i, j = 0, 0, 0  # k — промежут., i — строка, j — столбец`;
   }
   const vars = Object.keys(meta.vars).join(", ");
