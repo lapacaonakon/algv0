@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            10.09.2026, 23:31:05
-Файлов исходного кода:     80
-Суммарный объём кода:      1.04 MB
+Дата генерации:            11.09.2026, 14:32:33
+Файлов исходного кода:     85
+Суммарный объём кода:      1.14 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -47,104 +47,109 @@
 ==========================================================================================================================================
 
   # Конфигурация проекта
-    1. AGENTS.md
-    2. GEMINI.md
-    3. index.html
-    4. metadata.json
-    5. package.json
-    6. README.md
-    7. TOPICS_AUDIT.md
-    8. tsconfig.json
-    9. vite.config.ts
+    1. add.md
+    2. AGENTS.md
+    3. GEMINI.md
+    4. index.html
+    5. metadata.json
+    6. package.json
+    7. README.md
+    8. TOPICS_AUDIT.md
+    9. tsconfig.json
+   10. vite.config.ts
 
   # Ядро приложения
-   10. src/App.tsx
-   11. src/hooks/useTermHints.ts
-   12. src/index.css
-   13. src/main.tsx
-   14. src/types.ts
-   15. src/vite-env.d.ts
+   11. src/App.tsx
+   12. src/hooks/useTermHints.ts
+   13. src/index.css
+   14. src/main.tsx
+   15. src/types.ts
+   16. src/vite-env.d.ts
 
   # Контент и данные пособия
-   16. src/data/additionalTickets.ts
-   17. src/data/content_temp.ts
-   18. src/data/content.ts
-   19. src/data/glossary.ts
-   20. src/data/graphContent.ts
-   21. src/data/quizzes.ts
+   17. src/data/additionalTickets.ts
+   18. src/data/content_temp.ts
+   19. src/data/content.ts
+   20. src/data/glossary.ts
+   21. src/data/graphContent.ts
+   22. src/data/quizzes.ts
+   23. src/data/vizSync.ts
 
   # Билеты (учебный контент)
-   22. src/data/tickets/ticket1_5.ts
-   23. src/data/tickets/ticket14_20.ts
-   24. src/data/tickets/ticket21_24.ts
-   25. src/data/tickets/ticket6_13.ts
+   24. src/data/tickets/ticket1_5.ts
+   25. src/data/tickets/ticket14_20.ts
+   26. src/data/tickets/ticket21_24.ts
+   27. src/data/tickets/ticket6_13.ts
 
   # Интерактивные компоненты и симуляторы
-   26. src/components/ArticulationPointsViz.tsx
-   27. src/components/BellmanFordViz.tsx
-   28. src/components/BfsViz.tsx
-   29. src/components/ChapterImage.tsx
-   30. src/components/ChapterNav.tsx
-   31. src/components/ChapterView.tsx
-   32. src/components/DfsBridgesSimulator.tsx
-   33. src/components/DijkstraViz.tsx
-   34. src/components/DPVisualizer.tsx
-   35. src/components/EulerSimulator.tsx
-   36. src/components/ExpressQuiz.tsx
-   37. src/components/FloydViz.tsx
-   38. src/components/GraphTraversalViz.tsx
-   39. src/components/HeapViz.tsx
-   40. src/components/hints/demoKit.tsx
-   41. src/components/hints/demosExtra.tsx
-   42. src/components/hints/demosGraph.tsx
-   43. src/components/hints/demosStruct.tsx
-   44. src/components/hints/MiniDemo.tsx
-   45. src/components/hints/SimulatorModal.tsx
-   46. src/components/hints/TermPopover.tsx
-   47. src/components/JohnsonViz.tsx
-   48. src/components/KosarajuViz.tsx
-   49. src/components/KruskalSimulator.tsx
-   50. src/components/MnemonicCards.tsx
-   51. src/components/MobileToc.tsx
-   52. src/components/Navbar.tsx
-   53. src/components/PlanarityDemo.tsx
-   54. src/components/QueueViz.tsx
-   55. src/components/SalmonAutomatonWidget.tsx
-   56. src/components/SegmentTreeVisualizer.tsx
-   57. src/components/Sidebar.tsx
-   58. src/components/Simulator.tsx
-   59. src/components/SimulatorHub.tsx
-   60. src/components/SplayRotationSandbox.tsx
-   61. src/components/SplayRotationsViz.tsx
-   62. src/components/SplayTreeViz.tsx
-   63. src/components/StackViz.tsx
-   64. src/components/StringAlgorithmsViz.tsx
-   65. src/components/TopologicalSortViz.tsx
-   66. src/components/vizRegistry.tsx
-   67. src/components/WaterfallAnimationWidget.tsx
+   28. src/components/ArticulationPointsViz.tsx
+   29. src/components/BellmanFordViz.tsx
+   30. src/components/BfsViz.tsx
+   31. src/components/ChapterImage.tsx
+   32. src/components/ChapterNav.tsx
+   33. src/components/ChapterView.tsx
+   34. src/components/DfsBridgesSimulator.tsx
+   35. src/components/DijkstraViz.tsx
+   36. src/components/DPVisualizer.tsx
+   37. src/components/EulerSimulator.tsx
+   38. src/components/ExpressQuiz.tsx
+   39. src/components/FloydViz.tsx
+   40. src/components/GraphTraversalViz.tsx
+   41. src/components/HeapViz.tsx
+   42. src/components/hints/demoKit.tsx
+   43. src/components/hints/demosExtra.tsx
+   44. src/components/hints/demosGraph.tsx
+   45. src/components/hints/demosStruct.tsx
+   46. src/components/hints/MiniDemo.tsx
+   47. src/components/hints/SimulatorModal.tsx
+   48. src/components/hints/TermPopover.tsx
+   49. src/components/JohnsonViz.tsx
+   50. src/components/KosarajuViz.tsx
+   51. src/components/KruskalSimulator.tsx
+   52. src/components/MnemonicCards.tsx
+   53. src/components/MobileToc.tsx
+   54. src/components/Navbar.tsx
+   55. src/components/PlanarityDemo.tsx
+   56. src/components/PythonCompiler.tsx
+   57. src/components/QueueViz.tsx
+   58. src/components/SalmonAutomatonWidget.tsx
+   59. src/components/SegmentTreeVisualizer.tsx
+   60. src/components/Sidebar.tsx
+   61. src/components/Simulator.tsx
+   62. src/components/SimulatorHub.tsx
+   63. src/components/SplayRotationSandbox.tsx
+   64. src/components/SplayRotationsViz.tsx
+   65. src/components/SplayTreeViz.tsx
+   66. src/components/StackViz.tsx
+   67. src/components/StringAlgorithmsViz.tsx
+   68. src/components/Tooltip.tsx
+   69. src/components/TopologicalSortViz.tsx
+   70. src/components/vizRegistry.tsx
+   71. src/components/WaterfallAnimationWidget.tsx
 
   # Визуализаторы (вложенные)
-   68. src/components/visualizers/PrefixSumViz.tsx
-   69. src/components/visualizers/SparseTableViz.tsx
+   72. src/components/visualizers/PrefixSumViz.tsx
+   73. src/components/visualizers/SparseTableViz.tsx
 
   # HTML-разметка (layout)
-   70. src/layout/footer.html
-   71. src/layout/header.html
+   74. src/layout/footer.html
+   75. src/layout/header.html
 
   # Утилиты
-   72. src/utils/cn.ts
-   73. src/utils/exportHtml.ts
+   76. src/utils/cn.ts
+   77. src/utils/exportHtml.ts
 
   # Скрипты сборки и экспорта
-   74. scripts/audit-coverage.mjs
-   75. scripts/audit-terms.mjs
-   76. scripts/export/build-pdf.mjs
-   77. scripts/export/collect-code.mjs
-   78. scripts/export/common.mjs
-   79. scripts/export/render-pages.mjs
+   78. scripts/audit-coverage.mjs
+   79. scripts/audit-terms.mjs
+   80. scripts/export/build-pdf.mjs
+   81. scripts/export/collect-code.mjs
+   82. scripts/export/common.mjs
+   83. scripts/export/render-pages.mjs
 
   # CI / автоматизация
-   80. .github/workflows/rebuild-pdf.yml
+   84. .github/workflows/deploy-pages.yml
+   85. .github/workflows/rebuild-pdf.yml
 
 
 ==========================================================================================================================================
@@ -152,7 +157,1237 @@
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 1/80: AGENTS.md
+ФАЙЛ 1/85: add.md
+КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 1224 | РАЗМЕР: 48.4 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+## Изменённые файлы
+
+```text
+A	.github/workflows/deploy-pages.yml
+M	.github/workflows/rebuild-pdf.yml
+M	index.html
+M	public/export/full_code_all_pages.pdf
+M	public/export/full_code_all_pages.txt
+A	public/favicon.svg
+M	src/App.tsx
+M	src/components/Navbar.tsx
+A	src/components/PythonCompiler.tsx
+M	vite.config.ts
+```
+
+## `.github/workflows/deploy-pages.yml`
+
+### Полное содержимое после изменений
+
+````yaml
+name: Deploy app to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      # Позволяет проверить Pages прямо из рабочей ветки до слияния.
+      - "arena/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build for the repository subpath
+        env:
+          VITE_BASE: /algv0/
+        run: npm run build
+
+      - name: Make GitHub Pages fallback
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/.github/workflows/deploy-pages.yml b/.github/workflows/deploy-pages.yml
+new file mode 100644
+index 0000000..17418e3
+--- /dev/null
++++ b/.github/workflows/deploy-pages.yml
+@@ -0,0 +1,60 @@
++name: Deploy app to GitHub Pages
++
++on:
++  push:
++    branches:
++      - main
++      # Позволяет проверить Pages прямо из рабочей ветки до слияния.
++      - "arena/**"
++  workflow_dispatch:
++
++permissions:
++  contents: read
++  pages: write
++  id-token: write
++
++concurrency:
++  group: pages
++  cancel-in-progress: true
++
++jobs:
++  build:
++    name: Build static site
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@v6
++
++      - name: Setup Node.js
++        uses: actions/setup-node@v7
++        with:
++          node-version: 24
++          cache: npm
++
++      - name: Install dependencies
++        run: npm ci --no-audit --no-fund
++
++      - name: Build for the repository subpath
++        env:
++          VITE_BASE: /algv0/
++        run: npm run build
++
++      - name: Make GitHub Pages fallback
++        run: cp dist/index.html dist/404.html
++
++      - name: Upload Pages artifact
++        uses: actions/upload-pages-artifact@v5
++        with:
++          path: ./dist
++
++  deploy:
++    name: Publish to GitHub Pages
++    needs: build
++    runs-on: ubuntu-latest
++    environment:
++      name: github-pages
++      url: ${{ steps.deployment.outputs.page_url }}
++    steps:
++      - name: Deploy
++        id: deployment
++        uses: actions/deploy-pages@v5
+````
+
+## `.github/workflows/rebuild-pdf.yml`
+
+### Полное содержимое после изменений
+
+````yaml
+name: Rebuild code PDF
+
+# Пайплайн пересборки PDF при каждом коммите:
+#
+#   исходный код  ──▶  full_code_all_pages.txt   (scripts/export/collect-code.mjs)
+#        │
+#        └──────────▶  page-0001.png … page-NNNN.png  (scripts/export/render-pages.mjs, ImageMagick)
+#                              │
+#                              └──▶  full_code_all_pages.pdf  (scripts/export/build-pdf.mjs, pdfkit)
+#
+# Готовые TXT и PDF коммитятся обратно в ветку (их отдаёт приложение по /export/...),
+# промежуточные PNG сохраняются как artifacts запуска.
+
+on:
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      # чтобы коммит самого workflow не запускал бесконечный цикл
+      - "public/export/**"
+      - "**/*.md"
+  workflow_dispatch:
+    inputs:
+      density:
+        description: "DPI растеризации страниц (по умолчанию 150)"
+        required: false
+        default: "150"
+
+concurrency:
+  group: rebuild-pdf-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild-pdf:
+    name: код → txt → png → pdf
+    runs-on: ubuntu-latest
+    # не реагируем на собственный коммит бота
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && github.actor != 'github-actions[bot]'"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install ImageMagick + DejaVu fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends imagemagick fonts-dejavu-core
+          # На Ubuntu политика ImageMagick иногда запрещает часть кодеков —
+          # разрешаем то, что нужно пайплайну (text -> png -> pdf).
+          for policy in /etc/ImageMagick-6/policy.xml /etc/ImageMagick-7/policy.xml; do
+            if [ -f "$policy" ]; then
+              sudo sed -i 's/rights="none" pattern="\(PDF\|PS\|TEXT\|LABEL\)"/rights="read|write" pattern="\1"/g' "$policy"
+            fi
+          done
+          convert -version
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Step 1 — код → txt
+        run: npm run export:txt
+
+      - name: Step 2 — txt → png
+        env:
+          EXPORT_DENSITY: ${{ github.event.inputs.density || '150' }}
+        run: npm run export:png
+
+      - name: Step 3 — png → pdf
+        run: npm run export:pdf
+
+      - name: Type-check приложения
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Summary
+        run: |
+          {
+            echo "### 📄 Экспорт пересобран"
+            echo ""
+            echo "| Артефакт | Размер |"
+            echo "| --- | --- |"
+            echo "| \`public/export/full_code_all_pages.txt\` | $(du -h public/export/full_code_all_pages.txt | cut -f1) |"
+            echo "| \`public/export/full_code_all_pages.pdf\` | $(du -h public/export/full_code_all_pages.pdf | cut -f1) |"
+            echo "| PNG-страниц | $(ls tmp/export-pages/*.png | wc -l) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts (PDF + TXT)
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-code-export
+          path: |
+            public/export/full_code_all_pages.pdf
+            public/export/full_code_all_pages.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload artifacts (PNG-страницы)
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-code-pages-png
+          path: tmp/export-pages/*.png
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Commit rebuilt export back to the branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf
+          if git diff --cached --quiet; then
+            echo "Экспорт не изменился — коммит не нужен."
+            exit 0
+          fi
+          git commit -m "chore(export): пересборка full_code_all_pages.pdf/.txt [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/.github/workflows/rebuild-pdf.yml b/.github/workflows/rebuild-pdf.yml
+index bdcb3c3..ff49c0c 100644
+--- a/.github/workflows/rebuild-pdf.yml
++++ b/.github/workflows/rebuild-pdf.yml
+@@ -42,15 +42,15 @@ jobs:
+ 
+     steps:
+       - name: Checkout
+-        uses: actions/checkout@v4
++        uses: actions/checkout@v6
+         with:
+           fetch-depth: 0
+           persist-credentials: true
+ 
+       - name: Setup Node.js
+-        uses: actions/setup-node@v4
++        uses: actions/setup-node@v7
+         with:
+-          node-version: "22"
++          node-version: "24"
+           cache: npm
+ 
+       - name: Install ImageMagick + DejaVu fonts
+@@ -97,7 +97,7 @@ jobs:
+           } >> "$GITHUB_STEP_SUMMARY"
+ 
+       - name: Upload artifacts (PDF + TXT)
+-        uses: actions/upload-artifact@v4
++        uses: actions/upload-artifact@v7
+         with:
+           name: full-code-export
+           path: |
+@@ -107,7 +107,7 @@ jobs:
+           retention-days: 30
+ 
+       - name: Upload artifacts (PNG-страницы)
+-        uses: actions/upload-artifact@v4
++        uses: actions/upload-artifact@v7
+         with:
+           name: full-code-pages-png
+           path: tmp/export-pages/*.png
+````
+
+## `index.html`
+
+### Полное содержимое после изменений
+
+````html
+<!doctype html>
+<html lang="ru" class="dark bg-slate-950 text-slate-100">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <title>🧠 Дискретка для тупых — Интерактивный гид по графам</title>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/index.html b/index.html
+index cdea4c7..a44c135 100644
+--- a/index.html
++++ b/index.html
+@@ -3,6 +3,7 @@
+   <head>
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+     <title>🧠 Дискретка для тупых — Интерактивный гид по графам</title>
+   </head>
+   <body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200">
+````
+
+## `public/favicon.svg`
+
+### Полное содержимое после изменений
+
+````xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Алгоритмы">
+  <rect width="64" height="64" rx="16" fill="#4f46e5"/>
+  <path d="M18 17h28v8H26v8h16v8H26v8h20v8H18z" fill="#fff"/>
+  <circle cx="47" cy="21" r="4" fill="#34d399"/>
+</svg>
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/public/favicon.svg b/public/favicon.svg
+new file mode 100644
+index 0000000..3bbbba0
+--- /dev/null
++++ b/public/favicon.svg
+@@ -0,0 +1,5 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Алгоритмы">
++  <rect width="64" height="64" rx="16" fill="#4f46e5"/>
++  <path d="M18 17h28v8H26v8h16v8H26v8h20v8H18z" fill="#fff"/>
++  <circle cx="47" cy="21" r="4" fill="#34d399"/>
++</svg>
+````
+
+## `src/App.tsx`
+
+### Полное содержимое после изменений
+
+````tsx
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { chapters } from "./data/content";
+import { Navbar } from "./components/Navbar";
+import { Sidebar } from "./components/Sidebar";
+import { MobileToc } from "./components/MobileToc";
+import { ChapterView } from "./components/ChapterView";
+import { ChapterNav } from "./components/ChapterNav";
+import { SimulatorModal } from "./components/hints/SimulatorModal";
+import { SimulatorHub } from "./components/SimulatorHub";
+import { PythonCompiler } from "./components/PythonCompiler";
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState<"guide" | "simulator" | "compiler">("guide");
+  const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
+  const [modalVizId, setModalVizId] = useState<string | null>(null);
+
+  const index = Math.max(
+    0,
+    chapters.findIndex((c) => c.id === activeChapterId)
+  );
+  const activeChapter = chapters[index] ?? chapters[0];
+  const prev = index > 0 ? chapters[index - 1] : undefined;
+  const next = index < chapters.length - 1 ? chapters[index + 1] : undefined;
+
+  const goTo = useCallback((id: string) => {
+    setActiveChapterId(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Стрелки ← → листают темы (как на обучающих сайтах)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowRight" && next) goTo(next.id);
+      if (e.key === "ArrowLeft" && prev) goTo(prev.id);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goTo, next, prev]);
+
+  const progress = useMemo(() => ((index + 1) / chapters.length) * 100, [index]);
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      {activeTab === "guide" ? (
+        <>
+          <MobileToc
+            selectedChapterId={activeChapterId}
+            setSelectedChapterId={goTo}
+            currentTitle={activeChapter.title}
+            index={index}
+            total={chapters.length}
+          />
+
+          <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
+            {/* Сайдбар только на десктопе — на мобильном он в шторке */}
+            <div className="hidden lg:block lg:w-80 shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
+              <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
+            </div>
+
+            <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
+              {/* Шапка главы с быстрыми переходами */}
+              <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
+                    {activeChapter.category || "Универсальное пособие"}
+                  </div>
+                  <h2 className="text-base sm:text-xl font-extrabold text-white leading-tight truncate">
+                    {activeChapter.title}
+                  </h2>
+                </div>
+                <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
+              </div>
+
+              <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                <div
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <ChapterView
+                key={activeChapter.id}
+                chapter={activeChapter}
+                prev={prev}
+                next={next}
+                index={index}
+                total={chapters.length}
+                onGo={goTo}
+                onOpenSimulator={setModalVizId}
+              />
+            </main>
+          </div>
+        </>
+      ) : activeTab === "simulator" ? (
+        <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
+          <SimulatorHub
+            onOpen={setModalVizId}
+            onGoChapter={(id) => {
+              setActiveTab("guide");
+              goTo(id);
+            }}
+          />
+        </main>
+      ) : (
+        <PythonCompiler />
+      )}
+
+      <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />
+
+      <footer className="p-8 text-center text-slate-600 text-xs border-t border-slate-900 mt-12 bg-slate-950">
+        © 2026 Universal Educational Guide. Интерактивные визуализации алгоритмов.
+      </footer>
+    </div>
+  );
+}
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/src/App.tsx b/src/App.tsx
+index 2091f33..4583756 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -7,9 +7,10 @@ import { ChapterView } from "./components/ChapterView";
+ import { ChapterNav } from "./components/ChapterNav";
+ import { SimulatorModal } from "./components/hints/SimulatorModal";
+ import { SimulatorHub } from "./components/SimulatorHub";
++import { PythonCompiler } from "./components/PythonCompiler";
+ 
+ export default function App() {
+-  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
++  const [activeTab, setActiveTab] = useState<"guide" | "simulator" | "compiler">("guide");
+   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
+   const [modalVizId, setModalVizId] = useState<string | null>(null);
+ 
+@@ -95,7 +96,7 @@ export default function App() {
+             </main>
+           </div>
+         </>
+-      ) : (
++      ) : activeTab === "simulator" ? (
+         <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
+           <SimulatorHub
+             onOpen={setModalVizId}
+@@ -105,6 +106,8 @@ export default function App() {
+             }}
+           />
+         </main>
++      ) : (
++        <PythonCompiler />
+       )}
+ 
+       <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />
+````
+
+## `src/components/Navbar.tsx`
+
+### Полное содержимое после изменений
+
+````tsx
+import React, { useState } from 'react';
+import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2, Terminal } from 'lucide-react';
+import { chapters } from '../data/content';
+import { downloadBookHtml } from '../utils/exportHtml';
+
+interface NavbarProps {
+  activeTab: 'guide' | 'simulator' | 'compiler';
+  setActiveTab: (tab: 'guide' | 'simulator' | 'compiler') => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+  const [busy, setBusy] = useState(false);
+
+  const saveBook = async () => {
+    setBusy(true);
+    try {
+      await downloadBookHtml(chapters);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-0 lg:h-16 flex flex-col lg:flex-row items-center justify-between gap-3 lg:gap-0">
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="bg-gradient-to-tr from-indigo-600 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/30 text-white shrink-0">
+            <Sparkles className="w-6 h-6" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-extrabold text-white tracking-tight truncate">
+              Универсальное пособие
+            </h1>
+            <p className="text-xs text-indigo-400 font-medium truncate">
+              Подготовка к экзаменам: Алгоритмы, Структуры данных, Билеты 1–24
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center w-full lg:w-auto gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700 overflow-x-auto">
+          <button
+            id="tab-guide-btn"
+            onClick={() => setActiveTab('guide')}
+            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+              activeTab === 'guide'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" /> Учебное пособие
+          </button>
+          <button
+            id="tab-simulator-btn"
+            onClick={() => setActiveTab('simulator')}
+            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+              activeTab === 'simulator'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Cpu className="w-4 h-4" /> Тренажёры
+          </button>
+          <button
+            id="tab-compiler-btn"
+            onClick={() => setActiveTab('compiler')}
+            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+              activeTab === 'compiler'
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Terminal className="w-4 h-4" /> Python
+          </button>
+          <a
+            id="download-pdf-btn"
+            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.pdf`}
+            download="full_code_all_pages.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-emerald-400 hover:text-white hover:bg-emerald-600/20 border border-emerald-500/30 transition-all duration-200 whitespace-nowrap"
+            title="Скачать полный PDF сборник всех страниц и кода (370+ страниц)"
+          >
+            <FileDown className="w-4 h-4" /> Скачать PDF
+          </a>
+          <a
+            id="download-txt-btn"
+            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.txt`}
+            download="full_code_all_pages.txt"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-sky-400 hover:text-white hover:bg-sky-600/20 border border-sky-500/30 transition-all duration-200 whitespace-nowrap"
+            title="Скачать полный TXT файл со всем кодом"
+          >
+            <FileText className="w-4 h-4" /> TXT
+          </a>
+          <button
+            id="download-html-btn"
+            onClick={saveBook}
+            disabled={busy}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-amber-400 hover:text-white hover:bg-amber-600/20 border border-amber-500/30 disabled:opacity-60 transition-all duration-200 whitespace-nowrap"
+            title="Скачать всё пособие одним автономным HTML-файлом (отдельную тему можно выгрузить кнопкой над текстом)"
+          >
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Code2 className="w-4 h-4" />} HTML
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/src/components/Navbar.tsx b/src/components/Navbar.tsx
+index a528778..6f8cd36 100644
+--- a/src/components/Navbar.tsx
++++ b/src/components/Navbar.tsx
+@@ -1,11 +1,11 @@
+ import React, { useState } from 'react';
+-import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2 } from 'lucide-react';
++import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2, Terminal } from 'lucide-react';
+ import { chapters } from '../data/content';
+ import { downloadBookHtml } from '../utils/exportHtml';
+ 
+ interface NavbarProps {
+-  activeTab: 'guide' | 'simulator';
+-  setActiveTab: (tab: 'guide' | 'simulator') => void;
++  activeTab: 'guide' | 'simulator' | 'compiler';
++  setActiveTab: (tab: 'guide' | 'simulator' | 'compiler') => void;
+ }
+ 
+ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+@@ -60,9 +60,20 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+           >
+             <Cpu className="w-4 h-4" /> Тренажёры
+           </button>
++          <button
++            id="tab-compiler-btn"
++            onClick={() => setActiveTab('compiler')}
++            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
++              activeTab === 'compiler'
++                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
++                : 'text-slate-400 hover:text-white'
++            }`}
++          >
++            <Terminal className="w-4 h-4" /> Python
++          </button>
+           <a
+             id="download-pdf-btn"
+-            href="/export/full_code_all_pages.pdf"
++            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.pdf`}
+             download="full_code_all_pages.pdf"
+             target="_blank"
+             rel="noreferrer"
+@@ -73,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+           </a>
+           <a
+             id="download-txt-btn"
+-            href="/export/full_code_all_pages.txt"
++            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.txt`}
+             download="full_code_all_pages.txt"
+             target="_blank"
+             rel="noreferrer"
+````
+
+## `src/components/PythonCompiler.tsx`
+
+### Полное содержимое после изменений
+
+````tsx
+import { useCallback, useState } from "react";
+import { CheckCircle2, ExternalLink, Info, Loader2, Play, RotateCcw, Terminal } from "lucide-react";
+
+const PYODIDE_VERSION = "0.27.7";
+const PYODIDE_MODULE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`;
+const PYODIDE_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+
+const STARTER_CODE = `# Первый запуск загрузит Python в браузер.
+name = "алгоритмы"
+
+for number in range(1, 4):
+    print(f"{number}. Учим {name}!")
+`;
+
+type PyodideRuntime = {
+  runPythonAsync: (source: string) => Promise<unknown>;
+  setStdout: (options: { batched: (message: string) => void }) => void;
+  setStderr: (options: { batched: (message: string) => void }) => void;
+  setStdin: (options: { stdin: () => string | number | null }) => void;
+};
+
+type PyodideModule = {
+  loadPyodide: (options: { indexURL: string }) => Promise<PyodideRuntime>;
+};
+
+let runtimePromise: Promise<PyodideRuntime> | null = null;
+
+function getPythonRuntime() {
+  if (!runtimePromise) {
+    runtimePromise = import(/* @vite-ignore */ PYODIDE_MODULE_URL).then((module) =>
+      (module as PyodideModule).loadPyodide({ indexURL: PYODIDE_INDEX_URL })
+    );
+  }
+  return runtimePromise;
+}
+
+function errorText(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+export function PythonCompiler() {
+  const [code, setCode] = useState(STARTER_CODE);
+  const [stdin, setStdin] = useState("");
+  const [output, setOutput] = useState("Нажмите «Запустить», чтобы увидеть результат.");
+  const [running, setRunning] = useState(false);
+  const [runtimeReady, setRuntimeReady] = useState(false);
+  const [runtimeMessage, setRuntimeMessage] = useState("Python загружается только после первого запуска");
+
+  const runCode = useCallback(async () => {
+    if (running) return;
+
+    setRunning(true);
+    setOutput("");
+    setRuntimeMessage(runtimeReady ? "Выполняю код…" : "Загружаю Python в браузер…");
+
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const inputLines = stdin.split(/\r?\n/);
+
+    try {
+      const runtime = await getPythonRuntime();
+      setRuntimeReady(true);
+      setRuntimeMessage("Python готов — код выполняется локально в браузере");
+
+      runtime.setStdout({ batched: (message) => stdout.push(message) });
+      runtime.setStderr({ batched: (message) => stderr.push(message) });
+      runtime.setStdin({ stdin: () => (inputLines.length > 0 ? inputLines.shift() ?? "" : null) });
+      await runtime.runPythonAsync(code);
+
+      const text = [...stdout, ...stderr].join("");
+      setOutput(text || "Готово: программа ничего не вывела.");
+    } catch (error) {
+      const captured = [...stdout, ...stderr].join("");
+      setOutput(`${captured}${captured && !captured.endsWith("\n") ? "\n" : ""}Ошибка:\n${errorText(error)}`);
+      setRuntimeMessage("Не удалось выполнить код — проверьте программу и соединение для загрузки Pyodide");
+    } finally {
+      setRunning(false);
+    }
+  }, [code, stdin, running, runtimeReady]);
+
+  const reset = () => {
+    setCode(STARTER_CODE);
+    setStdin("");
+    setOutput("Нажмите «Запустить», чтобы увидеть результат.");
+  };
+
+  return (
+    <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">
+              <Terminal className="w-4 h-4" /> Боковая вкладка · Python
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Мини-компилятор Python</h2>
+            <p className="text-slate-400 mt-2 max-w-2xl leading-relaxed">
+              Пишите небольшой код и запускайте его прямо в браузере. Установка Python не нужна: используется Pyodide,
+              который переводит CPython в WebAssembly.
+            </p>
+          </div>
+          <a
+            href="https://pyodide.org/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+          >
+            Как это работает <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        <div className="grid xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] gap-5 items-start">
+          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 bg-slate-900">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                <span className="text-sm font-bold text-white">main.py</span>
+                <span className="text-[11px] text-slate-500">Python 3 · Pyodide</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Сбросить
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void runCode()}
+                  disabled={running}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
+                >
+                  {running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                  {running ? "Запускаю…" : "Запустить"}
+                </button>
+              </div>
+            </div>
+
+            <textarea
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              onKeyDown={(event) => {
+                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                  event.preventDefault();
+                  void runCode();
+                }
+              }}
+              spellCheck={false}
+              aria-label="Код Python"
+              className="block w-full min-h-[360px] resize-y bg-[#0b1220] px-4 py-4 font-mono text-[13px] leading-6 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 placeholder:text-slate-600"
+              placeholder="Напишите Python-код…"
+            />
+
+            <div className="border-t border-slate-800 bg-slate-950/70">
+              <label className="block px-4 pt-3 text-[11px] font-bold uppercase tracking-wider text-slate-500" htmlFor="python-stdin">
+                Ввод для input() · по одной строке на каждый вызов
+              </label>
+              <textarea
+                id="python-stdin"
+                value={stdin}
+                onChange={(event) => setStdin(event.target.value)}
+                spellCheck={false}
+                rows={2}
+                placeholder={'Например:\nАлиса'}
+                className="block w-full resize-y bg-transparent px-4 py-2 font-mono text-[13px] leading-6 text-slate-300 outline-none placeholder:text-slate-700"
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Terminal className="w-4 h-4 text-emerald-400" /> Результат
+              </div>
+              <span className={`inline-flex items-center gap-1.5 text-[11px] ${runtimeReady ? "text-emerald-400" : "text-slate-500"}`}>
+                {runtimeReady && <CheckCircle2 className="w-3.5 h-3.5" />}
+                {runtimeReady ? "готов" : "не загружен"}
+              </span>
+            </div>
+            <pre className="min-h-[360px] max-h-[560px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] p-4 font-mono text-[13px] leading-6 text-slate-300">
+              {output}
+            </pre>
+            <div className="border-t border-slate-800 px-4 py-3 text-[11px] leading-relaxed text-slate-500">{runtimeMessage}</div>
+          </section>
+        </div>
+
+        <div className="mt-5 grid md:grid-cols-3 gap-3 text-xs leading-relaxed">
+          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
+            <Info className="w-4 h-4 shrink-0 text-indigo-400 mt-0.5" />
+            <span>Ctrl или Cmd + Enter запускает код. Вывод и ошибки появляются справа.</span>
+          </div>
+          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
+            <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+            <span>Первый запуск скачивает примерно несколько мегабайт Pyodide и может занять время.</span>
+          </div>
+          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
+            <Info className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+            <span>Код выполняется в браузере и не отправляется на сервер пособия.</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/src/components/PythonCompiler.tsx b/src/components/PythonCompiler.tsx
+new file mode 100644
+index 0000000..1113e0f
+--- /dev/null
++++ b/src/components/PythonCompiler.tsx
+@@ -0,0 +1,205 @@
++import { useCallback, useState } from "react";
++import { CheckCircle2, ExternalLink, Info, Loader2, Play, RotateCcw, Terminal } from "lucide-react";
++
++const PYODIDE_VERSION = "0.27.7";
++const PYODIDE_MODULE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`;
++const PYODIDE_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
++
++const STARTER_CODE = `# Первый запуск загрузит Python в браузер.
++name = "алгоритмы"
++
++for number in range(1, 4):
++    print(f"{number}. Учим {name}!")
++`;
++
++type PyodideRuntime = {
++  runPythonAsync: (source: string) => Promise<unknown>;
++  setStdout: (options: { batched: (message: string) => void }) => void;
++  setStderr: (options: { batched: (message: string) => void }) => void;
++  setStdin: (options: { stdin: () => string | number | null }) => void;
++};
++
++type PyodideModule = {
++  loadPyodide: (options: { indexURL: string }) => Promise<PyodideRuntime>;
++};
++
++let runtimePromise: Promise<PyodideRuntime> | null = null;
++
++function getPythonRuntime() {
++  if (!runtimePromise) {
++    runtimePromise = import(/* @vite-ignore */ PYODIDE_MODULE_URL).then((module) =>
++      (module as PyodideModule).loadPyodide({ indexURL: PYODIDE_INDEX_URL })
++    );
++  }
++  return runtimePromise;
++}
++
++function errorText(error: unknown) {
++  if (error instanceof Error) return error.message;
++  return String(error);
++}
++
++export function PythonCompiler() {
++  const [code, setCode] = useState(STARTER_CODE);
++  const [stdin, setStdin] = useState("");
++  const [output, setOutput] = useState("Нажмите «Запустить», чтобы увидеть результат.");
++  const [running, setRunning] = useState(false);
++  const [runtimeReady, setRuntimeReady] = useState(false);
++  const [runtimeMessage, setRuntimeMessage] = useState("Python загружается только после первого запуска");
++
++  const runCode = useCallback(async () => {
++    if (running) return;
++
++    setRunning(true);
++    setOutput("");
++    setRuntimeMessage(runtimeReady ? "Выполняю код…" : "Загружаю Python в браузер…");
++
++    const stdout: string[] = [];
++    const stderr: string[] = [];
++    const inputLines = stdin.split(/\r?\n/);
++
++    try {
++      const runtime = await getPythonRuntime();
++      setRuntimeReady(true);
++      setRuntimeMessage("Python готов — код выполняется локально в браузере");
++
++      runtime.setStdout({ batched: (message) => stdout.push(message) });
++      runtime.setStderr({ batched: (message) => stderr.push(message) });
++      runtime.setStdin({ stdin: () => (inputLines.length > 0 ? inputLines.shift() ?? "" : null) });
++      await runtime.runPythonAsync(code);
++
++      const text = [...stdout, ...stderr].join("");
++      setOutput(text || "Готово: программа ничего не вывела.");
++    } catch (error) {
++      const captured = [...stdout, ...stderr].join("");
++      setOutput(`${captured}${captured && !captured.endsWith("\n") ? "\n" : ""}Ошибка:\n${errorText(error)}`);
++      setRuntimeMessage("Не удалось выполнить код — проверьте программу и соединение для загрузки Pyodide");
++    } finally {
++      setRunning(false);
++    }
++  }, [code, stdin, running, runtimeReady]);
++
++  const reset = () => {
++    setCode(STARTER_CODE);
++    setStdin("");
++    setOutput("Нажмите «Запустить», чтобы увидеть результат.");
++  };
++
++  return (
++    <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
++      <div className="max-w-6xl mx-auto">
++        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
++          <div>
++            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">
++              <Terminal className="w-4 h-4" /> Боковая вкладка · Python
++            </div>
++            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Мини-компилятор Python</h2>
++            <p className="text-slate-400 mt-2 max-w-2xl leading-relaxed">
++              Пишите небольшой код и запускайте его прямо в браузере. Установка Python не нужна: используется Pyodide,
++              который переводит CPython в WebAssembly.
++            </p>
++          </div>
++          <a
++            href="https://pyodide.org/"
++            target="_blank"
++            rel="noreferrer"
++            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
++          >
++            Как это работает <ExternalLink className="w-3.5 h-3.5" />
++          </a>
++        </div>
++
++        <div className="grid xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] gap-5 items-start">
++          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
++            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 bg-slate-900">
++              <div className="flex items-center gap-2">
++                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
++                <span className="text-sm font-bold text-white">main.py</span>
++                <span className="text-[11px] text-slate-500">Python 3 · Pyodide</span>
++              </div>
++              <div className="flex items-center gap-2">
++                <button
++                  type="button"
++                  onClick={reset}
++                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
++                >
++                  <RotateCcw className="w-3.5 h-3.5" /> Сбросить
++                </button>
++                <button
++                  type="button"
++                  onClick={() => void runCode()}
++                  disabled={running}
++                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
++                >
++                  {running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
++                  {running ? "Запускаю…" : "Запустить"}
++                </button>
++              </div>
++            </div>
++
++            <textarea
++              value={code}
++              onChange={(event) => setCode(event.target.value)}
++              onKeyDown={(event) => {
++                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
++                  event.preventDefault();
++                  void runCode();
++                }
++              }}
++              spellCheck={false}
++              aria-label="Код Python"
++              className="block w-full min-h-[360px] resize-y bg-[#0b1220] px-4 py-4 font-mono text-[13px] leading-6 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 placeholder:text-slate-600"
++              placeholder="Напишите Python-код…"
++            />
++
++            <div className="border-t border-slate-800 bg-slate-950/70">
++              <label className="block px-4 pt-3 text-[11px] font-bold uppercase tracking-wider text-slate-500" htmlFor="python-stdin">
++                Ввод для input() · по одной строке на каждый вызов
++              </label>
++              <textarea
++                id="python-stdin"
++                value={stdin}
++                onChange={(event) => setStdin(event.target.value)}
++                spellCheck={false}
++                rows={2}
++                placeholder={'Например:\nАлиса'}
++                className="block w-full resize-y bg-transparent px-4 py-2 font-mono text-[13px] leading-6 text-slate-300 outline-none placeholder:text-slate-700"
++              />
++            </div>
++          </section>
++
++          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
++            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800">
++              <div className="flex items-center gap-2 text-sm font-bold text-white">
++                <Terminal className="w-4 h-4 text-emerald-400" /> Результат
++              </div>
++              <span className={`inline-flex items-center gap-1.5 text-[11px] ${runtimeReady ? "text-emerald-400" : "text-slate-500"}`}>
++                {runtimeReady && <CheckCircle2 className="w-3.5 h-3.5" />}
++                {runtimeReady ? "готов" : "не загружен"}
++              </span>
++            </div>
++            <pre className="min-h-[360px] max-h-[560px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] p-4 font-mono text-[13px] leading-6 text-slate-300">
++              {output}
++            </pre>
++            <div className="border-t border-slate-800 px-4 py-3 text-[11px] leading-relaxed text-slate-500">{runtimeMessage}</div>
++          </section>
++        </div>
++
++        <div className="mt-5 grid md:grid-cols-3 gap-3 text-xs leading-relaxed">
++          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
++            <Info className="w-4 h-4 shrink-0 text-indigo-400 mt-0.5" />
++            <span>Ctrl или Cmd + Enter запускает код. Вывод и ошибки появляются справа.</span>
++          </div>
++          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
++            <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
++            <span>Первый запуск скачивает примерно несколько мегабайт Pyodide и может занять время.</span>
++          </div>
++          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
++            <Info className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
++            <span>Код выполняется в браузере и не отправляется на сервер пособия.</span>
++          </div>
++        </div>
++      </div>
++    </main>
++  );
++}
+````
+
+## `vite.config.ts`
+
+### Полное содержимое после изменений
+
+````typescript
+import path from "path";
+import { fileURLToPath } from "url";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import { viteSingleFile } from "vite-plugin-singlefile";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// https://vite.dev/config/
+export default defineConfig({
+  // На GitHub Pages приложение живёт в /algv0/, локально — в корне.
+  // VITE_BASE можно переопределить, если репозиторий будет переименован.
+  base: process.env.VITE_BASE || "/",
+  plugins: [react(), tailwindcss(), viteSingleFile()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+    },
+  },
+  server: {
+    host: "0.0.0.0",
+    port: 5173,
+    strictPort: true,
+    // предпросмотр может открываться через внешний прокси-хост
+    allowedHosts: true,
+  },
+  preview: {
+    host: "0.0.0.0",
+    port: 4173,
+    strictPort: true,
+    allowedHosts: true,
+  },
+});
+````
+
+### Patch относительно `main`
+
+````diff
+diff --git a/vite.config.ts b/vite.config.ts
+index c0456e7..e19d945 100644
+--- a/vite.config.ts
++++ b/vite.config.ts
+@@ -10,6 +10,9 @@ const __dirname = path.dirname(__filename);
+ 
+ // https://vite.dev/config/
+ export default defineConfig({
++  // На GitHub Pages приложение живёт в /algv0/, локально — в корне.
++  // VITE_BASE можно переопределить, если репозиторий будет переименован.
++  base: process.env.VITE_BASE || "/",
+   plugins: [react(), tailwindcss(), viteSingleFile()],
+   resolve: {
+     alias: {
+````
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 2/85: AGENTS.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 12 | РАЗМЕР: 728 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +1405,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 2/80: GEMINI.md
+ФАЙЛ 3/85: GEMINI.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 16 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -192,8 +1427,8 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 3/80: index.html
-КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 13 | РАЗМЕР: 527 B
+ФАЙЛ 4/85: index.html
+КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 14 | РАЗМЕР: 601 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 <!doctype html>
@@ -201,6 +1436,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <title>🧠 Дискретка для тупых — Интерактивный гид по графам</title>
   </head>
   <body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200">
@@ -211,7 +1447,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 4/80: metadata.json
+ФАЙЛ 5/85: metadata.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 8 | РАЗМЕР: 310 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -226,7 +1462,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 5/80: package.json
+ФАЙЛ 6/85: package.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 41 | РАЗМЕР: 1.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -273,7 +1509,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 6/80: README.md
+ФАЙЛ 7/85: README.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 115 | РАЗМЕР: 7.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -394,7 +1630,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 7/80: TOPICS_AUDIT.md
+ФАЙЛ 8/85: TOPICS_AUDIT.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 106 | РАЗМЕР: 8.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -506,7 +1742,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 8/80: tsconfig.json
+ФАЙЛ 9/85: tsconfig.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 32 | РАЗМЕР: 681 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -544,8 +1780,8 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 9/80: vite.config.ts
-КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 33 | РАЗМЕР: 853 B
+ФАЙЛ 10/85: vite.config.ts
+КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 36 | РАЗМЕР: 1.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import path from "path";
@@ -560,6 +1796,9 @@ const __dirname = path.dirname(__filename);
 
 // https://vite.dev/config/
 export default defineConfig({
+  // На GitHub Pages приложение живёт в /algv0/, локально — в корне.
+  // VITE_BASE можно переопределить, если репозиторий будет переименован.
+  base: process.env.VITE_BASE || "/",
   plugins: [react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: {
@@ -587,8 +1826,8 @@ export default defineConfig({
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 10/80: src/App.tsx
-КАТЕГОРИЯ: Ядро приложения | СТРОК: 118 | РАЗМЕР: 4.9 KB
+ФАЙЛ 11/85: src/App.tsx
+КАТЕГОРИЯ: Ядро приложения | СТРОК: 126 | РАЗМЕР: 5.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -600,9 +1839,10 @@ import { ChapterView } from "./components/ChapterView";
 import { ChapterNav } from "./components/ChapterNav";
 import { SimulatorModal } from "./components/hints/SimulatorModal";
 import { SimulatorHub } from "./components/SimulatorHub";
+import { PythonCompiler } from "./components/PythonCompiler";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
+  const [activeTab, setActiveTab] = useState<"guide" | "simulator" | "compiler">("guide");
   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
   const [modalVizId, setModalVizId] = useState<string | null>(null);
 
@@ -684,11 +1924,12 @@ export default function App() {
                 total={chapters.length}
                 onGo={goTo}
                 onOpenSimulator={setModalVizId}
+                onOpenCompiler={() => setActiveTab("compiler")}
               />
             </main>
           </div>
         </>
-      ) : (
+      ) : activeTab === "simulator" ? (
         <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
           <SimulatorHub
             onOpen={setModalVizId}
@@ -698,6 +1939,12 @@ export default function App() {
             }}
           />
         </main>
+      ) : (
+        <PythonCompiler
+          chapterId={activeChapter.id}
+          chapterTitle={activeChapter.title}
+          onOpenGuide={() => setActiveTab("guide")}
+        />
       )}
 
       <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />
@@ -711,7 +1958,7 @@ export default function App() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 11/80: src/hooks/useTermHints.ts
+ФАЙЛ 12/85: src/hooks/useTermHints.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 124 | РАЗМЕР: 5.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -841,7 +2088,7 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 12/80: src/index.css
+ФАЙЛ 13/85: src/index.css
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 175 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1022,7 +2269,7 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 13/80: src/main.tsx
+ФАЙЛ 14/85: src/main.tsx
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 11 | РАЗМЕР: 230 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1039,7 +2286,7 @@ createRoot(document.getElementById("root")!).render(
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 14/80: src/types.ts
+ФАЙЛ 15/85: src/types.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 9 | РАЗМЕР: 153 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1054,7 +2301,7 @@ export interface Chapter {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 15/80: src/vite-env.d.ts
+ФАЙЛ 16/85: src/vite-env.d.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 19 | РАЗМЕР: 324 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1083,7 +2330,7 @@ declare module '*.png' {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 16/80: src/data/additionalTickets.ts
+ФАЙЛ 17/85: src/data/additionalTickets.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 934 | РАЗМЕР: 72.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2023,7 +3270,7 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 17/80: src/data/content_temp.ts
+ФАЙЛ 18/85: src/data/content_temp.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 385 | РАЗМЕР: 27.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2414,7 +3661,7 @@ void dfs(int v, int p = -1) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 18/80: src/data/content.ts
+ФАЙЛ 19/85: src/data/content.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 51 | РАЗМЕР: 1.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2471,7 +3718,7 @@ export const activeVizIds = [
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 19/80: src/data/glossary.ts
+ФАЙЛ 20/85: src/data/glossary.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 626 | РАЗМЕР: 40.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3103,7 +4350,7 @@ export const GLOSSARY_LABELS: { label: string; id: string }[] = GLOSSARY.flatMap
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 20/80: src/data/graphContent.ts
+ФАЙЛ 21/85: src/data/graphContent.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 275 | РАЗМЕР: 18.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3384,7 +4631,7 @@ void buildLinks() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 21/80: src/data/quizzes.ts
+ФАЙЛ 22/85: src/data/quizzes.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 106 | РАЗМЕР: 6.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3495,12 +4742,340 @@ export const quizzes: Record<string, QuizQuestion[]> = {
 };
 
 
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 23/85: src/data/vizSync.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 322 | РАЗМЕР: 24.8 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Захардкоженная «карта синхронизации» компилятора с визуализациями.
+ *
+ * Для каждой страницы (главы) здесь вручную перечислены переменные,
+ * по которым идёт пошаговая подсветка в её интерактивной демонстрации —
+ * в первую очередь индексы циклов i, j, k и размеры n, m.
+ *
+ * Компилятор НЕ показывает код алгоритма — только комментарий с этими
+ * переменными, чтобы студент повторял шаги руками, глядя на визуализацию.
+ */
+
+export interface SyncVariable {
+  /** Имя переменной, как в коде визуализации: i, j, k, n, m, dist… */
+  name: string;
+  /** Роль в алгоритме (показывается во всплывающей подсказке). */
+  role: string;
+  /** Характерный диапазон/значение на демонстрации. */
+  range?: string;
+}
+
+export interface PageSync {
+  /** Заголовок демонстрации на странице (если интерактив есть). */
+  vizTitle?: string;
+  /** Чему соответствует один шаг визуализации. */
+  stepNote?: string;
+  /** Переменные синхронизации. Пусто — на странице нет визуализации. */
+  variables: SyncVariable[];
+}
+
+/** Справочные значения, указанные внутри самих симуляторов (демо-графы, строки и т.п.). */
+export const PAGE_SYNC: Record<string, PageSync> = {
+  "segment-trees": {
+    vizTitle: "Дерево отрезков",
+    stepNote: "Шаг = спуск по вершине v: либо читаем tree[v], либо толкаем lazy к детям 2·v и 2·v+1.",
+    variables: [
+      { name: "n", role: "длина исходного массива; листья дерева лежат в tree[n … 2·n − 1]", range: "n = 8 на демо" },
+      { name: "i", role: "индекс элемента массива; его лист — tree[n + i]", range: "0 … n−1" },
+      { name: "v", role: "текущая вершина дерева отрезков", range: "1 … 2·n−1" },
+      { name: "l, r", role: "границы отрезка, за который отвечает вершина v", range: "0 … n−1" },
+      { name: "m", role: "середина отрезка m = (l + r) // 2 — граница между детьми", range: "l ≤ m < r" },
+    ],
+  },
+  treap: {
+    // у страницы нет интерактивного виджета
+    variables: [],
+  },
+  "splay-tree": {
+    vizTitle: "Splay-дерево (Zig / Zig-Zig / Zig-Zag)",
+    stepNote: "Шаг = один поворот, поднимающий узел x над родителем p (а в Zig-Zig/Zig-Zag — ещё и над g).",
+    variables: [
+      { name: "x", role: "узел, который поднимаем к корню (расшейвливаем)", range: "выбранный узел" },
+      { name: "p", role: "родитель узла x перед поворотом", range: "p = parent(x)" },
+      { name: "g", role: "дедушка узла x — нужен в случаях Zig-Zig и Zig-Zag", range: "g = parent(p)" },
+      { name: "zig / zag", role: "направление поворота: x — левый (zig) или правый (zag) ребёнок", range: "вправо / влево" },
+    ],
+  },
+  "splay-rotations": {
+    vizTitle: "Splay: Zig, Zig-Zig и Zig-Zag по шагам",
+    stepNote: "Шаг = один кадр поворота из трёх классических случаев.",
+    variables: [
+      { name: "x", role: "узел, который поднимаем к корню (расшейвливаем)", range: "выбранный узел" },
+      { name: "p", role: "родитель узла x перед поворотом", range: "p = parent(x)" },
+      { name: "g", role: "дедушка узла x — нужен в случаях Zig-Zig и Zig-Zag", range: "g = parent(p)" },
+    ],
+  },
+  "sparse-table": {
+    vizTitle: "Разреженная таблица (1D и 2D)",
+    stepNote: "Шаг построения = заполнение ячейки уровня k: склейка двух блоков длины 2^(k−1).",
+    variables: [
+      { name: "n", role: "длина массива / сторона квадратной матрицы", range: "n = 8 на демо" },
+      { name: "k", role: "уровень таблицы: ячейка хранит ответ на блоке длины 2^k", range: "0 … log₂ n" },
+      { name: "i", role: "начало блока в строке уровня (1D), результата запроса справа", range: "0 … n − 2^k" },
+      { name: "j", role: "номер уровня при построении (j = 1 … LOG) и индекс столбца", range: "1 … log₂ n" },
+      { name: "r, c", role: "строка и столбец ячейки в 2D-таблице", range: "0 … 7 на демо" },
+      { name: "kx, ky", role: "уровни по вертикали и горизонтали в 2D: блок 2^kx × 2^ky", range: "0 … 3 на демо" },
+    ],
+  },
+  "prefix-sums-2d": {
+    vizTitle: "Префиксные суммы (1D и 2D)",
+    stepNote: "Шаг = вычисление S[i][j] по формуле включений-исключений из уже готовых соседей.",
+    variables: [
+      { name: "n", role: "число строк матрицы", range: "1 … n" },
+      { name: "m", role: "число столбцов матрицы", range: "1 … m" },
+      { name: "i", role: "индекс текущей строки (таблица 1-индексная, строка 0 — нули)", range: "1 … n" },
+      { name: "j", role: "индекс текущего столбца (столбец 0 — нули)", range: "1 … m" },
+      { name: "S[i][j]", role: "сумма прямоугольника (1,1)–(i,j): A[i][j] + S[i−1][j] + S[i][j−1] − S[i−1][j−1]", range: "пересчитывается на каждом шаге" },
+    ],
+  },
+  "dynamic-programming": {
+    vizTitle: "Динамическое программирование (мемоизация)",
+    stepNote: "Шаг = вызов fibMemo(n): попадание в кэш memo или вычисление fib(n−1) + fib(n−2).",
+    variables: [
+      { name: "n", role: "номер числа Фибоначчи, которое сейчас считаем", range: "1 … targetN (по умолчанию 5)" },
+      { name: "memo[n]", role: "кэш уже посчитанных значений — второй заход отдаёт ответ за O(1)", range: "заполняется снизу вверх" },
+    ],
+  },
+  "heap-beam-search": {
+    vizTitle: "Куча (priority queue)",
+    stepNote: "Шаг = просеивание: вставленный элемент всплывает, пока не окажется ниже по приоритету, чем родитель — лучший всегда наверху.",
+    variables: [
+      { name: "n", role: "текущее число элементов в куче (n = len(a))", range: "растёт/падает при push/pop" },
+      { name: "i", role: "индекс элемента, который сейчас просеиваем", range: "0 … n−1" },
+      { name: "(i−1)//2", role: "индекс родителя вершины i в массиве кучи", range: "для i > 0" },
+      { name: "2·i+1, 2·i+2", role: "индексы левого и правого ребёнка вершины i", range: "< n" },
+    ],
+  },
+  "stack-dfs": {
+    vizTitle: "Стек и обход в глубину",
+    stepNote: "Шаг = push новой вершины на стек или pop — возврат рекурсии на уровень выше.",
+    variables: [
+      { name: "top", role: "вершина стека — то, откуда DFS пойдёт дальше", range: "последний добавленный" },
+      { name: "v", role: "текущая вершина графа, которую обрабатываем", range: "0 … n−1" },
+    ],
+  },
+  "queue-bfs": {
+    vizTitle: "Очередь и обход в ширину",
+    stepNote: "Шаг = dequeue вершины из головы очереди и enqueue всех её непосещённых соседей.",
+    variables: [
+      { name: "front", role: "голова очереди — вершина, которую обрабатываем следующей", range: "первый в очереди" },
+      { name: "v", role: "вершина, извлечённая из очереди на этом шаге", range: "по слоям от старта" },
+      { name: "u", role: "сосед вершины v, которого кладём в очередь", range: "непосещённый" },
+    ],
+  },
+  "everyday-basics": {
+    vizTitle: "Бытовой тренажёр: стек, очередь, куча",
+    stepNote: "Шаг = одна бытовая операция: тарелка на стопку, человек в очередь, гипотеза в кучу.",
+    variables: [
+      { name: "top / front", role: "верх стопки (стек) и голова очереди — кого заберут первым", range: "LIFO и FIFO" },
+      { name: "i", role: "индекс в массиве кучи; родитель (i−1)//2, дети 2·i+1 и 2·i+2", range: "0 … n−1" },
+    ],
+  },
+  "graph-dfs-bfs": {
+    vizTitle: "DFS и BFS на графе",
+    stepNote: "Шаг = переход из текущей вершины v к непосещённому соседу to (DFS — вглубь, BFS — по слоям).",
+    variables: [
+      { name: "v", role: "текущая вершина обхода", range: "вершины демо-графа" },
+      { name: "to / u", role: "очередной сосед вершины v из списка смежности adj[v]", range: "adj[v]" },
+      { name: "visited", role: "множество уже посещённых вершин — гарантия от циклов", range: "пополняется на каждом шаге" },
+      { name: "order", role: "порядок, в котором обход дошёл до вершин", range: "строка под графом" },
+    ],
+  },
+  "graph-components": {
+    // отдельного виджета нет, тема опирается на DFS/BFS-обходы
+    variables: [],
+  },
+  "top-sort": {
+    vizTitle: "Топологическая сортировка",
+    stepNote: "Шаг = выход рекурсии из вершины v: она дописывается в order, потом order разворачивается.",
+    variables: [
+      { name: "v", role: "текущая вершина DFS", range: "0 … 4 на демо" },
+      { name: "to", role: "вершина, куда ведёт ребро из v", range: "adj[v]" },
+      { name: "i", role: "перебор стартовых вершин во внешнем цикле (вдруг граф несвязен)", range: "0 … 4" },
+      { name: "order", role: "список выхода из рекурсии; после разворота — топологический порядок", range: "растёт на каждом выходе" },
+    ],
+  },
+  "scc-kosaraju": {
+    vizTitle: "Компоненты сильной связности (Косарайю)",
+    stepNote: "Шаг = вершина из order (в обратном порядке) запускает DFS по транспонированному графу и красит свою SCC.",
+    variables: [
+      { name: "v", role: "текущая вершина DFS (первый проход — обычный граф)", range: "0 … 4" },
+      { name: "to", role: "сосед по ребру (на 2-м проходе — по обратному ребру)", range: "adj / adjT" },
+      { name: "i", role: "индекс прохода по order на втором этапе — идём с конца", range: "len(order)−1 … 0" },
+      { name: "order", role: "порядок выхода из DFS первого прохода", range: "читается справа налево" },
+      { name: "comp", role: "номер компоненты сильной связности, которой красим вершины", range: "0, 1, 2…" },
+    ],
+  },
+  "graph-articulation": {
+    vizTitle: "Точки сочленения",
+    stepNote: "Шаг = обновление low[v] по ребру; вершина v — точка сочленения, когда low[to] ≥ tin[v].",
+    variables: [
+      { name: "v", role: "текущая вершина DFS", range: "вершины демо-графа" },
+      { name: "to", role: "сосед: либо ребёнок в DFS-дереве, либо обратное ребро", range: "adj[v]" },
+      { name: "tin[v]", role: "время входа в вершину (порядок обхода)", range: "1, 2, 3…" },
+      { name: "low[v]", role: "минимальный tin, достижимый из поддерева v одним обратным ребром", range: "≤ tin[v]" },
+      { name: "i", role: "перебор стартовых вершин для случая несвязного графа", range: "0 … n−1" },
+    ],
+  },
+  "bridges-code": {
+    vizTitle: "Мосты: DFS + tin/low",
+    stepNote: "Шаг = строка псевдокода слева; ребро (v, to) — мост, когда low[to] > tin[v].",
+    variables: [
+      { name: "v", role: "текущая вершина DFS", range: "A…G на демо" },
+      { name: "to", role: "сосед; ребро (v, to) проверяем на мост", range: "adj[v]" },
+      { name: "tin[v]", role: "время входа в вершину — метка глубины обхода", range: "timer++" },
+      { name: "low[v]", role: "минимум tin, куда можно добраться из поддерева v обратным ребром", range: "≤ tin[v]" },
+      { name: "timer", role: "глобальный счётчик времени входа", range: "+1 на каждый вход" },
+    ],
+  },
+  "euler-path-vs-cycle": {
+    vizTitle: "Эйлеров путь и цикл",
+    stepNote: "Шаг = один клик по следующей вершине маршрута; ребро при этом «сгорает».",
+    variables: [
+      { name: "path", role: "текущий маршрут — последовательность пройденных вершин", range: "растёт по кликам" },
+      { name: "last", role: "последняя вершина пути — отсюда выбираем следующее ребро", range: "path[-1]" },
+      { name: "deg(v)", role: "степень вершины: чётная всюду → цикл, ровно две нечётные → путь", range: "считается по рёбрам" },
+    ],
+  },
+  "planarity-euler-formula": {
+    vizTitle: "Планарность: K5 и K3,3",
+    stepNote: "Шаг = попытка перетащить вершину так, чтобы рёбра перестали пересекаться.",
+    variables: [
+      { name: "V", role: "число вершин графа", range: "K5: 5 · K3,3: 6" },
+      { name: "E", role: "число рёбер", range: "K5: 10 · K3,3: 9" },
+      { name: "F", role: "число граней в плоской укладке", range: "V − E + F = 2" },
+    ],
+  },
+  dijkstra: {
+    vizTitle: "Дейкстра",
+    stepNote: "Шаг = выбор ближайшей непосещённой вершины u и релаксация всех её рёбер (u → v).",
+    variables: [
+      { name: "u", role: "вершина с минимальным dist среди непосещённых — её обрабатываем", range: "argmin dist" },
+      { name: "v", role: "сосед вершины u, до которого пробуем улучшить путь", range: "соседи u" },
+      { name: "w", role: "вес ребра (u, v)", range: "подпись на ребре" },
+      { name: "dist[v]", role: "лучшее известное расстояние от старта до v", range: "0 … ∞" },
+    ],
+  },
+  "bellman-ford": {
+    vizTitle: "Форд—Беллман",
+    stepNote: "Шаг = одна релаксация ребра (u, v, w) внутри i-й итерации по всем рёбрам.",
+    variables: [
+      { name: "n", role: "число вершин графа — ровно n−1 полных итераций", range: "7 на демо" },
+      { name: "m", role: "число рёбер, по которым проходим на каждой итерации", range: "список E" },
+      { name: "i", role: "номер итерации (после i итераций точны все пути из ≤ i рёбер)", range: "1 … n−1" },
+      { name: "u, v, w", role: "текущее ребро: откуда, куда и его вес", range: "перебор E" },
+      { name: "dist[v]", role: "расстояние; если обновилось на n-й итерации — отрицательный цикл", range: "0 … ∞" },
+    ],
+  },
+  floyd: {
+    vizTitle: "Флойд—Уоршелл",
+    stepNote: "Шаг = проверка dist[i][j] > dist[i][k] + dist[k][j] для текущей промежуточной вершины k.",
+    variables: [
+      { name: "n", role: "число вершин — размер квадратной матрицы расстояний n × n", range: "7 на демо" },
+      { name: "k", role: "промежуточная вершина — ВНЕШНИЙ цикл; на шаге k разрешено ходить через вершины 0 … k", range: "0 … n−1" },
+      { name: "i", role: "начало пути — строка матрицы (средний цикл)", range: "0 … n−1" },
+      { name: "j", role: "конец пути — столбец матрицы (внутренний цикл)", range: "0 … n−1" },
+      { name: "dist[i][j]", role: "кратчайший путь i → j среди уже проверенных промежуточных вершин", range: "обновляется на каждом улучшении" },
+    ],
+  },
+  "johnson-algo": {
+    vizTitle: "Алгоритм Джонсона (перевзвешивание)",
+    stepNote: "Шаг = Беллман-Форд из фиктивной вершины считает h[v], затем n запусков Дейкстры в новых весах.",
+    variables: [
+      { name: "h[v]", role: "потенциал вершины — кратчайший путь от фиктивной вершины; делает веса неотрицательными", range: "после Беллмана–Форда" },
+      { name: "u, v", role: "ребро (u, v) перевзвешивается: w′(u,v) = w(u,v) + h[u] − h[v]", range: "все рёбра" },
+      { name: "d[v]", role: "расстояние Дейкстры в новых весах; истинный ответ: d[v] − h[start] + h[v]", range: "обратное перевзвешивание" },
+    ],
+  },
+  "mst-kruskal": {
+    vizTitle: "Краскал и DSU",
+    stepNote: "Шаг = следующее ребро из отсортированных: если концы в разных компонентах — берём в остов.",
+    variables: [
+      { name: "n", role: "число вершин; в остов войдёт ровно n−1 ребро", range: "вершины демо-графа" },
+      { name: "m", role: "число рёбер, сортируем по весу в начале", range: "список E" },
+      { name: "i", role: "ребро сортируем по весу w; parent[i] — представитель компоненты", range: "0 … m−1 / find(x)" },
+      { name: "parent[v]", role: "DSU: кто представитель компоненты вершины v", range: "сжатие путей" },
+      { name: "rank[v]", role: "высота дерева DSU — по ней решаем, кого к кому подвешивать", range: "≤ log n" },
+    ],
+  },
+  "mst-prima": {
+    vizTitle: "Прим",
+    stepNote: "Шаг = из кучи достаётся самое лёгкое ребро, ведущее из выращенного дерева наружу.",
+    variables: [
+      { name: "v", role: "вершина, которую только что добавили в остовное дерево", range: "из кучи" },
+      { name: "u", role: "ещё не взятый сосед v — кандидат на добавление", range: "соседи v" },
+      { name: "w", role: "вес ребра (v, u) — ключ в куче (w, u, parent)", range: "min на вершине кучи" },
+      { name: "start", role: "стартовая вершина, из неё растим дерево", range: "1 вершина" },
+    ],
+  },
+  "mst-boruvka": {
+    vizTitle: "Борувка",
+    stepNote: "Шаг = каждая компонента одновременно выбирает своё самое дешёвое исходящее ребро.",
+    variables: [
+      { name: "comp", role: "компонента связности текущего леса (DSU)", range: "число компонент ÷≥2 за фазу" },
+      { name: "cheapest[comp]", role: "самое дешёвое ребро из компоненты наружу", range: "обновляется каждую фазу" },
+      { name: "u, v, w", role: "ребро-кандидат: концы и вес", range: "все рёбра" },
+    ],
+  },
+  "string-kmp": {
+    vizTitle: "Префикс-функция (КМП)",
+    stepNote: "Шаг = обработка символа s[i]: откаты по j = π[j−1], пока не совпадёт s[j] с s[i].",
+    variables: [
+      { name: "n", role: "длина строки s, для которой строим префикс-функцию", range: "n = len(s)" },
+      { name: "i", role: "индекс текущего символа — считаем π[i], идём слева направо", range: "1 … n−1" },
+      { name: "j", role: "длина текущего наилучшего совпавшего префикса (начинаем с j = π[i−1])", range: "0 … i" },
+      { name: "π[i]", role: "префикс-функция: длина наибольшего префикса, который одновременно и суффикс s[0…i]", range: "заполняется таблица" },
+    ],
+  },
+  "string-z-func": {
+    vizTitle: "Z-функция",
+    stepNote: "Шаг = вычисление z[i]: внутри Z-блока [l, r] берём инициализацию из z[i−l], потом досчитаем в лоб.",
+    variables: [
+      { name: "n", role: "длина строки s", range: "n = len(s)" },
+      { name: "i", role: "позиция, для которой считаем z[i]", range: "1 … n−1" },
+      { name: "l, r", role: "правый крайний Z-блок: отрезок, совпадающий с префиксом, с максимальным r", range: "l ≤ i ≤ r" },
+      { name: "z[i]", role: "длина наибольшего общего префикса строки и суффикса с позиции i", range: "0 … n−i" },
+    ],
+  },
+  "aho-corasick": {
+    vizTitle: "Ахо—Корасик",
+    stepNote: "Шаг = построение бора по образцам, затем BFS-обход, натягивающий суффиксные ссылки (водопад «лосося»).",
+    variables: [
+      { name: "state", role: "текущее состояние автомата — вершина бора", range: "0 … число вершин" },
+      { name: "c", role: "очередной символ текста — переход из state по c", range: "алфавит образцов" },
+      { name: "go(v, c)", role: "функция перехода автомата с учётом суффиксных ссылок", range: "мемоизируется" },
+    ],
+  },
+  "complexity-classes": {
+    variables: [],
+  },
+  intro: {
+    // мнемокарточки без шагов алгоритма
+    variables: [],
+  },
+  "alg-map": {
+    variables: [],
+  },
+};
+
+/** Безопасный доступ: страница без записи получает пустую синхронизацию. */
+export const getPageSync = (chapterId?: string | null): PageSync =>
+  (chapterId && PAGE_SYNC[chapterId]) || { variables: [] };
+
+
 ==========================================================================================================================================
 РАЗДЕЛ: БИЛЕТЫ (УЧЕБНЫЙ КОНТЕНТ)
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 22/80: src/data/tickets/ticket1_5.ts
+ФАЙЛ 24/85: src/data/tickets/ticket1_5.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 277 | РАЗМЕР: 21.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3783,7 +5358,7 @@ function rotate(x) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 23/80: src/data/tickets/ticket14_20.ts
+ФАЙЛ 25/85: src/data/tickets/ticket14_20.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 248 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4037,7 +5612,7 @@ export const tickets14to20: Chapter[] = [
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 24/80: src/data/tickets/ticket21_24.ts
+ФАЙЛ 26/85: src/data/tickets/ticket21_24.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 262 | РАЗМЕР: 19.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4305,7 +5880,7 @@ int go(int v, char c) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 25/80: src/data/tickets/ticket6_13.ts
+ФАЙЛ 27/85: src/data/tickets/ticket6_13.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 486 | РАЗМЕР: 35.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4801,7 +6376,7 @@ void dfs(int v, int p = -1) {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 26/80: src/components/ArticulationPointsViz.tsx
+ФАЙЛ 28/85: src/components/ArticulationPointsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 371 | РАЗМЕР: 12.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5178,7 +6753,7 @@ export const ArticulationPointsViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 27/80: src/components/BellmanFordViz.tsx
+ФАЙЛ 29/85: src/components/BellmanFordViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 307 | РАЗМЕР: 16.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5491,7 +7066,7 @@ export default function BellmanFordViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 28/80: src/components/BfsViz.tsx
+ФАЙЛ 30/85: src/components/BfsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 306 | РАЗМЕР: 11.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5803,7 +7378,7 @@ export default function BfsViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 29/80: src/components/ChapterImage.tsx
+ФАЙЛ 31/85: src/components/ChapterImage.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5851,7 +7426,7 @@ export default function ChapterImage({ vizType }: { vizType: string }) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 30/80: src/components/ChapterNav.tsx
+ФАЙЛ 32/85: src/components/ChapterNav.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 77 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5934,12 +7509,12 @@ export const ChapterNav: React.FC<Props> = ({ prev, next, index, total, onGo, co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 31/80: src/components/ChapterView.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 178 | РАЗМЕР: 6.8 KB
+ФАЙЛ 33/85: src/components/ChapterView.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 191 | РАЗМЕР: 7.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles } from "lucide-react";
+import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles, Terminal } from "lucide-react";
 import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
@@ -5955,11 +7530,13 @@ interface Props {
   total: number;
   onGo: (id: string) => void;
   onOpenSimulator: (vizId: string) => void;
+  /** Перейти во вкладку компилятора — там уже подставлены переменные этой демонстрации. */
+  onOpenCompiler?: () => void;
 }
 
 const isTouch = () => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
 
-export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator }) => {
+export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator, onOpenCompiler }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [anchor, setAnchor] = useState<HintAnchor | null>(null);
   const hideTimer = useRef<number | null>(null);
@@ -6087,12 +7664,23 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 Демонстрация: {viz.title}
               </h3>
-              <button
-                onClick={() => onOpenSimulator(chapter.id)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
-              >
-                <Maximize2 className="w-3.5 h-3.5" /> Развернуть
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenSimulator(chapter.id)}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" /> Развернуть
+                </button>
+                {onOpenCompiler && (
+                  <button
+                    onClick={onOpenCompiler}
+                    title="Открыть Python-компилятор: он синхронизирован с этой демонстрацией — покажет её переменные (i, j, k, n, m…) в комментарии"
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 hover:text-white hover:border-emerald-500 transition-colors"
+                  >
+                    <Terminal className="w-3.5 h-3.5" /> Переменные в компиляторе
+                  </button>
+                )}
+              </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
             <viz.Component />
@@ -6118,7 +7706,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 32/80: src/components/DfsBridgesSimulator.tsx
+ФАЙЛ 34/85: src/components/DfsBridgesSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 344 | РАЗМЕР: 15.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6468,7 +8056,7 @@ export function DfsBridgesSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 33/80: src/components/DijkstraViz.tsx
+ФАЙЛ 35/85: src/components/DijkstraViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 386 | РАЗМЕР: 18.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6860,7 +8448,7 @@ export default function DijkstraViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 34/80: src/components/DPVisualizer.tsx
+ФАЙЛ 36/85: src/components/DPVisualizer.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 331 | РАЗМЕР: 14.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -7197,7 +8785,7 @@ export function DPVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 35/80: src/components/EulerSimulator.tsx
+ФАЙЛ 37/85: src/components/EulerSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 120 | РАЗМЕР: 5.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -7323,7 +8911,7 @@ export function EulerSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 36/80: src/components/ExpressQuiz.tsx
+ФАЙЛ 38/85: src/components/ExpressQuiz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 233 | РАЗМЕР: 12.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -7562,7 +9150,7 @@ export const ExpressQuiz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 37/80: src/components/FloydViz.tsx
+ФАЙЛ 39/85: src/components/FloydViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 274 | РАЗМЕР: 15.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -7842,7 +9430,7 @@ export default function FloydViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 38/80: src/components/GraphTraversalViz.tsx
+ФАЙЛ 40/85: src/components/GraphTraversalViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 253 | РАЗМЕР: 12.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8101,7 +9689,7 @@ export function GraphTraversalViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 39/80: src/components/HeapViz.tsx
+ФАЙЛ 41/85: src/components/HeapViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 416 | РАЗМЕР: 18.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8523,7 +10111,7 @@ export const HeapViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 40/80: src/components/hints/demoKit.tsx
+ФАЙЛ 42/85: src/components/hints/demoKit.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 102 | РАЗМЕР: 3.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8631,7 +10219,7 @@ export const Edge: React.FC<{
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 41/80: src/components/hints/demosExtra.tsx
+ФАЙЛ 43/85: src/components/hints/demosExtra.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 240 | РАЗМЕР: 9.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8877,7 +10465,7 @@ export const ZigZagDemo: React.FC = () => (
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 42/80: src/components/hints/demosGraph.tsx
+ФАЙЛ 44/85: src/components/hints/demosGraph.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 192 | РАЗМЕР: 8.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9075,7 +10663,7 @@ export const SccDemo: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 43/80: src/components/hints/demosStruct.tsx
+ФАЙЛ 45/85: src/components/hints/demosStruct.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 310 | РАЗМЕР: 14.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9391,7 +10979,7 @@ export const DpDemo: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 44/80: src/components/hints/MiniDemo.tsx
+ФАЙЛ 46/85: src/components/hints/MiniDemo.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 2.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9465,7 +11053,7 @@ export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 45/80: src/components/hints/SimulatorModal.tsx
+ФАЙЛ 47/85: src/components/hints/SimulatorModal.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 55 | РАЗМЕР: 2.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9526,7 +11114,7 @@ export const SimulatorModal: React.FC<Props> = ({ vizId, onClose }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 46/80: src/components/hints/TermPopover.tsx
+ФАЙЛ 48/85: src/components/hints/TermPopover.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 123 | РАЗМЕР: 4.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9655,7 +11243,7 @@ export const TermPopover: React.FC<Props> = ({ anchor, onClose, onOpenSimulator,
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 47/80: src/components/JohnsonViz.tsx
+ФАЙЛ 49/85: src/components/JohnsonViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 315 | РАЗМЕР: 16.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9976,7 +11564,7 @@ export function JohnsonViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 48/80: src/components/KosarajuViz.tsx
+ФАЙЛ 50/85: src/components/KosarajuViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 505 | РАЗМЕР: 16.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10487,7 +12075,7 @@ export const KosarajuViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 49/80: src/components/KruskalSimulator.tsx
+ФАЙЛ 51/85: src/components/KruskalSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1117 | РАЗМЕР: 56.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11610,7 +13198,7 @@ def prim(graph, start):
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 50/80: src/components/MnemonicCards.tsx
+ФАЙЛ 52/85: src/components/MnemonicCards.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 2.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11684,7 +13272,7 @@ export default function MnemonicCards() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 51/80: src/components/MobileToc.tsx
+ФАЙЛ 53/85: src/components/MobileToc.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 81 | РАЗМЕР: 3.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11771,18 +13359,18 @@ export const MobileToc: React.FC<Props> = ({ selectedChapterId, setSelectedChapt
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 52/80: src/components/Navbar.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 99 | РАЗМЕР: 4.7 KB
+ФАЙЛ 54/85: src/components/Navbar.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 111 | РАЗМЕР: 5.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState } from 'react';
-import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2 } from 'lucide-react';
+import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2, Terminal } from 'lucide-react';
 import { chapters } from '../data/content';
 import { downloadBookHtml } from '../utils/exportHtml';
 
 interface NavbarProps {
-  activeTab: 'guide' | 'simulator';
-  setActiveTab: (tab: 'guide' | 'simulator') => void;
+  activeTab: 'guide' | 'simulator' | 'compiler';
+  setActiveTab: (tab: 'guide' | 'simulator' | 'compiler') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
@@ -11837,9 +13425,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           >
             <Cpu className="w-4 h-4" /> Тренажёры
           </button>
+          <button
+            id="tab-compiler-btn"
+            onClick={() => setActiveTab('compiler')}
+            title="Боковая вкладка с Python-компилятором: синхронизирована с текущей визуализацией"
+            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
+              activeTab === 'compiler'
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Terminal className="w-4 h-4" /> Python
+          </button>
           <a
             id="download-pdf-btn"
-            href="/export/full_code_all_pages.pdf"
+            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.pdf`}
             download="full_code_all_pages.pdf"
             target="_blank"
             rel="noreferrer"
@@ -11850,7 +13450,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           </a>
           <a
             id="download-txt-btn"
-            href="/export/full_code_all_pages.txt"
+            href={`${import.meta.env.BASE_URL}export/full_code_all_pages.txt`}
             download="full_code_all_pages.txt"
             target="_blank"
             rel="noreferrer"
@@ -11876,7 +13476,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 53/80: src/components/PlanarityDemo.tsx
+ФАЙЛ 55/85: src/components/PlanarityDemo.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 129 | РАЗМЕР: 6.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12011,7 +13611,457 @@ export function PlanarityDemo() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 54/80: src/components/QueueViz.tsx
+ФАЙЛ 56/85: src/components/PythonCompiler.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 444 | РАЗМЕР: 22.0 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowRightLeft,
+  BookOpen,
+  CheckCircle2,
+  Copy,
+  Check,
+  ExternalLink,
+  Info,
+  Link2,
+  Loader2,
+  Play,
+  RotateCcw,
+  Terminal,
+  Unlink,
+  Variable,
+} from "lucide-react";
+import { getPageSync } from "../data/vizSync";
+import { Tooltip } from "./Tooltip";
+
+const PYODIDE_VERSION = "0.27.7";
+const PYODIDE_MODULE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`;
+const PYODIDE_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+
+interface PythonCompilerProps {
+  /** Страница, с которой синхронизируется редактор. */
+  chapterId: string;
+  chapterTitle: string;
+  /** Перейти обратно к странице пособия (посмотреть визуализацию). */
+  onOpenGuide: () => void;
+}
+
+type PyodideRuntime = {
+  runPythonAsync: (source: string) => Promise<unknown>;
+  setStdout: (options: { batched: (message: string) => void }) => void;
+  setStderr: (options: { batched: (message: string) => void }) => void;
+  setStdin: (options: { stdin: () => string | number | null }) => void;
+};
+
+type PyodideModule = {
+  loadPyodide: (options: { indexURL: string }) => Promise<PyodideRuntime>;
+};
+
+let runtimePromise: Promise<PyodideRuntime> | null = null;
+
+function getPythonRuntime() {
+  if (!runtimePromise) {
+    runtimePromise = import(/* @vite-ignore */ PYODIDE_MODULE_URL).then((module) =>
+      (module as PyodideModule).loadPyodide({ indexURL: PYODIDE_INDEX_URL })
+    );
+  }
+  return runtimePromise;
+}
+
+function errorText(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+/**
+ * Стартовое содержимое редактора для страницы.
+ *
+ * ВАЖНО: здесь намеренно НЕТ кода алгоритма — только комментарий с
+ * переменными, по которым идёт пошаговая визуализация (i, j, k, n, m…).
+ * Студент сам меняет их значения, повторяя шаги демонстрации.
+ */
+function buildSyncTemplate(chapterId: string, chapterTitle: string): string {
+  const sync = getPageSync(chapterId);
+  const bar = "# " + "═".repeat(56);
+  const lines: string[] = [bar, "#  СИНХРОНИЗАЦИЯ С ВИЗУАЛИЗАЦИЕЙ", `#  Страница: «${chapterTitle}»`];
+  if (sync.vizTitle) lines.push(`#  Демонстрация: ${sync.vizTitle}`);
+  lines.push(bar, "#");
+
+  if (sync.variables.length === 0) {
+    lines.push(
+      "#  На этой странице нет интерактивной визуализации —",
+      "#  компилятор работает в свободном режиме.",
+      "#  Откройте страницу с демонстрацией (стрелки ← → в пособии),",
+      "#  и здесь появятся её переменные синхронизации."
+    );
+  } else {
+    lines.push("#  Пошаговая подсветка на визуализации идёт по переменным:");
+    for (const v of sync.variables) {
+      const range = v.range ? `  (${v.range})` : "";
+      lines.push(`#    ${v.name} — ${v.role}${range}`);
+    }
+    if (sync.stepNote) {
+      lines.push("#", `#  Шаг = ${sync.stepNote}`);
+    }
+    lines.push(
+      "#",
+      "#  Кода алгоритма здесь намеренно нет: листайте шаги на",
+      "#  визуализации и повторяйте их руками — заведите эти переменные",
+      "#  и задайте им значения текущего шага."
+    );
+  }
+  return lines.join("\n") + "\n";
+}
+
+/** Переживает перемонтирование вкладки: код пользователя не теряется при переключении вкладок. */
+let savedEditor: { code: string; template: string; chapterId: string } | null = null;
+
+export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide }: PythonCompilerProps) {
+  const sync = useMemo(() => getPageSync(chapterId), [chapterId]);
+  const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle), [chapterId, chapterTitle]);
+
+  const [code, setCode] = useState(() => {
+    if (!savedEditor) return template;
+    // редактор не трогали — берём свежий шаблон текущей страницы
+    if (savedEditor.code === savedEditor.template || savedEditor.code.trim() === "") return template;
+    return savedEditor.code;
+  });
+  const [stdin, setStdin] = useState("");
+  const [output, setOutput] = useState("Нажмите «Запустить», чтобы увидеть результат.");
+  const [running, setRunning] = useState(false);
+  const [runtimeReady, setRuntimeReady] = useState(false);
+  const [runtimeMessage, setRuntimeMessage] = useState("Python загружается только после первого запуска");
+  const [copied, setCopied] = useState(false);
+
+  /** Страница, с которой редактор перестал совпадать (пользователь написал свой код). */
+  const [desyncedFrom, setDesyncedFrom] = useState<string | null>(() =>
+    savedEditor &&
+    savedEditor.chapterId !== chapterId &&
+    savedEditor.code !== savedEditor.template &&
+    savedEditor.code.trim() !== "" &&
+    savedEditor.code !== template
+      ? chapterId
+      : null
+  );
+  const prevTemplateRef = useRef(template);
+
+  // запоминаем состояние редактора, чтобы возврат на вкладку ничего не затирал
+  useEffect(() => {
+    savedEditor = { code, template, chapterId };
+  }, [code, template, chapterId]);
+
+  // Смена страницы: если редактор не тронут (пуст или равен прошлому шаблону) —
+  // тихо подставляем переменные новой страницы. Свой код не затираем,
+  // а предлагаем синхронизироваться кнопкой.
+  useEffect(() => {
+    if (template === prevTemplateRef.current) return;
+    const prevTemplate = prevTemplateRef.current;
+    prevTemplateRef.current = template;
+    if (code === prevTemplate || code.trim() === "") {
+      setCode(template);
+      setDesyncedFrom(null);
+    } else {
+      setDesyncedFrom(chapterId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [template]);
+
+  const resync = useCallback(() => {
+    prevTemplateRef.current = template;
+    setCode(template);
+    setDesyncedFrom(null);
+  }, [template]);
+
+  const runCode = useCallback(async () => {
+    if (running) return;
+
+    setRunning(true);
+    setOutput("");
+    setRuntimeMessage(runtimeReady ? "Выполняю код…" : "Загружаю Python в браузер…");
+
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const inputLines = stdin.split(/\r?\n/);
+
+    try {
+      const runtime = await getPythonRuntime();
+      setRuntimeReady(true);
+      setRuntimeMessage("Python готов — код выполняется локально в браузере");
+
+      runtime.setStdout({ batched: (message) => stdout.push(message) });
+      runtime.setStderr({ batched: (message) => stderr.push(message) });
+      runtime.setStdin({ stdin: () => (inputLines.length > 0 ? inputLines.shift() ?? "" : null) });
+      await runtime.runPythonAsync(code);
+
+      const text = [...stdout, ...stderr].join("");
+      setOutput(text || "Готово: программа ничего не вывела.");
+    } catch (error) {
+      const captured = [...stdout, ...stderr].join("");
+      setOutput(`${captured}${captured && !captured.endsWith("\n") ? "\n" : ""}Ошибка:\n${errorText(error)}`);
+      setRuntimeMessage("Не удалось выполнить код — проверьте программу и соединение для загрузки Pyodide");
+    } finally {
+      setRunning(false);
+    }
+  }, [code, stdin, running, runtimeReady]);
+
+  const copyCode = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setRuntimeMessage("Не получилось скопировать — буфер обмена недоступен");
+    }
+  }, [code]);
+
+  const hasViz = sync.variables.length > 0;
+
+  return (
+    <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">
+              <Terminal className="w-4 h-4" /> Боковая вкладка · Python
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Мини-компилятор Python</h2>
+            <p className="text-slate-400 mt-2 max-w-2xl leading-relaxed">
+              Редактор синхронизирован с текущей страницей пособия: в нём только комментарий с переменными,
+              по которым идёт пошаговая визуализация. Наведите курсор на переменную — появится подсказка.
+            </p>
+          </div>
+          <a
+            href="https://pyodide.org/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+          >
+            Как это работает <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        {/* Панель синхронизации с визуализацией */}
+        <div className="mb-5 rounded-2xl border border-slate-700 bg-slate-900/80 p-4 shadow-xl shadow-black/10">
+          <div className="flex flex-wrap items-center gap-2">
+            <Tooltip
+              side="bottom"
+              content={
+                hasViz
+                  ? "Редактор и визуализация смотрят на одну страницу. Переменные ниже — те самые, что подсвечиваются по шагам."
+                  : "На выбранной странице нет интерактива, поэтому и переменных синхронизации нет."
+              }
+            >
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${
+                  hasViz
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                    : "bg-slate-800 text-slate-400 border border-slate-700"
+                }`}
+                tabIndex={0}
+              >
+                <Link2 className="w-3.5 h-3.5" />
+                {hasViz ? "Синхронизировано с визуализацией" : "Нет визуализации на странице"}
+              </span>
+            </Tooltip>
+
+            <Tooltip side="bottom" content="Открыть эту страницу в пособии и посмотреть демонстрацию рядом с текстом.">
+              <button
+                type="button"
+                onClick={onOpenGuide}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors max-w-[16rem]"
+              >
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{chapterTitle}</span>
+              </button>
+            </Tooltip>
+
+            {desyncedFrom !== null && (
+              <Tooltip
+                side="bottom"
+                content="В редакторе ваш код, а страница сменилась. Кнопка вернёт комментарий с переменными текущей страницы (ваш код будет заменён)."
+              >
+                <button
+                  type="button"
+                  onClick={resync}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold bg-amber-500/10 border border-amber-500/40 text-amber-400 hover:bg-amber-500/20 transition-colors"
+                >
+                  <Unlink className="w-3.5 h-3.5" />
+                  Страница сменилась — подставить её переменные
+                </button>
+              </Tooltip>
+            )}
+          </div>
+
+          {hasViz && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-slate-500 mr-1">
+                <Variable className="w-3.5 h-3.5" /> Переменные шага:
+              </span>
+              {sync.variables.map((v) => (
+                <Tooltip
+                  key={v.name}
+                  side="bottom"
+                  content={
+                    <span>
+                      <span className="block font-bold text-white mb-0.5">
+                        <code className="font-mono text-emerald-300">{v.name}</code>
+                      </span>
+                      <span className="block">{v.role}</span>
+                      {v.range && <span className="block mt-1 text-indigo-300">{v.range}</span>}
+                    </span>
+                  }
+                >
+                  <code
+                    tabIndex={0}
+                    className="cursor-help rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[12px] font-bold text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                  >
+                    {v.name}
+                  </code>
+                </Tooltip>
+              ))}
+              {sync.stepNote && (
+                <Tooltip side="bottom" content={`Шаг визуализации = ${sync.stepNote}`}>
+                  <span
+                    tabIndex={0}
+                    className="cursor-help inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[11px] text-slate-400 hover:text-white transition-colors max-w-full"
+                  >
+                    <ArrowRightLeft className="w-3 h-3 shrink-0" />
+                    <span className="truncate max-w-64 sm:max-w-96">{sync.stepNote}</span>
+                  </span>
+                </Tooltip>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="grid xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] gap-5 items-start">
+          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 bg-slate-900">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${desyncedFrom !== null ? "bg-amber-400" : "bg-emerald-400"}`} />
+                <span className="text-sm font-bold text-white">main.py</span>
+                <span className="text-[11px] text-slate-500">Python 3 · Pyodide</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Tooltip side="bottom" content="Скопировать содержимое редактора в буфер обмена.">
+                  <button
+                    type="button"
+                    onClick={() => void copyCode()}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? "Скопировано" : "Копировать"}
+                  </button>
+                </Tooltip>
+                <Tooltip
+                  side="bottom"
+                  content="Вернуть комментарий с переменными текущей страницы. Кода алгоритма тут нет по замыслу — вы повторяете шаги сами."
+                >
+                  <button
+                    type="button"
+                    onClick={resync}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" /> Сбросить
+                  </button>
+                </Tooltip>
+                <Tooltip side="bottom" content="Запустить код (Ctrl/Cmd + Enter). Первый запуск скачивает Python в браузер.">
+                  <button
+                    type="button"
+                    onClick={() => void runCode()}
+                    disabled={running}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
+                  >
+                    {running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                    {running ? "Запускаю…" : "Запустить"}
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+
+            <textarea
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              onKeyDown={(event) => {
+                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                  event.preventDefault();
+                  void runCode();
+                }
+              }}
+              spellCheck={false}
+              aria-label="Код Python"
+              className="block w-full min-h-[380px] resize-y bg-[#0b1220] px-4 py-4 font-mono text-[13px] leading-6 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 placeholder:text-slate-600"
+              placeholder="Напишите Python-код…"
+            />
+
+            <div className="border-t border-slate-800 bg-slate-950/70">
+              <label className="block px-4 pt-3 text-[11px] font-bold uppercase tracking-wider text-slate-500" htmlFor="python-stdin">
+                Ввод для input() · по одной строке на каждый вызов
+              </label>
+              <textarea
+                id="python-stdin"
+                value={stdin}
+                onChange={(event) => setStdin(event.target.value)}
+                spellCheck={false}
+                rows={2}
+                placeholder={"Например:\nАлиса"}
+                className="block w-full resize-y bg-transparent px-4 py-2 font-mono text-[13px] leading-6 text-slate-300 outline-none placeholder:text-slate-700"
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Terminal className="w-4 h-4 text-emerald-400" /> Результат
+              </div>
+              <Tooltip
+                side="bottom"
+                content={
+                  runtimeReady
+                    ? "Python уже загружен в браузер (WebAssembly), код выполняется локально."
+                    : "Python ещё не скачан — это произойдёт при первом запуске."
+                }
+              >
+                <span
+                  tabIndex={0}
+                  className={`cursor-help inline-flex items-center gap-1.5 text-[11px] ${runtimeReady ? "text-emerald-400" : "text-slate-500"}`}
+                >
+                  {runtimeReady && <CheckCircle2 className="w-3.5 h-3.5" />}
+                  {runtimeReady ? "готов" : "не загружен"}
+                </span>
+              </Tooltip>
+            </div>
+            <pre className="min-h-[380px] max-h-[560px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] p-4 font-mono text-[13px] leading-6 text-slate-300">
+              {output}
+            </pre>
+            <div className="border-t border-slate-800 px-4 py-3 text-[11px] leading-relaxed text-slate-500">{runtimeMessage}</div>
+          </section>
+        </div>
+
+        <div className="mt-5 grid md:grid-cols-3 gap-3 text-xs leading-relaxed">
+          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
+            <Info className="w-4 h-4 shrink-0 text-indigo-400 mt-0.5" />
+            <span>Ctrl или Cmd + Enter запускает код. Вывод и ошибки появляются справа.</span>
+          </div>
+          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
+            <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+            <span>Первый запуск скачивает примерно несколько мегабайт Pyodide и может занять время.</span>
+          </div>
+          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
+            <Info className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+            <span>Код выполняется в браузере и не отправляется на сервер пособия.</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 57/85: src/components/QueueViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 304 | РАЗМЕР: 16.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12321,7 +14371,7 @@ export const QueueViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 55/80: src/components/SalmonAutomatonWidget.tsx
+ФАЙЛ 58/85: src/components/SalmonAutomatonWidget.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 645 | РАЗМЕР: 27.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12972,7 +15022,7 @@ export const SalmonAutomatonWidget: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 56/80: src/components/SegmentTreeVisualizer.tsx
+ФАЙЛ 59/85: src/components/SegmentTreeVisualizer.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 531 | РАЗМЕР: 29.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13509,7 +15559,7 @@ export function SegmentTreeVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 57/80: src/components/Sidebar.tsx
+ФАЙЛ 60/85: src/components/Sidebar.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 111 | РАЗМЕР: 5.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13626,7 +15676,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 58/80: src/components/Simulator.tsx
+ФАЙЛ 61/85: src/components/Simulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 587 | РАЗМЕР: 29.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14219,7 +16269,7 @@ export const Simulator: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 59/80: src/components/SimulatorHub.tsx
+ФАЙЛ 62/85: src/components/SimulatorHub.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 104 | РАЗМЕР: 4.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14329,7 +16379,7 @@ export const SimulatorHub: React.FC<Props> = ({ onOpen, onGoChapter }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 60/80: src/components/SplayRotationSandbox.tsx
+ФАЙЛ 63/85: src/components/SplayRotationSandbox.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 368 | РАЗМЕР: 13.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14703,7 +16753,7 @@ export const SplayRotationSandbox: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 61/80: src/components/SplayRotationsViz.tsx
+ФАЙЛ 64/85: src/components/SplayRotationsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 506 | РАЗМЕР: 21.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15215,7 +17265,7 @@ export const SplayRotationsViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 62/80: src/components/SplayTreeViz.tsx
+ФАЙЛ 65/85: src/components/SplayTreeViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 507 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15728,7 +17778,7 @@ export const SplayTreeViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 63/80: src/components/StackViz.tsx
+ФАЙЛ 66/85: src/components/StackViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 290 | РАЗМЕР: 14.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16024,7 +18074,7 @@ export const StackViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 64/80: src/components/StringAlgorithmsViz.tsx
+ФАЙЛ 67/85: src/components/StringAlgorithmsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 322 | РАЗМЕР: 18.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16352,7 +18402,60 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 65/80: src/components/TopologicalSortViz.tsx
+ФАЙЛ 68/85: src/components/Tooltip.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 47 | РАЗМЕР: 1.9 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import React, { useState } from "react";
+
+interface TooltipProps {
+  /** Содержимое подсказки (можно JSX). */
+  content: React.ReactNode;
+  /** Элемент, на который наводят курсор / фокус. */
+  children: React.ReactNode;
+  /** С какой стороны показывать. По умолчанию — сверху. */
+  side?: "top" | "bottom";
+  className?: string;
+}
+
+/**
+ * Всплывающая подсказка (как title="", только красивая и многострочная).
+ * Появляется по наведению курсора и по фокусу с клавиатуры.
+ */
+export const Tooltip: React.FC<TooltipProps> = ({ content, children, side = "top", className }) => {
+  const [open, setOpen] = useState(false);
+
+  const hiddenShift = side === "top" ? "translate-y-1" : "-translate-y-1";
+
+  return (
+    <span
+      className={`relative inline-flex ${className ?? ""}`}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={() => setOpen(false)}
+    >
+      {children}
+      <span
+        role="tooltip"
+        className={`pointer-events-none absolute left-1/2 z-[80] w-56 max-w-[70vw] -translate-x-1/2 rounded-lg border border-indigo-500/40 bg-slate-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed text-slate-200 shadow-xl shadow-black/50 transition-all duration-150 ${
+          side === "top" ? "bottom-full mb-2" : "top-full mt-2"
+        } ${open ? "visible translate-y-0 opacity-100" : `invisible ${hiddenShift} opacity-0`}`}
+      >
+        {content}
+        <span
+          className={`absolute left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-indigo-500/40 bg-slate-900 ${
+            side === "top" ? "-bottom-[5px] border-b border-r" : "-top-[5px] border-l border-t"
+          }`}
+        />
+      </span>
+    </span>
+  );
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 69/85: src/components/TopologicalSortViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 384 | РАЗМЕР: 12.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16742,7 +18845,7 @@ export const TopologicalSortViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 66/80: src/components/vizRegistry.tsx
+ФАЙЛ 70/85: src/components/vizRegistry.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 182 | РАЗМЕР: 8.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16930,7 +19033,7 @@ export const getViz = (id?: string): VizEntry | undefined => (id ? VIZ_REGISTRY[
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 67/80: src/components/WaterfallAnimationWidget.tsx
+ФАЙЛ 71/85: src/components/WaterfallAnimationWidget.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 762 | РАЗМЕР: 42.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -17702,7 +19805,7 @@ export const WaterfallAnimationWidget: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 68/80: src/components/visualizers/PrefixSumViz.tsx
+ФАЙЛ 72/85: src/components/visualizers/PrefixSumViz.tsx
 КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 330 | РАЗМЕР: 13.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18038,7 +20141,7 @@ const Prefix2D: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 69/80: src/components/visualizers/SparseTableViz.tsx
+ФАЙЛ 73/85: src/components/visualizers/SparseTableViz.tsx
 КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 709 | РАЗМЕР: 43.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18757,7 +20860,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 70/80: src/layout/footer.html
+ФАЙЛ 74/85: src/layout/footer.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 137 | РАЗМЕР: 7.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18900,7 +21003,7 @@ const Viz2DQuery: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 71/80: src/layout/header.html
+ФАЙЛ 75/85: src/layout/header.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 1169 | РАЗМЕР: 89.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20080,7 +22183,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 72/80: src/utils/cn.ts
+ФАЙЛ 76/85: src/utils/cn.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 7 | РАЗМЕР: 169 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20093,7 +22196,7 @@ export function cn(...inputs: ClassValue[]) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 73/80: src/utils/exportHtml.ts
+ФАЙЛ 77/85: src/utils/exportHtml.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 228 | РАЗМЕР: 9.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20331,7 +22434,7 @@ ${bodies.join("\n")}`;
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 74/80: scripts/audit-coverage.mjs
+ФАЙЛ 78/85: scripts/audit-coverage.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 83 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20420,7 +22523,7 @@ if (process.argv.includes("--md")) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 75/80: scripts/audit-terms.mjs
+ФАЙЛ 79/85: scripts/audit-terms.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 68 | РАЗМЕР: 2.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20494,7 +22597,7 @@ console.log("Не встретились:", GLOSSARY.filter((g) => !used.has(g.i
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 76/80: scripts/export/build-pdf.mjs
+ФАЙЛ 80/85: scripts/export/build-pdf.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 64 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20564,7 +22667,7 @@ main().catch((err) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 77/80: scripts/export/collect-code.mjs
+ФАЙЛ 81/85: scripts/export/collect-code.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 196 | РАЗМЕР: 7.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20766,7 +22869,7 @@ main();
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 78/80: scripts/export/common.mjs
+ФАЙЛ 82/85: scripts/export/common.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 66 | РАЗМЕР: 2.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20838,7 +22941,7 @@ export function imageMagickCmd() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 79/80: scripts/export/render-pages.mjs
+ФАЙЛ 83/85: scripts/export/render-pages.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 117 | РАЗМЕР: 4.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20965,7 +23068,96 @@ main().catch((err) => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 80/80: .github/workflows/rebuild-pdf.yml
+ФАЙЛ 84/85: .github/workflows/deploy-pages.yml
+КАТЕГОРИЯ: CI / автоматизация | СТРОК: 83 | РАЗМЕР: 2.9 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+name: Deploy app to GitHub Pages
+
+# ДВЕ настройки репозитория нужно сделать один раз ВРУЧНУЮ
+# (у бота-интеграции нет admin-прав на них — API отвечает 403):
+#
+#   1. Settings → Pages → Build and deployment → Source = «GitHub Actions».
+#      Если там «Deploy from a branch» (legacy) — шаг Deploy падает.
+#   2. Settings → Environments → github-pages → Deployment branches and tags:
+#      добавьте паттерн «arena/**» и ветку «main» (или выберите «No restriction»),
+#      иначе деплой из новой рабочей ветки отклоняется защитой окружения.
+
+on:
+  push:
+    branches:
+      - main
+      # Позволяет проверить Pages прямо из рабочей ветки до слияния.
+      - "arena/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build for the repository subpath
+        env:
+          VITE_BASE: /algv0/
+        run: npm run build
+
+      - name: Make GitHub Pages fallback
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Ранняя и понятная ошибка вместо невнятного «Failed to deploy» от deploy-pages,
+      # когда в репозитории Pages не переключён на сборку через GitHub Actions.
+      - name: Preflight — Pages собирается через GitHub Actions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bt=$(gh api "repos/${{ github.repository }}/pages" --jq .build_type 2>/dev/null || echo "unknown")
+          echo "Pages build_type: ${bt}"
+          if [ "${bt}" != "workflow" ]; then
+            echo "::error title=Pages не настроен::Settings → Pages → Source сейчас «${bt}». Переключите на «GitHub Actions» и перезапустите этот запуск. См. комментарий в начале deploy-pages.yml."
+            exit 1
+          fi
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 85/85: .github/workflows/rebuild-pdf.yml
 КАТЕГОРИЯ: CI / автоматизация | СТРОК: 128 | РАЗМЕР: 4.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -21013,15 +23205,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
 
       - name: Install ImageMagick + DejaVu fonts
@@ -21068,7 +23260,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload artifacts (PDF + TXT)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: full-code-export
           path: |
@@ -21078,7 +23270,7 @@ jobs:
           retention-days: 30
 
       - name: Upload artifacts (PNG-страницы)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: full-code-pages-png
           path: tmp/export-pages/*.png
@@ -21099,5 +23291,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 80 файлов • сгенерировано 10.09.2026, 23:31:05
+КОНЕЦ ДОКУМЕНТА • 85 файлов • сгенерировано 11.09.2026, 14:32:33
 ==========================================================================================================================================
