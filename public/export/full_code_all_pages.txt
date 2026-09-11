@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 18:01:32
+Дата генерации:            11.09.2026, 18:54:07
 Файлов исходного кода:     87
-Суммарный объём кода:      1.18 MB
+Суммарный объём кода:      1.19 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -4888,7 +4888,7 @@ export const quizzes: Record<string, QuizQuestion[]> = {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 24/87: src/data/vizStepBus.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 67 | РАЗМЕР: 3.1 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 113 | РАЗМЕР: 5.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { createContext, useContext, useEffect } from "react";
@@ -4940,28 +4940,74 @@ export function useVizStepSync(currentStep: number, goToStep: (n: number) => voi
 }
 
 /**
- * Перевод индекса шага трассы (каждая исполненная строка) в номер шага
- * визуализации. Если у страницы задан stepLines — номер шага = сколько раз
- * к этому моменту выполнились помеченные строки минус один (каждое
- * срабатывание помеченной строки = очередной шаг демонстрации).
- * Без stepLines — старое приближение «шаг трассы = шаг визуализации».
+ * Перевод индекса шага трассы в номер шага визуализации ПО СОДЕРЖИМУ строк.
+ * Номер шага = сколько раз к этому моменту выполнилась «помеченная» строка
+ * (`markedContents`, нормализовано trim) минус один — каждое срабатывание
+ * помеченной строки = очередной шаг демонстрации. Работает и для эталонного
+ * шаблона, и для кода, написанного руками: совпадающие по смыслу строки двигают
+ * демонстрацию, остальные — нет. Пустое множество — грубое приближение (idx).
  */
 export function vizStepForTrace(
   steps: ReadonlyArray<{ line: number }>,
   idx: number,
-  stepLines?: readonly number[]
+  srcLines: readonly string[],
+  markedContents?: ReadonlySet<string>
 ): number {
-  if (!stepLines || stepLines.length === 0) return idx;
-  const set = new Set(stepLines);
+  if (!markedContents || markedContents.size === 0) return idx;
   let hits = 0;
-  for (let t = 0; t <= idx && t < steps.length; t++) if (set.has(steps[t].line)) hits++;
+  for (let t = 0; t <= idx && t < steps.length; t++) {
+    const content = srcLines[steps[t].line - 1];
+    if (content !== undefined && markedContents.has(content.trim())) hits++;
+  }
   return Math.max(0, hits - 1);
+}
+
+/** Сколько шаговых («помеченных») строк успело выполниться к индексу трассы. */
+export function vizHitsAtTrace(
+  steps: ReadonlyArray<{ line: number }>,
+  idx: number,
+  srcLines: readonly string[],
+  markedContents: ReadonlySet<string>
+): number {
+  let hits = 0;
+  for (let t = 0; t <= idx && t < steps.length; t++) {
+    const content = srcLines[steps[t].line - 1];
+    if (content !== undefined && markedContents.has(content.trim())) hits++;
+  }
+  return hits;
+}
+
+/* ── Выбор демонстрации внутри страницы (вкладки 1D / 2D build / 2D query) ─ */
+
+const DEMO_CHANNEL = "algo:viz-demo";
+
+export interface VizDemoEventDetail {
+  chapterId: string;
+  /** base-запись страницы — demoId пустой; подписанные демо: "2d-build" и т.п. */
+  demoId: string;
+}
+
+/** Демонстрация сообщает, какая её вкладка сейчас открыта (код компилятора следует за ней). */
+export function emitVizDemo(chapterId: string, demoId: string) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new window.CustomEvent<VizDemoEventDetail>(DEMO_CHANNEL, { detail: { chapterId, demoId } }));
+}
+
+/** Подписка: панель компилятора следует за активной вкладкой демонстрации страницы. */
+export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
+  if (typeof window === "undefined") return () => {};
+  const handler = (e: Event) => {
+    const detail = (e as CustomEvent<VizDemoEventDetail>).detail;
+    if (detail && detail.chapterId === chapterId) cb(detail.demoId);
+  };
+  window.addEventListener(DEMO_CHANNEL, handler);
+  return () => window.removeEventListener(DEMO_CHANNEL, handler);
 }
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 25/87: src/data/vizSync.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 626 | РАЗМЕР: 36.8 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 722 | РАЗМЕР: 42.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -5565,11 +5611,73 @@ print(f"δ({state!r}, {c!r}) → {nxt!r}")`,
   "alg-map": {
     variables: [],
   },
+
+  /* ── Дополнительные демонстрации внутри страниц (вкладки) ─────────────── */
+
+  "sparse-table#2d-build": {
+    vizTitle: "Разреженная таблица 2D: построение",
+    stepNote: "Шаг = новый уровень k: блоки 2^k×2^k дописываются из четырёх квадрантов предыдущего уровня.",
+    stepDriven: true,
+    code: `A = [[45, 12, 88, 34, 11, 76, 23, 90], [67, 19, 44, 55, 33, 21, 65, 87], [14, 51, 99, 13, 22, 64, 43, 76], [89, 32, 54, 71, 15, 88, 29, 60], [25, 41, 16, 92, 9, 17, 56, 31], [59, 18, 77, 24, 61, 82, 35, 12], [73, 8, 38, 85, 47, 95, 19, 58], [39, 81, 62, 28, 51, 42, 85, 14]]
+st2 = {}
+for r in range(8):
+    for c in range(8):
+        st2[(r, c, 0, 0)] = A[r][c]
+for k in range(1, 4):
+    print(f"уровень k={k}: блоки {1 << k}x{1 << k}")
+    size = 9 - (1 << k)
+    half = 1 << (k - 1)
+    for r in range(size):
+        for c in range(size):
+            st2[(r, c, k, k)] = min(st2[(r, c, k - 1, k - 1)], st2[(r + half, c, k - 1, k - 1)], st2[(r, c + half, k - 1, k - 1)], st2[(r + half, c + half, k - 1, k - 1)])`,
+    stepCodeLines: [1, 7],
+    variables: [
+      { name: "r, c", role: "левый верхний угол блока, для которого считаем минимум", range: "0 … 8−2^k" },
+      { name: "k", role: "уровень: блоки 2^k × 2^k (шаг демонстрации)", range: "0 … 3" },
+      { name: "st2[(r,c,k,k)]", role: "минимум квадратного блока — склеен из четырёх квадрантов уровня k−1", range: "4 ключа → значение" },
+    ],
+  },
+  "sparse-table#2d-query": {
+    vizTitle: "Разреженная таблица 2D: запрос",
+    stepNote: "Демонстрация кликабельна вручную: выберите прямоугольник и смотрите разложение на блоки.",
+    code: `# st2[(r, c, kx, ky)] из вкладки «построение» — min блока 2^kx × 2^ky
+r1, c1, r2, c2 = 1, 1, 6, 6
+
+h, w = r2 - r1 + 1, c2 - c1 + 1
+kx, ky = h.bit_length() - 1, w.bit_length() - 1
+print(f"прямоугольник {h}×{w} кроется блоками уровня ({kx},{ky})")`,
+    variables: [
+      { name: "r1, c1, r2, c2", role: "углы запрашиваемого прямоугольника", range: "индексы матрицы" },
+      { name: "kx, ky", role: "уровень самого крупного блока, который влезает в высоту/ширину", range: "log₂ размеров" },
+    ],
+  },
+  "prefix-sums-2d#2d": {
+    vizTitle: "Префиксные суммы 2D (прямоугольники)",
+    stepNote: "Демонстрация кликабельна вручную: наведите на ячейку — подсветятся её четыре угла формулы.",
+    code: `A = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 1, 2, 3], [4, 5, 6, 7]]
+n, m = 4, 4
+
+S = [[0] * (m + 1) for _ in range(n + 1)]
+for i in range(1, n + 1):
+    for j in range(1, m + 1):
+        S[i][j] = A[i - 1][j - 1] + S[i - 1][j] + S[i][j - 1] - S[i - 1][j - 1]
+
+r1, c1, r2, c2 = 1, 1, 2, 2
+ans = S[r2 + 1][c2 + 1] - S[r1][c2 + 1] - S[r2 + 1][c1] + S[r1][c1]
+print("итого:", ans)`,
+    variables: [
+      { name: "i, j", role: "текущая ячейка таблицы S (1-индексация)", range: "1 … n, 1 … m" },
+      { name: "S[i][j]", role: "сумма прямоугольника (0,0)–(i−1,j−1) — по двум соседям минус перекрытие", range: "пересчёт на каждом шаге" },
+      { name: "r1, c1, r2, c2", role: "углы запроса; ответ = четыре угла формулы включений-исключений", range: "индексы матрицы" },
+    ],
+  },
 };
 
 /** Безопасный доступ: страница без записи получает пустую синхронизацию. */
-export const getPageSync = (chapterId?: string | null): PageSync =>
-  (chapterId && PAGE_SYNC[chapterId]) || { variables: [] };
+export const getPageSync = (chapterId?: string | null, demoId?: string | null): PageSync =>
+  (demoId && chapterId && PAGE_SYNC[`${chapterId}#${demoId}`]) ||
+  (chapterId && PAGE_SYNC[chapterId]) ||
+  { variables: [] };
 
 /**
  * Стартовое содержимое редактора для страницы.
@@ -5579,8 +5687,8 @@ export const getPageSync = (chapterId?: string | null): PageSync =>
  * (i = 0, j = 0…; структуры вида «4 ключа → значение» для 2D).
  * Никаких словесных описаний внутри — только код.
  */
-export function buildSyncTemplate(chapterId: string, chapterTitle: string): string {
-  const sync = getPageSync(chapterId);
+export function buildSyncTemplate(chapterId: string, chapterTitle: string, demoId?: string | null): string {
+  const sync = getPageSync(chapterId, demoId);
 
   const head = sync.vizTitle
     ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle} · строки ниже = шаги подсветки\n`
@@ -5588,6 +5696,40 @@ export function buildSyncTemplate(chapterId: string, chapterTitle: string): stri
 
   if (!sync.code) return head;
   return `${head}\n${sync.code}\n`;
+}
+
+/**
+ * Инициализация скелета: только объявление демо-данных, без тела алгоритма
+ * (без for/while/def/if/print). Именно это показывается в редакторе по
+ * умолчанию — дальше пользователь пишет свой вариант, а полный эталон
+ * подсматривает через кнопку-«глаз».
+ */
+function extractInit(code: string): string {
+  const keep: string[] = [];
+  for (const line of code.split("\n")) {
+    const t = line.trim();
+    if (/^(for|while|def|class|if\s|elif\s|else|try|except|print\()/.test(t)) break;
+    keep.push(line);
+  }
+  // убрать пустые строки с конца
+  while (keep.length > 0 && keep[keep.length - 1].trim() === "") keep.pop();
+  return keep.join("\n");
+}
+
+/**
+ * Дефолтное содержимое редактора: шапка + ТОЛЬКО инициализированные
+ * переменные демо (без всего кода алгоритма).
+ */
+export function buildInitTemplate(chapterId: string, chapterTitle: string, demoId?: string | null): string {
+  const sync = getPageSync(chapterId, demoId);
+
+  const head = sync.vizTitle
+    ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle}\n# ниже — инициализация данных демо; допишите свой вариант, или подсмотрите эталон кнопкой-«глазом»\n`
+    : `# «${chapterTitle}»\n# демо на странице нет — свободный режим (стрелки ← → листают страницы)\n`;
+
+  if (!sync.code) return head;
+  const init = extractInit(sync.code);
+  return `${head}\n${init}\n`;
 }
 
 
@@ -14162,18 +14304,19 @@ export function PlanarityDemo() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 58/87: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 815 | РАЗМЕР: 39.4 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 864 | РАЗМЕР: 43.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRightLeft,
-  Bug,
   Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Copy,
+  Eye,
+  EyeOff,
   HelpCircle,
   Link2,
   Loader2,
@@ -14188,8 +14331,8 @@ import {
   Variable,
   X,
 } from "lucide-react";
-import { buildSyncTemplate, getPageSync } from "../data/vizSync";
-import { emitVizStep, vizStepForTrace } from "../data/vizStepBus";
+import { buildInitTemplate, buildSyncTemplate, getPageSync } from "../data/vizSync";
+import { emitVizStep, onVizDemo, vizHitsAtTrace, vizStepForTrace } from "../data/vizStepBus";
 import {
   baseVarName,
   buildDebugRunner,
@@ -14339,16 +14482,28 @@ const SNIPPETS: { group: string; items: Snippet[] }[] = [
 let savedEditor: { code: string; template: string; chapterId: string } | null = null;
 
 export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }: PythonCompilerProps) {
-  const sync = useMemo(() => getPageSync(chapterId), [chapterId]);
+  /** Активная вкладка демонстрации страницы (у sparse-table: 1d / 2d-build / 2d-query). */
+  const [demoId, setDemoId] = useState<string | null>(null);
+  const sync = useMemo(() => getPageSync(chapterId, demoId), [chapterId, demoId]);
   const syncVarBases = useMemo(() => sync.variables.map((v) => baseVarName(v.name)), [sync]);
   const syncVarSet = useMemo(() => new Set(syncVarBases), [syncVarBases]);
-  const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle), [chapterId, chapterTitle]);
-  /** Строки кода скелета (своя линейка: 1-я строка скелета = 4-я строка шаблона), каждое выполнение = шаг демо. */
-  const stepLines = useMemo(() => sync.stepCodeLines?.map((l) => l + 3), [sync]);
+  /** Полный эталонный код — подсматривается «глазом», вставляется кнопкой, сам по себе в редактор не лезет. */
+  const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle, demoId), [chapterId, chapterTitle, demoId]);
+  /** Дефолт редактора: шапка + только инициализированные переменные демо, без тела алгоритма. */
+  const initTemplate = useMemo(() => buildInitTemplate(chapterId, chapterTitle, demoId), [chapterId, chapterTitle, demoId]);
+  /** Помеченные строки эталона по содержимому: каждое их выполнение = шаг демо на визуализации. */
+  const markedContents = useMemo(() => {
+    const marks = sync.stepCodeLines;
+    if (!marks || marks.length === 0) return undefined;
+    const lines = template.split("\n");
+    return new Set(marks.map((l) => (lines[l + 2] ?? "").trim()).filter((t) => t.length > 0));
+  }, [sync, template]);
+  /** Режим «подсмотреть эталон»: показывает полный код только для чтения, код пользователя не затирает. */
+  const [showRef, setShowRef] = useState(false);
 
   const [code, setCode] = useState(() => {
-    if (!savedEditor) return template;
-    if (savedEditor.code === savedEditor.template || savedEditor.code.trim() === "") return template;
+    if (!savedEditor) return initTemplate;
+    if (savedEditor.code === savedEditor.template || savedEditor.code.trim() === "") return initTemplate;
     return savedEditor.code;
   });
   const [stdin, setStdin] = useState("");
@@ -14366,105 +14521,87 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     savedEditor.chapterId !== chapterId &&
     savedEditor.code !== savedEditor.template &&
     savedEditor.code.trim() !== "" &&
-    savedEditor.code !== template
+    savedEditor.code !== template &&
+    savedEditor.code !== initTemplate
       ? chapterId
       : null
   );
-  const prevTemplateRef = useRef(template);
+  const prevTplRef = useRef({ base: initTemplate, full: template });
 
   /** Активная отладочная сессия: трасса по шагам + текущий индекс шага. */
   const [debug, setDebug] = useState<{ result: DebugResult; idx: number; src: string } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    savedEditor = { code, template, chapterId };
-  }, [code, template, chapterId]);
+    savedEditor = { code, template: initTemplate, chapterId };
+  }, [code, initTemplate, chapterId]);
 
-  // Смена страницы: нетронутый редактор получает свежий шаблон,
-  // свой код не затираем — предлагаем синхронизироваться кнопкой.
+  // демонстрация сообщает, какая вкладка открыта — код панели следует за ней
+  useEffect(() => setDemoId(null), [chapterId]);
+  useEffect(() => onVizDemo(chapterId, (d) => setDemoId(d || null)), [chapterId]);
+
+  // Смена страницы (или вкладки демо): нетронутый редактор получает свежую
+  // инициализацию; свой код не затираем — предлагаем синхронизироваться кнопкой.
   useEffect(() => {
-    if (template === prevTemplateRef.current) return;
-    const prevTemplate = prevTemplateRef.current;
-    prevTemplateRef.current = template;
+    const prev = prevTplRef.current;
+    if (initTemplate === prev.base && template === prev.full) return;
+    prevTplRef.current = { base: initTemplate, full: template };
     setDebug(null); // трасса ссылается на строки старого источника — сбрасываем
-    if (code === prevTemplate || code.trim() === "") {
-      setCode(template);
+    setShowRef(false);
+    if (code === prev.base || code === prev.full || code.trim() === "") {
+      setCode(initTemplate);
       setDesyncedFrom(null);
     } else {
       setDesyncedFrom(chapterId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [template]);
+  }, [initTemplate, template]);
 
   const resync = useCallback(() => {
-    prevTemplateRef.current = template;
-    setCode(template);
+    prevTplRef.current = { base: initTemplate, full: template };
+    setCode(initTemplate);
     setDesyncedFrom(null);
     setStripTab("vars");
     setDebug(null);
-  }, [template]);
-
-  const runCode = useCallback(async () => {
-    if (running) return;
-
-    setRunning(true);
-    setOutputOpen(true);
-    setDebug(null);
-    setOutput("");
-    setRuntimeMessage(runtimeReady ? "Выполняю код…" : "Загружаю Python в браузер…");
-
-    const stdout: string[] = [];
-    const stderr: string[] = [];
-    const inputLines = stdin.split(/\r?\n/);
-
-    try {
-      const runtime = await getPythonRuntime();
-      setRuntimeReady(true);
-      setRuntimeMessage("Python готов — код выполняется локально в браузере");
-
-      runtime.setStdout({ batched: (message) => stdout.push(message) });
-      runtime.setStderr({ batched: (message) => stderr.push(message) });
-      runtime.setStdin({ stdin: () => (inputLines.length > 0 ? inputLines.shift() ?? "" : null) });
-      await runtime.runPythonAsync(code);
-
-      const text = [...stdout, ...stderr].join("");
-      setOutput(text || "Готово: программа ничего не вывела.");
-    } catch (error) {
-      const captured = [...stdout, ...stderr].join("");
-      setOutput(`${captured}${captured && !captured.endsWith("\n") ? "\n" : ""}Ошибка:\n${errorText(error)}`);
-      setRuntimeMessage("Не удалось выполнить — проверьте код и доступ к CDN Pyodide");
-    } finally {
-      setRunning(false);
-    }
-  }, [code, stdin, running, runtimeReady]);
+    setShowRef(false);
+  }, [initTemplate, template]);
 
   const copyCode = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(showRef ? template : code);
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
       setRuntimeMessage("Не получилось скопировать — буфер обмена недоступен");
     }
-  }, [code]);
+  }, [code, showRef, template]);
 
   /* ── Пошаговый отладчик ────────────────────────────────────────────── */
 
-  /** Редактор на шаблоне страницы: каждая строка трассы = шаг демонстрации слева. */
+  /** Редактор — в точности эталон (для подписи chip). */
   const lockedToViz = code === template;
+  /** Пользователь дописал тело сам, перепечатав помощеченные строки дословно: связь по содержимому тоже ходит. */
+  const contentMatched = useMemo(() => {
+    if (!markedContents || markedContents.size === 0) return false;
+    const written = new Set(code.split("\n").map((l) => l.trim()).filter(Boolean));
+    return [...markedContents].every((m) => written.has(m));
+  }, [code, markedContents]);
   /** Демонстрация реально умеет ходить по шагам за отладчиком (подписана на шину). */
-  const stepCapable = lockedToViz && !!sync.code && sync.stepDriven === true;
+  const stepCapable = !!sync.code && sync.stepDriven === true && !!markedContents && markedContents.size > 0;
+  /** Связь кода с демонстрацией: по эталону, по перепечатанным строкам, или отсутствует. */
+  type VizLink = "exact" | "content" | "none";
+  const vizLink: VizLink = stepCapable ? (lockedToViz ? "exact" : contentMatched ? "content" : "none") : "exact";
 
   const goDebug = useCallback(
     (nextIdx: number) => {
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
-        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines)); // визуализация следует за шагом
+        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents)); // визуализация следует за шагом
         return { ...d, idx };
       });
     },
-    [code, template, chapterId, stepLines, stepCapable]
+    [chapterId, markedContents, stepCapable]
   );
 
   const stepBy = useCallback(
@@ -14472,11 +14609,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       setDebug((d) => {
         if (!d) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
-        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, stepLines));
+        if (stepCapable) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents));
         return { ...d, idx };
       });
     },
-    [code, template, chapterId, stepLines, stepCapable]
+    [chapterId, markedContents, stepCapable]
   );
 
   const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
@@ -14506,7 +14643,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: code });
-      if (stepCapable) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, stepLines)); // старт: демонстрация на первом шаге
+      if (stepCapable) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, code.split("\n"), markedContents)); // старт: демонстрация на первом шаге
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
       setRuntimeMessage(
@@ -14520,7 +14657,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
     } finally {
       setRunning(false);
     }
-  }, [code, stdin, running, runtimeReady, template, chapterId, stepLines]);
+  }, [code, stdin, running, runtimeReady, chapterId, markedContents, stepCapable]);
 
   // Стрелки ← → в режиме отладки листают ШАГИ (а не страницы), Esc — выход из отладчика.
   useEffect(() => {
@@ -14559,6 +14696,11 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
   // производные данные шага: что изменилось, в каком порядке показать переменные
   const debugChanged = curDebug?.step ? changedVars(curDebug.prev?.locals, curDebug.step.locals) : {};
   const debugOrdered = curDebug?.step ? orderVars(curDebug.step.locals, syncVarBases) : [];
+  /** Сколько помеченных строк кода уже выполнено к текущему шагу: 0–1 = инициализация, дальше — шаги демо. */
+  const curHits =
+    debug && curDebug?.step && markedContents
+      ? vizHitsAtTrace(debug.result.steps, debug.idx, debug.src.split("\n"), markedContents)
+      : 0;
 
   /** Вставка сниппета из шпаргалки в позицию курсора. */
   const insertSnippet = useCallback((snippet: string) => {
@@ -14624,21 +14766,28 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
           </Tooltip>
           <Tooltip
             side="bottom"
-            content="Пошаговый отладчик: выполняет код построчно и показывает значения переменных на каждом шаге — как Variables в IDE. Шаги листаются стрелками ← →."
+            content={
+              showRef
+                ? "Скрыть эталонный код и вернуться к своему редактору."
+                : "Подсмотреть эталонный код целиком (только чтение). Ваш код при этом не затирается."
+            }
+          >
+            <button
+              type="button"
+              onClick={() => setShowRef((v) => !v)}
+              className={`p-1.5 rounded-lg transition-colors ${showRef ? "text-indigo-300 bg-indigo-500/20" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
+              aria-label={showRef ? "Скрыть эталонный код" : "Подсмотреть эталонный код"}
+            >
+              {showRef ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </Tooltip>
+          <Tooltip
+            side="bottom"
+            content="Запуск = пошаговый отладчик: код выполняется построчно, переменные видны на каждом шаге (как Variables в IDE), демонстрация слева следует за шагами. Листайте ← → (Ctrl/Cmd + Enter — запуск из редактора)."
           >
             <button
               type="button"
               onClick={() => void debugRun()}
-              disabled={running}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
-            >
-              <Bug className="w-3.5 h-3.5" /> По шагам
-            </button>
-          </Tooltip>
-          <Tooltip side="bottom" content="Запустить код целиком (Ctrl/Cmd + Enter). Первый запуск скачивает Python в браузер.">
-            <button
-              type="button"
-              onClick={() => void runCode()}
               disabled={running}
               className="ml-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
             >
@@ -14816,6 +14965,9 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
                   <>
                     шаг {debug.idx + 1}/{debug.result.steps.length} · строка {curDebug.step.line}
                     {curDebug.step.func !== "<module>" && <> · {curDebug.step.func}()</>}
+                    {stepCapable && markedContents && (
+                      <span className="text-indigo-300"> · {curHits <= 1 ? "инициализация" : `демо шаг ${curHits - 1}`}</span>
+                    )}
                   </>
                 ) : (
                   "шагов нет — программа не выполнила ни одной строки"
@@ -14830,23 +14982,31 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
               )}
               <Tooltip
                 content={
-                  stepCapable
-                    ? "Код = шаблон страницы: каждый помеченный шаг трассы двигает демонстрацию слева — ячейки/вершины подсвечиваются синхронно."
-                    : lockedToViz
-                      ? "На этой странице демонстрация — ручной интерактив (клики/наведение), за отладчиком по шагам она не ходит."
-                      : "Код изменён пользователем: демонстрация слева НЕ следует за шагами. Вернитесь к шаблону страницы (кнопка «Сбросить к шаблону» / ресинк), чтобы восстановить связь."
+                  !stepCapable
+                    ? "На этой странице демонстрация — ручной интерактив (клики/наведение), за отладчиком по шагам она не ходит."
+                    : vizLink === "exact"
+                      ? "Код = эталон: каждый помеченный шаг трассы двигает демонстрацию слева — ячейки/вершины подсвечиваются синхронно (см. бейдж фазы: инициализация / демо шаг N)."
+                      : vizLink === "content"
+                        ? "Вы дописали тело сами, но помеченные строки совпадают с эталоном — демонстрация следует за вашим кодом, как за эталоном."
+                        : "В коде нет помеченных строк эталона (см. кнопку-глаз): демонстрация слева НЕ следует за шагами. Перепечатайте их дословно или нажмите «Сбросить к шаблону»."
                 }
               >
                 <span
                   tabIndex={0}
                   className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${
-                    stepCapable
+                    stepCapable && vizLink !== "none"
                       ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                       : "border-slate-600 bg-slate-800 text-slate-400"
                   }`}
                 >
-                  {stepCapable ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
-                  {stepCapable ? "демо следует" : lockedToViz ? "демо ручное" : "демо отвязано"}
+                  {stepCapable && vizLink !== "none" ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
+                  {stepCapable
+                    ? vizLink === "exact"
+                      ? "демо следует (эталон)"
+                      : vizLink === "content"
+                        ? "демо следует (ваши строки)"
+                        : "демо отвязано"
+                    : "демо ручное"}
                 </span>
               </Tooltip>
               <Tooltip content="Выход из отладчика (Esc)">
@@ -14921,6 +15081,37 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
               </div>
             </div>
           </div>
+        ) : showRef ? (
+          <div className="flex-1 flex min-h-[70px] flex-col bg-[#0b1220]">
+            <div className="shrink-0 flex items-center gap-2 border-b border-dashed border-indigo-500/30 px-3 py-1.5">
+              <Eye className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+              <span className="text-[10.5px] font-bold uppercase tracking-wider text-indigo-300">
+                Эталонный код этого демо · только чтение
+              </span>
+              <div className="ml-auto flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCode(template);
+                    setShowRef(false);
+                  }}
+                  className="rounded-md bg-indigo-600 hover:bg-indigo-500 px-2 py-1 text-[10px] font-bold text-white transition-colors"
+                >
+                  вставить в редактор
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void copyCode()}
+                  className="rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-1 text-[10px] font-bold text-slate-200 transition-colors"
+                >
+                  копировать
+                </button>
+              </div>
+            </div>
+            <pre className="flex-1 min-h-0 overflow-auto px-3 py-2.5 font-mono text-[12px] leading-5 text-slate-400 whitespace-pre-wrap select-text">
+              {template}
+            </pre>
+          </div>
         ) : (
           <textarea
             ref={editorRef}
@@ -14929,7 +15120,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }
             onKeyDown={(event) => {
               if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
                 event.preventDefault();
-                void runCode();
+                void debugRun();
               }
               event.stopPropagation();
             }}
@@ -20731,11 +20922,11 @@ export const WaterfallAnimationWidget: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 74/87: src/components/visualizers/PrefixSumViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 353 | РАЗМЕР: 15.4 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 360 | РАЗМЕР: 15.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useMemo, useState } from "react";
-import { useVizStepSync } from "../../data/vizStepBus";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { emitVizDemo, useVizStepSync, VizChapterContext } from "../../data/vizStepBus";
 
 /**
  * Префиксные суммы: 1D и 2D.
@@ -20762,6 +20953,13 @@ const cellBase =
 
 export const PrefixSumViz: React.FC = () => {
   const [mode, setMode] = useState<"1d" | "2d">("1d");
+  const chapterId = useContext(VizChapterContext);
+
+  // Вкладка 2D = своё демо (свой скелет): компилятор подхватывает переключение.
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, mode === "2d" ? "2d" : "");
+  }, [chapterId, mode]);
+
   return (
     <div className="w-full bg-slate-950 rounded-2xl border border-slate-800 p-3 sm:p-5 shadow-xl">
       <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
@@ -21090,11 +21288,11 @@ const Prefix2D: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 75/87: src/components/visualizers/SparseTableViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 711 | РАЗМЕР: 43.8 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 724 | РАЗМЕР: 44.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import React, { useState } from "react";
-import { useVizStepSync } from "../../data/vizStepBus";
+import React, { useContext, useEffect, useState } from "react";
+import { emitVizDemo, useVizStepSync, VizChapterContext } from "../../data/vizStepBus";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
@@ -21167,6 +21365,12 @@ for (let kx = 0; kx <= 3; kx++) {
 
 export const SparseTableViz: React.FC = () => {
   const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("1d");
+  const chapterId = useContext(VizChapterContext);
+
+  // Каждая вкладка = своё демо с собственным скелетом: компилятор переключает код вслед за вкладкой.
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, tab === "2d_build" ? "2d-build" : tab === "2d_query" ? "2d-query" : "");
+  }, [chapterId, tab]);
 
   return (
     <div className="w-full bg-slate-950 p-3 sm:p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl font-sans">
@@ -21464,6 +21668,13 @@ const Viz2DBuild: React.FC = () => {
   const [k, setK] = useState(1);
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null);
   const [locked, setLocked] = useState<{ r: number; c: number } | null>(null);
+
+  // Отладчик переключает уровень k: строка с A=… = k0 (оригинал), каждая итерация for — следующий k.
+  useVizStepSync(k, setK, 3);
+  useEffect(() => {
+    setHover(null);
+    setLocked(null);
+  }, [k]);
 
   const L = 1 << k;
   const activeCell = locked || hover;
@@ -24241,5 +24452,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 18:01:32
+КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 18:54:07
 ==========================================================================================================================================
