@@ -429,7 +429,7 @@ const BuildMode: React.FC = () => {
         )}
         {parsed.errors.length === 0 && (parsed.equalX || parsed.equalY) && (
           <div className="mt-2 text-xs text-amber-300 bg-amber-950/20 border border-amber-500/50 rounded-lg px-3 py-2 space-y-1">
-            {parsed.equalY && <div>⚡ Есть <b>равные y</b> — хайп-батл: «кто выше?» не определён, дерево перестаёт быть единственным. Устав страницы: выше тот, кто <b>раньше в списке</b> (сортировка стабильная).</div>}
+            {parsed.equalY && <div>⚡ Есть <b>равные y</b> — «кто выше?» не определён, дерево перестаёт быть единственным. Устав: выше тот, кто <b>раньше в списке</b> (сортировка стабильная).</div>}
             {parsed.equalX && <div>⚡ Есть <b>равные x</b> — в BST место не однозначно. Устав: равный x идёт <b>влево</b> (в коде: key ≤ node.key → left).</div>}
           </div>
         )}
