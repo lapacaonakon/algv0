@@ -4,11 +4,14 @@ import { chapters } from '../data/content';
 import { downloadBookHtml } from '../utils/exportHtml';
 
 interface NavbarProps {
-  activeTab: 'guide' | 'simulator' | 'compiler';
-  setActiveTab: (tab: 'guide' | 'simulator' | 'compiler') => void;
+  activeTab: 'guide' | 'simulator';
+  setActiveTab: (tab: 'guide' | 'simulator') => void;
+  /** Открыта ли боковая панель компилятора. */
+  compilerOpen: boolean;
+  onToggleCompiler: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, compilerOpen, onToggleCompiler }) => {
   const [busy, setBusy] = useState(false);
 
   const saveBook = async () => {
@@ -62,10 +65,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           </button>
           <button
             id="tab-compiler-btn"
-            onClick={() => setActiveTab('compiler')}
-            title="Боковая вкладка с Python-компилятором: синхронизирована с текущей визуализацией"
+            onClick={onToggleCompiler}
+            aria-pressed={compilerOpen}
+            title="Боковая панель Python-компилятора (на мобильном — снизу): открывается рядом с визуализацией, синхронизирована с текущей страницей"
             className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'compiler'
+              compilerOpen
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
