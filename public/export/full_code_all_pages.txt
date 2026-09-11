@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 14:32:33
+Дата генерации:            11.09.2026, 15:06:11
 Файлов исходного кода:     85
-Суммарный объём кода:      1.14 MB
+Суммарный объём кода:      1.15 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -1827,7 +1827,7 @@ export default defineConfig({
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 11/85: src/App.tsx
-КАТЕГОРИЯ: Ядро приложения | СТРОК: 126 | РАЗМЕР: 5.2 KB
+КАТЕГОРИЯ: Ядро приложения | СТРОК: 149 | РАЗМЕР: 6.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -1842,9 +1842,11 @@ import { SimulatorHub } from "./components/SimulatorHub";
 import { PythonCompiler } from "./components/PythonCompiler";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"guide" | "simulator" | "compiler">("guide");
+  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
   const [modalVizId, setModalVizId] = useState<string | null>(null);
+  /** Боковая (на мобильном — нижняя) панель компилятора поверх текущей страницы. */
+  const [compilerOpen, setCompilerOpen] = useState(false);
 
   const index = Math.max(
     0,
@@ -1857,6 +1859,16 @@ export default function App() {
   const goTo = useCallback((id: string) => {
     setActiveChapterId(id);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Открыть компилятор и подогнать визуализацию вверх: видим только её и код.
+  const openCompilerWithViz = useCallback(() => {
+    setCompilerOpen(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById("chapter-viz")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }, []);
 
   // Стрелки ← → листают темы (как на обучающих сайтах)
@@ -1876,82 +1888,93 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        compilerOpen={compilerOpen}
+        onToggleCompiler={() => setCompilerOpen((o) => !o)}
+      />
 
-      {activeTab === "guide" ? (
-        <>
-          <MobileToc
-            selectedChapterId={activeChapterId}
-            setSelectedChapterId={goTo}
-            currentTitle={activeChapter.title}
-            index={index}
-            total={chapters.length}
-          />
+      {/* При открытой панели контент сдвигается: снизу отступ на мобильном, справа — на десктопе */}
+      <div className={compilerOpen ? "max-lg:pb-[58dvh] lg:pr-[560px] xl:pr-[620px]" : ""}>
+        {activeTab === "guide" ? (
+          <>
+            <MobileToc
+              selectedChapterId={activeChapterId}
+              setSelectedChapterId={goTo}
+              currentTitle={activeChapter.title}
+              index={index}
+              total={chapters.length}
+            />
 
-          <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
-            {/* Сайдбар только на десктопе — на мобильном он в шторке */}
-            <div className="hidden lg:block lg:w-80 shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
-              <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
-            </div>
+            <div className="flex flex-col lg:flex-row max-w-screen-2xl mx-auto items-start">
+              {/* Сайдбар только на десктопе — на мобильном он в шторке */}
+              <div className="hidden lg:block lg:w-80 shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
+                <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />
+              </div>
 
-            <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
-              {/* Шапка главы с быстрыми переходами */}
-              <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
-                    {activeChapter.category || "Универсальное пособие"}
+              <main id="main-content" className="flex-1 min-w-0 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
+                {/* Шапка главы с быстрыми переходами */}
+                <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
+                      {activeChapter.category || "Универсальное пособие"}
+                    </div>
+                    <h2 className="text-base sm:text-xl font-extrabold text-white leading-tight truncate">
+                      {activeChapter.title}
+                    </h2>
                   </div>
-                  <h2 className="text-base sm:text-xl font-extrabold text-white leading-tight truncate">
-                    {activeChapter.title}
-                  </h2>
+                  <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
                 </div>
-                <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
-              </div>
 
-              <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
-                <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+                <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+
+                <ChapterView
+                  key={activeChapter.id}
+                  chapter={activeChapter}
+                  prev={prev}
+                  next={next}
+                  index={index}
+                  total={chapters.length}
+                  onGo={goTo}
+                  onOpenSimulator={setModalVizId}
+                  onOpenCompiler={openCompilerWithViz}
                 />
-              </div>
+              </main>
+            </div>
+          </>
+        ) : (
+          <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
+            <SimulatorHub
+              onOpen={setModalVizId}
+              onGoChapter={(id) => {
+                setActiveTab("guide");
+                goTo(id);
+              }}
+            />
+          </main>
+        )}
 
-              <ChapterView
-                key={activeChapter.id}
-                chapter={activeChapter}
-                prev={prev}
-                next={next}
-                index={index}
-                total={chapters.length}
-                onGo={goTo}
-                onOpenSimulator={setModalVizId}
-                onOpenCompiler={() => setActiveTab("compiler")}
-              />
-            </main>
-          </div>
-        </>
-      ) : activeTab === "simulator" ? (
-        <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
-          <SimulatorHub
-            onOpen={setModalVizId}
-            onGoChapter={(id) => {
-              setActiveTab("guide");
-              goTo(id);
-            }}
-          />
-        </main>
-      ) : (
+        <footer className="p-8 text-center text-slate-600 text-xs border-t border-slate-900 mt-12 bg-slate-950">
+          © 2026 Universal Educational Guide. Интерактивные визуализации алгоритмов.
+        </footer>
+      </div>
+
+      <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />
+
+      {compilerOpen && (
         <PythonCompiler
           chapterId={activeChapter.id}
           chapterTitle={activeChapter.title}
           onOpenGuide={() => setActiveTab("guide")}
+          onClose={() => setCompilerOpen(false)}
         />
       )}
-
-      <SimulatorModal vizId={modalVizId} onClose={() => setModalVizId(null)} />
-
-      <footer className="p-8 text-center text-slate-600 text-xs border-t border-slate-900 mt-12 bg-slate-950">
-        © 2026 Universal Educational Guide. Интерактивные визуализации алгоритмов.
-      </footer>
     </div>
   );
 }
@@ -13360,7 +13383,7 @@ export const MobileToc: React.FC<Props> = ({ selectedChapterId, setSelectedChapt
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 54/85: src/components/Navbar.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 111 | РАЗМЕР: 5.5 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 115 | РАЗМЕР: 5.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState } from 'react';
@@ -13369,11 +13392,14 @@ import { chapters } from '../data/content';
 import { downloadBookHtml } from '../utils/exportHtml';
 
 interface NavbarProps {
-  activeTab: 'guide' | 'simulator' | 'compiler';
-  setActiveTab: (tab: 'guide' | 'simulator' | 'compiler') => void;
+  activeTab: 'guide' | 'simulator';
+  setActiveTab: (tab: 'guide' | 'simulator') => void;
+  /** Открыта ли боковая панель компилятора. */
+  compilerOpen: boolean;
+  onToggleCompiler: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, compilerOpen, onToggleCompiler }) => {
   const [busy, setBusy] = useState(false);
 
   const saveBook = async () => {
@@ -13427,10 +13453,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           </button>
           <button
             id="tab-compiler-btn"
-            onClick={() => setActiveTab('compiler')}
-            title="Боковая вкладка с Python-компилятором: синхронизирована с текущей визуализацией"
+            onClick={onToggleCompiler}
+            aria-pressed={compilerOpen}
+            title="Боковая панель Python-компилятора (на мобильном — снизу): открывается рядом с визуализацией, синхронизирована с текущей страницей"
             className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'compiler'
+              compilerOpen
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
@@ -13612,25 +13639,25 @@ export function PlanarityDemo() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 56/85: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 444 | РАЗМЕР: 22.0 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 556 | РАЗМЕР: 25.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRightLeft,
-  BookOpen,
+  Check,
   CheckCircle2,
   Copy,
-  Check,
-  ExternalLink,
-  Info,
+  HelpCircle,
   Link2,
   Loader2,
   Play,
+  Plus,
   RotateCcw,
   Terminal,
   Unlink,
   Variable,
+  X,
 } from "lucide-react";
 import { getPageSync } from "../data/vizSync";
 import { Tooltip } from "./Tooltip";
@@ -13643,8 +13670,10 @@ interface PythonCompilerProps {
   /** Страница, с которой синхронизируется редактор. */
   chapterId: string;
   chapterTitle: string;
-  /** Перейти обратно к странице пособия (посмотреть визуализацию). */
+  /** Перейти к странице пособия (посмотреть визуализацию). */
   onOpenGuide: () => void;
+  /** Скрыть панель. */
+  onClose: () => void;
 }
 
 type PyodideRuntime = {
@@ -13674,16 +13703,14 @@ function errorText(error: unknown) {
   return String(error);
 }
 
-/**
- * Стартовое содержимое редактора для страницы.
- *
- * ВАЖНО: здесь намеренно НЕТ кода алгоритма — только комментарий с
- * переменными, по которым идёт пошаговая визуализация (i, j, k, n, m…).
- * Студент сам меняет их значения, повторяя шаги демонстрации.
- */
+/* ------------------------------------------------------------------ */
+/*  Шаблон синхронизации: ТОЛЬКО комментарий с переменными страницы.  */
+/*  Кода алгоритма здесь нет по замыслу — шаги повторяются руками.    */
+/* ------------------------------------------------------------------ */
+
 function buildSyncTemplate(chapterId: string, chapterTitle: string): string {
   const sync = getPageSync(chapterId);
-  const bar = "# " + "═".repeat(56);
+  const bar = "# " + "─".repeat(44);
   const lines: string[] = [bar, "#  СИНХРОНИЗАЦИЯ С ВИЗУАЛИЗАЦИЕЙ", `#  Страница: «${chapterTitle}»`];
   if (sync.vizTitle) lines.push(`#  Демонстрация: ${sync.vizTitle}`);
   lines.push(bar, "#");
@@ -13692,49 +13719,132 @@ function buildSyncTemplate(chapterId: string, chapterTitle: string): string {
     lines.push(
       "#  На этой странице нет интерактивной визуализации —",
       "#  компилятор работает в свободном режиме.",
-      "#  Откройте страницу с демонстрацией (стрелки ← → в пособии),",
+      "#  Откройте страницу с демонстрацией (стрелки ← →),",
       "#  и здесь появятся её переменные синхронизации."
     );
   } else {
-    lines.push("#  Пошаговая подсветка на визуализации идёт по переменным:");
+    lines.push("#  Пошаговая подсветка идёт по переменным:");
     for (const v of sync.variables) {
       const range = v.range ? `  (${v.range})` : "";
       lines.push(`#    ${v.name} — ${v.role}${range}`);
     }
-    if (sync.stepNote) {
-      lines.push("#", `#  Шаг = ${sync.stepNote}`);
-    }
-    lines.push(
-      "#",
-      "#  Кода алгоритма здесь намеренно нет: листайте шаги на",
-      "#  визуализации и повторяйте их руками — заведите эти переменные",
-      "#  и задайте им значения текущего шага."
-    );
+    if (sync.stepNote) lines.push("#", `#  Шаг = ${sync.stepNote}`);
+    lines.push("#", "#  Кода тут нет нарочно: повторите шаги визуализации,", "#  задавая переменным значения текущего шага.");
   }
   return lines.join("\n") + "\n";
 }
 
-/** Переживает перемонтирование вкладки: код пользователя не теряется при переключении вкладок. */
+/* ------------------------------------------------------------------ */
+/*  Шпаргалка Python: команды сортировки, циклы, структуры.           */
+/*  «Вставить» кладёт сниппет в редактор под курсор.                  */
+/* ------------------------------------------------------------------ */
+
+interface Snippet {
+  label: string;
+  tip: string;
+  code: string;
+}
+
+const SNIPPETS: { group: string; items: Snippet[] }[] = [
+  {
+    group: "Сортировка",
+    items: [
+      {
+        label: "arr.sort() / sorted()",
+        tip: "In-place сортировка по возрастанию и новая копия через sorted(). O(n·log n).",
+        code: 'arr = [5, 2, 8, 1]\narr.sort()                      # по возрастанию, на месте\nprint(arr)\nprint(sorted(arr, reverse=True))  # копия по убыванию\n',
+      },
+      {
+        label: "sorted(key=…)",
+        tip: "Сортировка по ключу: рёбра по весу, пары по второму элементу.",
+        code: 'edges = [(3, "A", "B"), (1, "B", "C"), (2, "A", "C")]\nedges.sort(key=lambda e: e[0])  # по весу, как в Краскале\nprint(edges)\n',
+      },
+    ],
+  },
+  {
+    group: "Циклы",
+    items: [
+      {
+        label: "for i in range(n)",
+        tip: "Вложенные циклы по i и j — как обход матрицы dist[i][j] у Флойда.",
+        code: "n, m = 3, 4\nfor i in range(n):          # 0 … n-1\n    for j in range(m):  # 0 … m-1\n        print(f\"cell {i},{j}\")\n",
+      },
+      {
+        label: "while …",
+        tip: "Классический while-счётчик — как n−1 итераций Беллмана-Форда.",
+        code: "i = 1\nwhile i < 5:\n    print(f\"итерация {i}\")\n    i += 1\n",
+      },
+      {
+        label: "for i, x in enumerate(…)",
+        tip: "Индекс и элемент одновременно: i — позиция, x — значение.",
+        code: "for i, x in enumerate([\"a\", \"b\", \"c\", \"a\"]):\n    print(i, x)\n",
+      },
+    ],
+  },
+  {
+    group: "Структуры",
+    items: [
+      {
+        label: "Стек (список)",
+        tip: "LIFO, как рекурсия DFS: append = push, pop() с конца.",
+        code: 'st = []\nst.append("A")    # push\nst.append("B")\ntop = st.pop()      # pop с конца\nprint(top, st)\n',
+      },
+      {
+        label: "Очередь (deque)",
+        tip: "FIFO для BFS: popleft() за O(1). list.pop(0) был бы O(n).",
+        code: 'from collections import deque\nq = deque(["A"])\nq.append("B")       # enqueue\nv = q.popleft()     # dequeue\nprint(v, list(q))\n',
+      },
+      {
+        label: "Куча (heapq)",
+        tip: "Мин-куча: (вес, вершина) — как очередь приоритетов у Дейкстры и Прима.",
+        code: 'import heapq\nh = []\nheapq.heappush(h, (3, "C"))\nheapq.heappush(h, (1, "A"))\nw, v = heapq.heappop(h)   # минимум\nprint(w, v)\n',
+      },
+      {
+        label: "Матрица n × m",
+        tip: "Таблица расстояний: dist[i][j], бесконечность — float('inf').",
+        code: 'n, m = 3, 4\ndist = [[float("inf")] * m for _ in range(n)]\ndist[0][0] = 0\nprint(dist)\n',
+      },
+      {
+        label: "Множество visited",
+        tip: "Посещённые вершины: in/add за O(1).",
+        code: 'visited = set()\nvisited.add("A")\nprint("A" in visited, "B" in visited)\n',
+      },
+    ],
+  },
+  {
+    group: "Вывод",
+    items: [
+      {
+        label: "f-строка",
+        tip: "Подставить значения переменных шага в строку: i, j, k…",
+        code: 'i, j, k = 1, 2, 0\nprint(f"dist[{i}][{j}] через k={k}")\n',
+      },
+    ],
+  },
+];
+
+/** Переживает скрытие панели: код пользователя не теряется. */
 let savedEditor: { code: string; template: string; chapterId: string } | null = null;
 
-export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide }: PythonCompilerProps) {
+export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide, onClose }: PythonCompilerProps) {
   const sync = useMemo(() => getPageSync(chapterId), [chapterId]);
   const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle), [chapterId, chapterTitle]);
 
   const [code, setCode] = useState(() => {
     if (!savedEditor) return template;
-    // редактор не трогали — берём свежий шаблон текущей страницы
     if (savedEditor.code === savedEditor.template || savedEditor.code.trim() === "") return template;
     return savedEditor.code;
   });
   const [stdin, setStdin] = useState("");
-  const [output, setOutput] = useState("Нажмите «Запустить», чтобы увидеть результат.");
+  const [output, setOutput] = useState("Нажмите «Запустить» (Ctrl/Cmd + Enter).");
   const [running, setRunning] = useState(false);
   const [runtimeReady, setRuntimeReady] = useState(false);
-  const [runtimeMessage, setRuntimeMessage] = useState("Python загружается только после первого запуска");
+  const [runtimeMessage, setRuntimeMessage] = useState("Python загрузится при первом запуске");
   const [copied, setCopied] = useState(false);
+  const [stripTab, setStripTab] = useState<"vars" | "hints">("vars");
+  const [outputOpen, setOutputOpen] = useState(true);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
 
-  /** Страница, с которой редактор перестал совпадать (пользователь написал свой код). */
   const [desyncedFrom, setDesyncedFrom] = useState<string | null>(() =>
     savedEditor &&
     savedEditor.chapterId !== chapterId &&
@@ -13746,14 +13856,12 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide }: PythonC
   );
   const prevTemplateRef = useRef(template);
 
-  // запоминаем состояние редактора, чтобы возврат на вкладку ничего не затирал
   useEffect(() => {
     savedEditor = { code, template, chapterId };
   }, [code, template, chapterId]);
 
-  // Смена страницы: если редактор не тронут (пуст или равен прошлому шаблону) —
-  // тихо подставляем переменные новой страницы. Свой код не затираем,
-  // а предлагаем синхронизироваться кнопкой.
+  // Смена страницы: нетронутый редактор получает свежий шаблон,
+  // свой код не затираем — предлагаем синхронизироваться кнопкой.
   useEffect(() => {
     if (template === prevTemplateRef.current) return;
     const prevTemplate = prevTemplateRef.current;
@@ -13771,12 +13879,14 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide }: PythonC
     prevTemplateRef.current = template;
     setCode(template);
     setDesyncedFrom(null);
+    setStripTab("vars");
   }, [template]);
 
   const runCode = useCallback(async () => {
     if (running) return;
 
     setRunning(true);
+    setOutputOpen(true);
     setOutput("");
     setRuntimeMessage(runtimeReady ? "Выполняю код…" : "Загружаю Python в браузер…");
 
@@ -13799,7 +13909,7 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide }: PythonC
     } catch (error) {
       const captured = [...stdout, ...stderr].join("");
       setOutput(`${captured}${captured && !captured.endsWith("\n") ? "\n" : ""}Ошибка:\n${errorText(error)}`);
-      setRuntimeMessage("Не удалось выполнить код — проверьте программу и соединение для загрузки Pyodide");
+      setRuntimeMessage("Не удалось выполнить — проверьте код и доступ к CDN Pyodide");
     } finally {
       setRunning(false);
     }
@@ -13815,67 +13925,138 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide }: PythonC
     }
   }, [code]);
 
+  /** Вставка сниппета из шпаргалки в позицию курсора. */
+  const insertSnippet = useCallback((snippet: string) => {
+    const ta = editorRef.current;
+    setCode((current) => {
+      if (!ta) return current + (current.endsWith("\n") ? "" : "\n") + snippet;
+      const start = ta.selectionStart ?? current.length;
+      const end = ta.selectionEnd ?? start;
+      const padded = (start > 0 && !current.slice(0, start).endsWith("\n") ? "\n" : "") + snippet;
+      const next = current.slice(0, start) + padded + current.slice(end);
+      requestAnimationFrame(() => {
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = start + padded.length;
+      });
+      return next;
+    });
+  }, []);
+
   const hasViz = sync.variables.length > 0;
 
   return (
-    <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-          <div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">
-              <Terminal className="w-4 h-4" /> Боковая вкладка · Python
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Мини-компилятор Python</h2>
-            <p className="text-slate-400 mt-2 max-w-2xl leading-relaxed">
-              Редактор синхронизирован с текущей страницей пособия: в нём только комментарий с переменными,
-              по которым идёт пошаговая визуализация. Наведите курсор на переменную — появится подсказка.
-            </p>
-          </div>
-          <a
-            href="https://pyodide.org/"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
-          >
-            Как это работает <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
+    <aside
+      aria-label="Python-компилятор"
+      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-16 lg:bottom-0 lg:h-auto lg:w-[560px] xl:w-[620px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
+    >
+      {/* ── Заголовок панели ─────────────────────────────────────────── */}
+      <div className="shrink-0 flex items-center gap-2 px-3 py-2 border-b border-slate-800 bg-slate-900">
+        <span className={`w-2 h-2 rounded-full shrink-0 ${desyncedFrom !== null ? "bg-amber-400" : "bg-emerald-400"}`} />
+        <Terminal className="w-4 h-4 text-emerald-400 shrink-0" />
+        <span className="text-[13px] font-bold text-white">main.py</span>
+        <span className="hidden sm:inline text-[10px] text-slate-500">Pyodide</span>
 
-        {/* Панель синхронизации с визуализацией */}
-        <div className="mb-5 rounded-2xl border border-slate-700 bg-slate-900/80 p-4 shadow-xl shadow-black/10">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="ml-auto flex items-center gap-1">
+          <Tooltip side="bottom" content="Скопировать код из редактора.">
+            <button
+              type="button"
+              onClick={() => void copyCode()}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              aria-label="Скопировать код"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </Tooltip>
+          <Tooltip side="bottom" content="Вернуть комментарий с переменными текущей страницы (код будет заменён).">
+            <button
+              type="button"
+              onClick={resync}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              aria-label="Сбросить к шаблону страницы"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </Tooltip>
+          <Tooltip side="bottom" content="Скрыть панель (код сохранится).">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              aria-label="Закрыть компилятор"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </Tooltip>
+          <Tooltip side="bottom" content="Запустить код (Ctrl/Cmd + Enter). Первый запуск скачивает Python в браузер.">
+            <button
+              type="button"
+              onClick={() => void runCode()}
+              disabled={running}
+              className="ml-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
+            >
+              {running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+              {running ? "Запуск…" : "Запустить"}
+            </button>
+          </Tooltip>
+        </div>
+      </div>
+
+      {/* ── Мини-вкладки: переменные страницы / шпаргалка Python ────── */}
+      <div className="shrink-0 border-b border-slate-800 bg-slate-900/70">
+        <div className="flex items-center gap-1 px-2 pt-1.5">
+          <button
+            type="button"
+            onClick={() => setStripTab("vars")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-lg text-[11px] font-bold transition-colors ${
+              stripTab === "vars" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Variable className="w-3.5 h-3.5" /> Переменные страницы
+          </button>
+          <button
+            type="button"
+            onClick={() => setStripTab("hints")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-lg text-[11px] font-bold transition-colors ${
+              stripTab === "hints" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <HelpCircle className="w-3.5 h-3.5" /> Подсказки Python
+          </button>
+          <div className="ml-auto pr-1">
             <Tooltip
               side="bottom"
               content={
                 hasViz
-                  ? "Редактор и визуализация смотрят на одну страницу. Переменные ниже — те самые, что подсвечиваются по шагам."
-                  : "На выбранной странице нет интерактива, поэтому и переменных синхронизации нет."
+                  ? "Редактор и визуализация смотрят на одну страницу: переменные ниже — те, что подсвечиваются по шагам."
+                  : "На выбранной странице нет интерактива — переменных синхронизации нет."
               }
             >
               <span
-                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold ${
-                  hasViz
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                    : "bg-slate-800 text-slate-400 border border-slate-700"
-                }`}
                 tabIndex={0}
+                className={`cursor-help inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-bold ${
+                  hasViz ? "text-emerald-400" : "text-slate-500"
+                }`}
               >
-                <Link2 className="w-3.5 h-3.5" />
-                {hasViz ? "Синхронизировано с визуализацией" : "Нет визуализации на странице"}
+                <Link2 className="w-3 h-3" />
+                {hasViz ? "синхронизировано" : "нет визуализации"}
               </span>
             </Tooltip>
+          </div>
+        </div>
 
-            <Tooltip side="bottom" content="Открыть эту страницу в пособии и посмотреть демонстрацию рядом с текстом.">
-              <button
-                type="button"
-                onClick={onOpenGuide}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors max-w-[16rem]"
-              >
-                <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{chapterTitle}</span>
-              </button>
-            </Tooltip>
-
+        {stripTab === "vars" ? (
+          <div className="px-3 pb-2.5 space-y-2 max-h-36 overflow-y-auto">
+            <div className="flex items-center gap-2 min-w-0">
+              <Tooltip side="bottom" content="Открыть эту страницу в пособии — демонстрация появится рядом с панелью.">
+                <button
+                  type="button"
+                  onClick={onOpenGuide}
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors max-w-full"
+                >
+                  <span className="truncate">{chapterTitle}</span>
+                </button>
+              </Tooltip>
+            </div>
             {desyncedFrom !== null && (
               <Tooltip
                 side="bottom"
@@ -13884,178 +14065,136 @@ export function PythonCompiler({ chapterId, chapterTitle, onOpenGuide }: PythonC
                 <button
                   type="button"
                   onClick={resync}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold bg-amber-500/10 border border-amber-500/40 text-amber-400 hover:bg-amber-500/20 transition-colors"
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-bold bg-amber-500/10 border border-amber-500/40 text-amber-400 hover:bg-amber-500/20 transition-colors w-full text-left"
                 >
-                  <Unlink className="w-3.5 h-3.5" />
+                  <Unlink className="w-3.5 h-3.5 shrink-0" />
                   Страница сменилась — подставить её переменные
                 </button>
               </Tooltip>
             )}
-          </div>
-
-          {hasViz && (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-slate-500 mr-1">
-                <Variable className="w-3.5 h-3.5" /> Переменные шага:
-              </span>
-              {sync.variables.map((v) => (
-                <Tooltip
-                  key={v.name}
-                  side="bottom"
-                  content={
-                    <span>
-                      <span className="block font-bold text-white mb-0.5">
-                        <code className="font-mono text-emerald-300">{v.name}</code>
+            {hasViz && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {sync.variables.map((v) => (
+                  <Tooltip
+                    key={v.name}
+                    side="bottom"
+                    content={
+                      <span>
+                        <span className="block font-bold text-white mb-0.5">
+                          <code className="font-mono text-emerald-300">{v.name}</code>
+                        </span>
+                        <span className="block">{v.role}</span>
+                        {v.range && <span className="block mt-1 text-indigo-300">{v.range}</span>}
                       </span>
-                      <span className="block">{v.role}</span>
-                      {v.range && <span className="block mt-1 text-indigo-300">{v.range}</span>}
+                    }
+                  >
+                    <code
+                      tabIndex={0}
+                      className="cursor-help rounded-md border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                    >
+                      {v.name}
+                    </code>
+                  </Tooltip>
+                ))}
+                {sync.stepNote && (
+                  <Tooltip side="bottom" content={`Шаг визуализации = ${sync.stepNote}`}>
+                    <span
+                      tabIndex={0}
+                      className="cursor-help inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-white transition-colors max-w-full"
+                    >
+                      <ArrowRightLeft className="w-3 h-3 shrink-0" />
+                      <span className="truncate max-w-52">{sync.stepNote}</span>
                     </span>
-                  }
-                >
-                  <code
-                    tabIndex={0}
-                    className="cursor-help rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[12px] font-bold text-emerald-300 hover:bg-emerald-500/20 transition-colors"
-                  >
-                    {v.name}
-                  </code>
-                </Tooltip>
-              ))}
-              {sync.stepNote && (
-                <Tooltip side="bottom" content={`Шаг визуализации = ${sync.stepNote}`}>
-                  <span
-                    tabIndex={0}
-                    className="cursor-help inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[11px] text-slate-400 hover:text-white transition-colors max-w-full"
-                  >
-                    <ArrowRightLeft className="w-3 h-3 shrink-0" />
-                    <span className="truncate max-w-64 sm:max-w-96">{sync.stepNote}</span>
-                  </span>
-                </Tooltip>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="grid xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] gap-5 items-start">
-          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 bg-slate-900">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${desyncedFrom !== null ? "bg-amber-400" : "bg-emerald-400"}`} />
-                <span className="text-sm font-bold text-white">main.py</span>
-                <span className="text-[11px] text-slate-500">Python 3 · Pyodide</span>
+                  </Tooltip>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <Tooltip side="bottom" content="Скопировать содержимое редактора в буфер обмена.">
-                  <button
-                    type="button"
-                    onClick={() => void copyCode()}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                  >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? "Скопировано" : "Копировать"}
-                  </button>
-                </Tooltip>
-                <Tooltip
-                  side="bottom"
-                  content="Вернуть комментарий с переменными текущей страницы. Кода алгоритма тут нет по замыслу — вы повторяете шаги сами."
-                >
-                  <button
-                    type="button"
-                    onClick={resync}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" /> Сбросить
-                  </button>
-                </Tooltip>
-                <Tooltip side="bottom" content="Запустить код (Ctrl/Cmd + Enter). Первый запуск скачивает Python в браузер.">
-                  <button
-                    type="button"
-                    onClick={() => void runCode()}
-                    disabled={running}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
-                  >
-                    {running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                    {running ? "Запускаю…" : "Запустить"}
-                  </button>
-                </Tooltip>
+            )}
+          </div>
+        ) : (
+          <div className="px-3 pb-2.5 max-h-36 overflow-y-auto space-y-2.5">
+            {SNIPPETS.map((gItem) => (
+              <div key={gItem.group}>
+                <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">{gItem.group}</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {gItem.items.map((s) => (
+                    <Tooltip key={s.label} side="bottom" content={s.tip}>
+                      <button
+                        type="button"
+                        onClick={() => insertSnippet(s.code)}
+                        className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 font-mono text-[10.5px] text-indigo-300 hover:text-white hover:border-indigo-500 transition-colors"
+                        title=""
+                      >
+                        <Plus className="w-3 h-3 text-slate-500" />
+                        {s.label}
+                      </button>
+                    </Tooltip>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <textarea
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              onKeyDown={(event) => {
-                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
-                  event.preventDefault();
-                  void runCode();
-                }
-              }}
-              spellCheck={false}
-              aria-label="Код Python"
-              className="block w-full min-h-[380px] resize-y bg-[#0b1220] px-4 py-4 font-mono text-[13px] leading-6 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 placeholder:text-slate-600"
-              placeholder="Напишите Python-код…"
-            />
-
-            <div className="border-t border-slate-800 bg-slate-950/70">
-              <label className="block px-4 pt-3 text-[11px] font-bold uppercase tracking-wider text-slate-500" htmlFor="python-stdin">
-                Ввод для input() · по одной строке на каждый вызов
-              </label>
-              <textarea
-                id="python-stdin"
-                value={stdin}
-                onChange={(event) => setStdin(event.target.value)}
-                spellCheck={false}
-                rows={2}
-                placeholder={"Например:\nАлиса"}
-                className="block w-full resize-y bg-transparent px-4 py-2 font-mono text-[13px] leading-6 text-slate-300 outline-none placeholder:text-slate-700"
-              />
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-700 bg-slate-900/80 overflow-hidden shadow-xl shadow-black/10">
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800">
-              <div className="flex items-center gap-2 text-sm font-bold text-white">
-                <Terminal className="w-4 h-4 text-emerald-400" /> Результат
-              </div>
-              <Tooltip
-                side="bottom"
-                content={
-                  runtimeReady
-                    ? "Python уже загружен в браузер (WebAssembly), код выполняется локально."
-                    : "Python ещё не скачан — это произойдёт при первом запуске."
-                }
-              >
-                <span
-                  tabIndex={0}
-                  className={`cursor-help inline-flex items-center gap-1.5 text-[11px] ${runtimeReady ? "text-emerald-400" : "text-slate-500"}`}
-                >
-                  {runtimeReady && <CheckCircle2 className="w-3.5 h-3.5" />}
-                  {runtimeReady ? "готов" : "не загружен"}
-                </span>
-              </Tooltip>
-            </div>
-            <pre className="min-h-[380px] max-h-[560px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] p-4 font-mono text-[13px] leading-6 text-slate-300">
-              {output}
-            </pre>
-            <div className="border-t border-slate-800 px-4 py-3 text-[11px] leading-relaxed text-slate-500">{runtimeMessage}</div>
-          </section>
-        </div>
-
-        <div className="mt-5 grid md:grid-cols-3 gap-3 text-xs leading-relaxed">
-          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
-            <Info className="w-4 h-4 shrink-0 text-indigo-400 mt-0.5" />
-            <span>Ctrl или Cmd + Enter запускает код. Вывод и ошибки появляются справа.</span>
+            ))}
+            <p className="text-[10px] text-slate-600">Нажатие вставляет сниппет в редактор в позицию курсора.</p>
           </div>
-          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
-            <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
-            <span>Первый запуск скачивает примерно несколько мегабайт Pyodide и может занять время.</span>
-          </div>
-          <div className="flex gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-slate-400">
-            <Info className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
-            <span>Код выполняется в браузере и не отправляется на сервер пособия.</span>
-          </div>
+        )}
+      </div>
+
+      {/* ── Редактор + ввод ──────────────────────────────────────────── */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <textarea
+          ref={editorRef}
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          onKeyDown={(event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+              event.preventDefault();
+              void runCode();
+            }
+            event.stopPropagation();
+          }}
+          spellCheck={false}
+          aria-label="Код Python"
+          className="flex-1 min-h-[90px] w-full resize-none bg-[#0b1220] px-3 py-2.5 font-mono text-[12px] leading-5 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/40 placeholder:text-slate-600"
+          placeholder="Напишите Python-код…"
+        />
+        <div className="shrink-0 border-t border-slate-800 bg-slate-950/70 flex items-center gap-2 px-3 py-1.5">
+          <label htmlFor="python-stdin" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 shrink-0">
+            stdin для input()
+          </label>
+          <input
+            id="python-stdin"
+            value={stdin}
+            onChange={(event) => setStdin(event.target.value)}
+            spellCheck={false}
+            placeholder="строки ввода через ↵"
+            className="w-full bg-transparent font-mono text-[11.5px] text-slate-300 outline-none placeholder:text-slate-700"
+          />
         </div>
       </div>
-    </main>
+
+      {/* ── Вывод ────────────────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-slate-800 flex flex-col max-h-[38%]">
+        <button
+          type="button"
+          onClick={() => setOutputOpen((o) => !o)}
+          className="flex items-center justify-between gap-2 px-3 py-1.5 text-[11px] font-bold text-slate-300 hover:text-white transition-colors"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <Terminal className="w-3.5 h-3.5 text-emerald-400" /> Результат
+          </span>
+          <span className="inline-flex items-center gap-2">
+            {runtimeReady && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+            <span className="text-slate-600">{outputOpen ? "▾" : "▸"}</span>
+          </span>
+        </button>
+        {outputOpen && (
+          <>
+            <pre className="flex-1 min-h-[70px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] px-3 py-2 font-mono text-[11.5px] leading-5 text-slate-300">
+              {output}
+            </pre>
+            <div className="px-3 py-1.5 border-t border-slate-800 text-[10px] text-slate-500 truncate">{runtimeMessage}</div>
+          </>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -23291,5 +23430,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 85 файлов • сгенерировано 11.09.2026, 14:32:33
+КОНЕЦ ДОКУМЕНТА • 85 файлов • сгенерировано 11.09.2026, 15:06:11
 ==========================================================================================================================================
