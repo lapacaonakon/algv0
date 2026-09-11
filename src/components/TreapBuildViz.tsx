@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 
 /**
- * Интерактивное построение декартова дерева по стандарту DijkstraViz:
- * сценарий-легенда (корпорация), пошаговая симуляция с логом,
- * четыре панели (Дерево ⟷ Очередь найма ⟷ Штат ⟷ Код), плеер.
+ * Интерактивное построение декартова дерева в координатной плоскости.
+ *
+ * Идея страницы: каждая пара (x, y) — точка, прибитая к клетчатой бумаге
+ * (x = ключ, y = приоритет). Точки НЕ двигаются никогда; построить дерево —
+ * значит правильно соединить их линиями: ребро всегда идёт от большего y к
+ * меньшему (куча), а «левее/правее» решает x (BST). Поэтому точки рисуются
+ * прямо в своих координатах — никакой отдельной «деревянной» раскладки.
  *
  * Канонический набор страницы: 3 5 · 3 6 · 1 -4 · 7 2 · 6 5 · 2 4 · 9 3 · 45 8.
- * Грейд (приоритет, Y) решает, КТО наверху; табельный № (ключ, X) — ГДЕ стоять.
  */
 
 interface Pair {
@@ -19,25 +22,18 @@ interface TNode {
   left: TNode | null;
   right: TNode | null;
   parentKey: number | null;
-  side: "L" | "R" | null;
 }
 interface Placed {
   key: number;
   grade: number;
-  x: number;
-  y: number;
+  px: number;
+  py: number;
   parentKey: number | null;
 }
-interface PathHit {
-  atKey: number;
-  cmp: string;
-  dir: "L" | "R";
-}
 interface Step {
-  tree: Placed[];
+  points: Placed[];
   edges: { from: number; to: number; fresh: boolean }[];
   candidate: Pair | null;
-  candidateAt: { x: number; y: number } | null;
   pathKeys: number[];
   justPlacedKey: number | null;
   doneKeys: number[];
@@ -67,21 +63,24 @@ const CODE_LINES = [
   { line: 8, text: "# pri приходят по убыванию — куча не нарушится сама" },
 ];
 
-/** Позиции: X — слот in-order (порядок BST), Y — глубина (уровень иерархии). */
-function layout(root: TNode | null): { placed: Placed[]; edges: { from: number; to: number }[] } {
-  const placed: Placed[] = [];
+/** Перевод координат точки в пиксели SVG. Клетка: 1 единица = 1 клетка. */
+const VIEW_W = 820;
+const VIEW_H = 470;
+const X = (key: number) => 50 + (key - 1) * ((VIEW_W - 80) / 44); // ключи 1..45
+const Y = (grade: number) => 34 + (8 - grade) * ((VIEW_H - 80) / 12); // грейды -4..8
+
+function collect(n: TNode | null): { points: Placed[]; edges: { from: number; to: number }[] } {
+  const points: Placed[] = [];
   const edges: { from: number; to: number }[] = [];
-  let slot = 0;
-  const walk = (n: TNode | null, depth: number) => {
+  const walk = (n: TNode | null) => {
     if (!n) return;
-    walk(n.left, depth + 1);
-    placed.push({ key: n.key, grade: n.grade, x: 70 + slot * 92, y: 46 + depth * 84, parentKey: n.parentKey });
+    walk(n.left);
+    points.push({ key: n.key, grade: n.grade, px: X(n.key), py: Y(n.grade), parentKey: n.parentKey });
     if (n.parentKey !== null) edges.push({ from: n.parentKey, to: n.key });
-    slot += 1;
-    walk(n.right, depth + 1);
+    walk(n.right);
   };
-  walk(root, 0);
-  return { placed, edges };
+  walk(n);
+  return { points, edges };
 }
 
 function buildSteps(): Step[] {
@@ -89,109 +88,86 @@ function buildSteps(): Step[] {
   let root: TNode | null = null;
   const doneKeys: number[] = [];
 
-  const snap = (
-    log: string,
-    codeLine: number,
-    extra: Partial<Step> = {},
-  ) => {
-    const { placed, edges } = layout(root);
-    steps.push({
-      tree: placed,
+  const snap = (log: string, codeLine: number, extra: Partial<Step> = {}): Step => {
+    const { points, edges } = collect(root);
+    return {
+      points,
       edges: edges.map((e) => ({ ...e, fresh: false })),
       candidate: null,
-      candidateAt: null,
       pathKeys: [],
       justPlacedKey: null,
       doneKeys: [...doneKeys],
       log,
       codeLine,
       ...extra,
-    });
+    };
   };
 
-  snap("🏢 Корпорация пуста. Приказ о найме: всех выстроили по грейду — от 8 до −4.", 1);
+  steps.push(
+    snap(
+      "📐 Восемь точек на клетчатой бумаге. Координаты прибиты гвоздями: x = ключ, y = приоритет. Соединяем по правилам: линия вниз по y, сторона — по x.",
+      1,
+    ),
+  );
 
   for (const hire of HIRES) {
-    const label = `№${hire.key} (грейд ${hire.grade})`;
+    const label = `(${hire.key}, ${hire.grade})`;
+    steps.push({
+      ...snap(`🖊️ Соединяем следующую точку — ${label}. Порядок задаёт y: от 8 к −4. Спуск от корня, сравнение по x.`, 2, {
+        candidate: hire,
+      }),
+    });
+
     let cur = root;
     let parent: TNode | null = null;
     let side: "L" | "R" | null = null;
-    const pathHits: PathHit[] = [];
     const pathKeys: number[] = [];
-
-    // кандидат «идёт» слева от входа, пока не начало спуска
-    const candidateFloat = { x: 70, y: 40 };
-    steps.push({
-      ...snapToLists(),
-      candidate: hire,
-      candidateAt: candidateFloat,
-      log: `👔 Вызывают кандидата ${label}. Вход в иерархию — через CEO.`,
-      codeLine: 2,
-    });
 
     while (cur) {
       const atNode = cur;
       const dir: "L" | "R" = hire.key <= atNode.key ? "L" : "R";
-      const cmp = `${hire.key} ${dir === "L" ? "≤" : ">"} ${atNode.key}`;
-      pathHits.push({ atKey: atNode.key, cmp, dir });
       pathKeys.push(atNode.key);
-      const { placed, edges } = layout(root);
-      const at = placed.find((p) => p.key === atNode.key)!;
       steps.push({
-        tree: placed,
-        edges: edges.map((e) => ({ ...e, fresh: false })),
-        candidate: hire,
-        candidateAt: { x: at.x, y: at.y - 58 },
-        pathKeys: [...pathKeys],
-        justPlacedKey: null,
-        doneKeys: [...doneKeys],
-        log: `🤝 ${label} vs №${atNode.key}: ${hire.key} ${dir === "L" ? "≤" : ">"} ${atNode.key} — ${dir === "L" ? "налево" : "направо"}.`,
-        codeLine: 6,
+        ...snap(
+          `⚖️ Точка ${label} против (${atNode.key}, ${atNode.grade}): ${hire.key} ${dir === "L" ? "≤" : ">"} ${atNode.key} — ${dir === "L" ? "левее" : "правее"}.`,
+          6,
+          { candidate: hire, pathKeys: [...pathKeys] },
+        ),
       });
       parent = atNode;
       side = dir;
       cur = dir === "L" ? atNode.left : atNode.right;
     }
 
-    const node: TNode = { key: hire.key, grade: hire.grade, left: null, right: null, parentKey: parent ? parent.key : null, side };
+    const node: TNode = {
+      key: hire.key,
+      grade: hire.grade,
+      left: null,
+      right: null,
+      parentKey: parent ? parent.key : null,
+    };
     if (!root) root = node;
     else if (side === "L") parent!.left = node;
     else parent!.right = node;
     doneKeys.push(hire.key);
 
-    const { placed, edges } = layout(root);
-    const at = placed.find((p) => p.key === hire.key)!;
     steps.push({
-      tree: placed,
-      edges: edges.map((e) => ({ ...e, fresh: e.to === hire.key })),
-      candidate: hire,
-      candidateAt: { x: at.x, y: at.y },
-      pathKeys: [...pathKeys],
-      justPlacedKey: hire.key,
-      doneKeys: [...doneKeys],
-      log: parent
-        ? `💼 Пустое кресло! ${label} садится под №${parent.key} (${side === "L" ? "левый" : "правый"}).`
-        : `💼 ${label} становится CEO — в компании ещё никого не было.`,
-      codeLine: 7,
+      ...snap(
+        parent
+          ? `🔗 Проводим линию (${parent.key}, ${parent.grade}) — ${label}: ${side === "L" ? "левый" : "правый"} ребёнок. Линия пошла вниз по y — куча цела.`
+          : `🔗 Точка ${label} первая — пока ни с кем не соединена: она корень.`,
+        7,
+        { candidate: hire, pathKeys: [...pathKeys], justPlacedKey: hire.key },
+      ),
     });
   }
 
-  snap("🏁 Штат укомплектован: BST по табельным №, куча по грейдам. И другим алгоритмом получилось бы то же самое дерево.", 8);
-
-  function snapToLists(): Step {
-    const { placed, edges } = layout(root);
-    return {
-      tree: placed,
-      edges: edges.map((e) => ({ ...e, fresh: false })),
-      candidate: null,
-      candidateAt: null,
-      pathKeys: [],
-      justPlacedKey: null,
-      doneKeys: [...doneKeys],
-      log: "",
-      codeLine: 3,
-    };
-  }
+  steps.push(
+    snap(
+      "🏁 Все точки соединены. Слева-направо по x читается BST, сверху-вниз по y — куча. Другой алгоритм соединения провёл бы те же линии: точки-то прибиты.",
+      8,
+    ),
+  );
 
   return steps;
 }
@@ -214,9 +190,13 @@ export const TreapBuildViz = () => {
   }, [playing, idx, steps.length]);
 
   const step = steps[idx];
-  const posByKey = new Map(step.tree.map((p) => [p.key, p]));
+  const posByKey = new Map(step.points.map((p) => [`${p.key}:${p.grade}`, p]));
   const freshEdge = step.edges.find((e) => e.fresh);
   const doneSet = new Set(step.doneKeys);
+  const candidatePlaced =
+    step.candidate && step.justPlacedKey !== null && step.justPlacedKey === step.candidate.key
+      ? posByKey.get(`${step.candidate.key}:${step.candidate.grade}`)
+      : undefined;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -224,11 +204,13 @@ export const TreapBuildViz = () => {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-700 pb-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-600/30">
-            <span className="text-2xl">🏢</span>
+            <span className="text-2xl">📐</span>
           </div>
           <div>
             <h3 className="text-2xl font-bold text-white">Интерактивный Treap</h3>
-            <p className="text-sm text-emerald-300">Дашборд: Дерево ⟷ Очередь найма ⟷ Штат ⟷ Код</p>
+            <p className="text-sm text-emerald-300">
+              Точки постоянны: x = ключ, y = приоритет. Соединяем по правилам
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -263,75 +245,124 @@ export const TreapBuildViz = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 mb-6">
-        {/* Дерево */}
-        <div className="w-full lg:w-2/3 bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/40 relative flex flex-col items-center justify-center min-h-[400px]">
+        {/* Координатная плоскость */}
+        <div className="w-full lg:w-2/3 bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/40 relative flex flex-col items-center justify-center min-h-[420px]">
           <div className="absolute top-3 left-3 bg-emerald-900/80 text-xs px-3 py-1 rounded-full text-emerald-200 border border-emerald-500 font-bold shadow-sm">
             Шаг {idx + 1} из {steps.length}
           </div>
           {step.candidate && (
             <div className="absolute top-3 right-3 bg-indigo-900/90 text-xs px-3 py-1.5 rounded-full text-white border border-indigo-400 font-bold shadow">
-              Кандидат: №{step.candidate.key} · гр. {step.candidate.grade}
+              Соединяем точку ({step.candidate.key}, {step.candidate.grade})
             </div>
           )}
 
-          <svg className="w-full h-auto max-h-[440px] mt-6" viewBox="0 0 760 420" preserveAspectRatio="xMidYMid meet">
+          <svg className="w-full h-auto max-h-[460px] mt-6" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <pattern id="treap-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+                <path d="M 16 0 L 0 0 0 16" fill="none" stroke="#1e293b" strokeWidth="1" />
+              </pattern>
+              <marker id="treap-arrow-fresh" markerWidth="7" markerHeight="7" refX="20" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
+                <path d="M0,0 L7,3.5 L0,7 z" fill="#10b981" />
+              </marker>
+            </defs>
+
+            {/* Клетчатая бумага */}
+            <rect x="40" y="24" width={VIEW_W - 60} height={VIEW_H - 50} fill="url(#treap-grid)" opacity="0.55" />
+
+            {/* Оси и шкалы */}
+            <line x1="40" y1={Y(0)} x2={VIEW_W - 20} y2={Y(0)} stroke="#475569" strokeWidth="1.5" />
+            <line x1={X(1) - 10} y1="24" x2={X(1) - 10} y2={VIEW_H - 26} stroke="#475569" strokeWidth="1.5" />
+            {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45].map((k) => (
+              <g key={`xl-${k}`}>
+                <line x1={X(k)} y1={Y(0) - 4} x2={X(k)} y2={Y(0) + 4} stroke="#64748b" strokeWidth="1.5" />
+                <text x={X(k)} y={Y(0) + 18} fill="#64748b" fontSize="11" textAnchor="middle" fontFamily="monospace">
+                  {k}
+                </text>
+              </g>
+            ))}
+            {[-4, -2, 0, 2, 4, 6, 8].map((g) => (
+              <g key={`yl-${g}`}>
+                <line x1={X(1) - 14} y1={Y(g)} x2={X(1) - 6} y2={Y(g)} stroke="#64748b" strokeWidth="1.5" />
+                <text x={X(1) - 20} y={Y(g) + 4} fill="#64748b" fontSize="11" textAnchor="end" fontFamily="monospace">
+                  {g}
+                </text>
+              </g>
+            ))}
+            <text x={VIEW_W - 24} y={Y(0) - 10} fill="#94a3b8" fontSize="12" textAnchor="end" fontFamily="monospace">
+              x (ключ) →
+            </text>
+            <text x={X(1) - 34} y="20" fill="#94a3b8" fontSize="12" fontFamily="monospace">
+              y (приоритет)
+            </text>
+
+            {/* Линии (рёбра) */}
             {step.edges.map((e) => {
-              const a = posByKey.get(e.from);
-              const b = posByKey.get(e.to);
+              const a = step.points.find((p) => p.key === e.from);
+              const b = posByKey.get(`${e.to}:${step.points.find((p) => p.key === e.to)?.grade ?? 0}`);
               if (!a || !b) return null;
               const onPath = step.pathKeys.includes(e.from) && step.pathKeys.includes(e.to);
               const isFresh = freshEdge && freshEdge.to === e.to;
               return (
                 <line
-                  key={`${e.from}-${e.to}`}
-                  x1={a.x}
-                  y1={a.y}
-                  x2={b.x}
-                  y2={b.y}
-                  stroke={isFresh ? "#10b981" : onPath ? "#f59e0b" : "#475569"}
+                  key={`e-${e.from}-${b.key}-${b.grade}`}
+                  x1={a.px}
+                  y1={a.py}
+                  x2={b.px}
+                  y2={b.py}
+                  stroke={isFresh ? "#10b981" : onPath ? "#f59e0b" : "#64748b"}
                   strokeWidth={isFresh ? 4 : onPath ? 3 : 2}
                   strokeDasharray={onPath && !isFresh ? "5,4" : "none"}
+                  markerEnd={isFresh ? "url(#treap-arrow-fresh)" : undefined}
                   className="transition-all duration-500"
                 />
               );
             })}
 
-            {step.tree.map((n) => {
-              const onPath = step.pathKeys.includes(n.key);
-              const isCandidateHere = step.justPlacedKey === n.key;
-              const isDone = doneSet.has(n.key);
+            {/* Точки — неподвижны в своих координатах */}
+            {step.points.map((p) => {
+              const onPath = step.pathKeys.includes(p.key);
+              const isCandidateHere = step.justPlacedKey === p.key;
+              const isDone = doneSet.has(p.key);
               return (
-                <g
-                  key={`n-${n.key}-${n.grade}`}
-                  transform={`translate(${n.x}, ${n.y})`}
-                  className="transition-transform duration-500"
-                >
+                <g key={`pt-${p.key}-${p.grade}`} className="transition-all duration-500">
                   <circle
-                    r={isCandidateHere ? 24 : 20}
-                    fill={isCandidateHere ? "#059669" : onPath ? "#78350f" : isDone ? "#1e3a5f" : "#334155"}
-                    stroke={isCandidateHere ? "#34d399" : onPath ? "#f59e0b" : isDone ? "#38bdf8" : "#64748b"}
-                    strokeWidth={isCandidateHere ? 4 : 2}
+                    cx={p.px}
+                    cy={p.py}
+                    r={isCandidateHere ? 13 : 11}
+                    fill={isCandidateHere ? "#059669" : onPath ? "#78350f" : isDone ? "#0f172a" : "#0f172a"}
+                    stroke={isCandidateHere ? "#34d399" : onPath ? "#f59e0b" : isDone ? "#38bdf8" : "#94a3b8"}
+                    strokeWidth={isCandidateHere ? 3.5 : 2}
                     className="transition-all duration-300"
                   />
-                  <text y={-2} fill="#ffffff" fontSize="14" fontWeight="bold" textAnchor="middle">
-                    {n.key}
-                  </text>
-                  <text y={13} fill="#cbd5e1" fontSize="10" textAnchor="middle">
-                    гр.{n.grade}
+                  <text x={p.px} y={p.py + 4} fill="#ffffff" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                    {p.key}
                   </text>
                 </g>
               );
             })}
 
-            {/* Кандидат «парит» над узлом, с которым сравнивается */}
-            {step.candidate && step.candidateAt && !step.justPlacedKey && (
-              <g transform={`translate(${step.candidateAt.x}, ${step.candidateAt.y})`} className="transition-transform duration-500">
-                <circle r={17} fill="#4f46e5" stroke="#a5b4fc" strokeWidth={3} strokeDasharray="4,3" />
-                <text y={-2} fill="#ffffff" fontSize="12" fontWeight="bold" textAnchor="middle">
+            {/* Кандидат: бледное пунктирное кольцо на СВОЕЙ координате */}
+            {step.candidate && !candidatePlaced && (
+              <g className="transition-all duration-500">
+                <circle
+                  cx={X(step.candidate.key)}
+                  cy={Y(step.candidate.grade)}
+                  r={13}
+                  fill="none"
+                  stroke="#818cf8"
+                  strokeWidth={2.5}
+                  strokeDasharray="4,3"
+                />
+                <text
+                  x={X(step.candidate.key)}
+                  y={Y(step.candidate.grade) + 4}
+                  fill="#c7d2fe"
+                  fontSize="11"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  fontFamily="monospace"
+                >
                   {step.candidate.key}
-                </text>
-                <text y={10} fill="#c7d2fe" fontSize="9" textAnchor="middle">
-                  гр.{step.candidate.grade}
                 </text>
               </g>
             )}
@@ -343,17 +374,18 @@ export const TreapBuildViz = () => {
           </div>
         </div>
 
-        {/* Очередь найма */}
+        {/* Порядок соединения */}
         <div className="w-full lg:w-1/3 bg-emerald-950/10 rounded-xl p-4 border border-emerald-500/40 flex flex-col items-stretch">
-          <h4 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">📋 Очередь найма (по грейду ↓)</h4>
+          <h4 className="text-lg font-bold text-emerald-300 mb-1 flex items-center gap-2">📋 Порядок соединения</h4>
+          <p className="text-xs text-slate-400 mb-3">Точки берутся по убыванию y — «кто выше, тот раньше».</p>
           <div className="space-y-2.5 flex-1 overflow-y-auto pr-1">
             {HIRES.map((h) => {
-              const isCurrent = step.candidate?.key === h.key && !step.justPlacedKey;
+              const isCurrent = step.candidate?.key === h.key && step.candidate?.grade === h.grade && step.justPlacedKey !== h.key;
               const isDone = doneSet.has(h.key);
               return (
                 <div
-                  key={`${h.key}-${h.grade}`}
-                  className={`p-3 rounded-lg border transition-all flex items-center justify-between ${
+                  key={`q-${h.key}-${h.grade}`}
+                  className={`p-3 rounded-lg border transition-all flex items-center justify-between font-mono text-sm ${
                     isCurrent
                       ? "bg-indigo-900/70 border-indigo-400 text-white shadow-md"
                       : isDone
@@ -361,13 +393,10 @@ export const TreapBuildViz = () => {
                         : "bg-slate-800/40 border-slate-700/60 text-slate-400"
                   }`}
                 >
-                  <span className="font-mono text-sm font-bold">
-                    №{h.key}
+                  <span className="font-bold">
+                    ({h.key}, {h.grade})
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${isCurrent ? "bg-indigo-500 text-white" : "bg-slate-700 text-slate-300"}`}>
-                    гр. {h.grade}
-                  </span>
-                  <span>{isDone ? "✅" : isCurrent ? "⬅️ сейчас" : "⏳"}</span>
+                  <span>{isDone ? "✅ соединена" : isCurrent ? "⬅️ сейчас" : "⏳"}</span>
                 </div>
               );
             })}
@@ -376,33 +405,31 @@ export const TreapBuildViz = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Штатное расписание */}
+        {/* Соединения */}
         <div className="w-full lg:w-1/2 bg-rose-950/10 rounded-xl p-4 border border-rose-500/40">
-          <h4 className="text-lg font-bold text-rose-300 mb-3">🧾 Штатное расписание (кто где)</h4>
+          <h4 className="text-lg font-bold text-rose-300 mb-3">🔗 Кто с кем соединён</h4>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-rose-900 text-slate-400 text-xs uppercase">
-                <th className="py-2 px-3">Сотрудник</th>
-                <th className="py-2 px-3">Таб. № (X)</th>
-                <th className="py-2 px-3">Грейд (Y)</th>
-                <th className="py-2 px-3">Босс</th>
+                <th className="py-2 px-3">Точка (x, y)</th>
+                <th className="py-2 px-3">Соединена с</th>
                 <th className="py-2 px-3">Сторона</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
+            <tbody className="text-sm font-mono">
               {HIRES.map((h) => {
-                const isCur = (step.candidate?.key === h.key && step.justPlacedKey === h.key) || step.justPlacedKey === h.key;
-                const placed = step.tree.find((p) => p.key === h.key);
+                const placed = step.points.find((p) => p.key === h.key && p.grade === h.grade);
+                const isCur = step.justPlacedKey === h.key;
+                const parent = placed && placed.parentKey !== null ? step.points.find((p) => p.key === placed.parentKey) : undefined;
                 return (
-                  <tr key={`${h.key}-${h.grade}`} className={`border-b border-slate-800/50 transition-colors ${isCur ? "bg-emerald-950/50 font-semibold" : doneSet.has(h.key) ? "bg-slate-900/20" : ""}`}>
+                  <tr key={`c-${h.key}-${h.grade}`} className={`border-b border-slate-800/50 transition-colors ${isCur ? "bg-emerald-950/50 font-semibold" : placed ? "bg-slate-900/20" : ""}`}>
                     <td className="py-2.5 px-3 text-white">
-                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${placed ? "bg-emerald-500" : "bg-slate-600"}`} />
-                      №{h.key}
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${placed ? "bg-emerald-500" : "bg-slate-600"}`} />({h.key}, {h.grade})
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-indigo-300">{h.key}</td>
-                    <td className="py-2.5 px-3 font-mono text-rose-300">{h.grade}</td>
-                    <td className="py-2.5 px-3 text-slate-400 font-mono">{placed && placed.parentKey !== null ? `№${placed.parentKey}` : "—"}</td>
-                    <td className="py-2.5 px-3 text-slate-400">{placed && placed.parentKey !== null ? (placed.x < (posByKey.get(placed.parentKey)?.x ?? placed.x) ? "← левый" : "правый →") : placed ? "— (CEO)" : "—"}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{placed ? (parent ? `(${parent.key}, ${parent.grade})` : "— корень") : "—"}</td>
+                    <td className="py-2.5 px-3 text-slate-400">
+                      {placed && parent ? (placed.px < parent.px ? "← левая" : "правая →") : placed ? "—" : "—"}
+                    </td>
                   </tr>
                 );
               })}
