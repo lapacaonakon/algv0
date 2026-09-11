@@ -21,10 +21,15 @@ export interface SyncVariable {
 export interface PageSync {
   /** Заголовок демонстрации на странице (если интерактив есть). */
   vizTitle?: string;
-  /** Чему соответствует один шаг визуализации. */
+  /** Чему соответствует один шаг визуализации (для тултипа). */
   stepNote?: string;
   /** Переменные синхронизации. Пусто — на странице нет визуализации. */
   variables: SyncVariable[];
+  /**
+   * Минимальный исполняемый скелет для редактора: строки идут
+   * шаг-в-шаг с подсветкой визуализации (без словесных описаний).
+   */
+  code?: string;
 }
 
 /** Справочные значения, указанные внутри самих симуляторов (демо-графы, строки и т.п.). */
@@ -32,6 +37,13 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "segment-trees": {
     vizTitle: "Дерево отрезков",
     stepNote: "Шаг = спуск по вершине v: либо читаем tree[v], либо толкаем lazy к детям 2·v и 2·v+1.",
+    code: `n = 8                       # длина массива (демо)
+tree = [0] * (2 * n)
+i = 0                       # лист: tree[n + i]
+
+v, l, r = 1, 0, n - 1       # вершина и её отрезок
+m = (l + r) // 2            # граница детей 2v, 2v+1
+print(f"v={v} [{l}..{r}] mid={m}")`,
     variables: [
       { name: "n", role: "длина исходного массива; листья дерева лежат в tree[n … 2·n − 1]", range: "n = 8 на демо" },
       { name: "i", role: "индекс элемента массива; его лист — tree[n + i]", range: "0 … n−1" },
@@ -47,6 +59,13 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "splay-tree": {
     vizTitle: "Splay-дерево (Zig / Zig-Zig / Zig-Zag)",
     stepNote: "Шаг = один поворот, поднимающий узел x над родителем p (а в Zig-Zig/Zig-Zag — ещё и над g).",
+    code: `x = "x"                     # поднимаемый узел
+p = "p"                     # родитель x
+g = "g"                     # дед x
+
+print("zig:     ", x, "↑", p)          # шаг 1
+print("zig-zig: ", x, "↑", p, "↑", g)  # шаг 2
+print("zig-zag: ", x, "↗", g)          # шаг 3`,
     variables: [
       { name: "x", role: "узел, который поднимаем к корню (расшейвливаем)", range: "выбранный узел" },
       { name: "p", role: "родитель узла x перед поворотом", range: "p = parent(x)" },
@@ -57,6 +76,11 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "splay-rotations": {
     vizTitle: "Splay: Zig, Zig-Zig и Zig-Zag по шагам",
     stepNote: "Шаг = один кадр поворота из трёх классических случаев.",
+    code: `x, p, g = "x", "p", "g"   # узел, родитель, дед
+
+print("zig:     ", x, "↑", p)
+print("zig-zig: ", x, "↑", p, "↑", g)
+print("zig-zag: ", x, "↗", g)`,
     variables: [
       { name: "x", role: "узел, который поднимаем к корню (расшейвливаем)", range: "выбранный узел" },
       { name: "p", role: "родитель узла x перед поворотом", range: "p = parent(x)" },
@@ -66,6 +90,21 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "sparse-table": {
     vizTitle: "Разреженная таблица (1D и 2D)",
     stepNote: "Шаг построения = заполнение ячейки уровня k: склейка двух блоков длины 2^(k−1).",
+    code: `n = 8                       # размер массива (демо)
+log = 3                     # k ≤ log2(n)
+
+# 1D: ячейка (i, j) — блок [i, i + 2^j)
+i = 0
+j = 0
+
+# 2D: 4 ключа → одна ячейка
+st2 = {}                    # (r, c, kx, ky) → ответ
+r, c, kx, ky = 0, 0, 0, 0
+st2[(r, c, kx, ky)] = 0
+
+for j in range(1, log + 1):
+    for i in range(n - 2 ** j + 1):
+        print(f"1D: st[{i}][{j}]")`,
     variables: [
       { name: "n", role: "длина массива / сторона квадратной матрицы", range: "n = 8 на демо" },
       { name: "k", role: "уровень таблицы: ячейка хранит ответ на блоке длины 2^k", range: "0 … log₂ n" },
@@ -78,6 +117,12 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "prefix-sums-2d": {
     vizTitle: "Префиксные суммы (1D и 2D)",
     stepNote: "Шаг = вычисление S[i][j] по формуле включений-исключений из уже готовых соседей.",
+    code: `n, m = 3, 4                 # строк, столбцов (демо)
+S = [[0] * (m + 1) for _ in range(n + 1)]
+
+for i in range(1, n + 1):       # строка
+    for j in range(1, m + 1):   # столбец
+        print(f"S[{i}][{j}] = A + ↑S[{i-1}][{j}] + ←S[{i}][{j-1}] − ↖S[{i-1}][{j-1}]")`,
     variables: [
       { name: "n", role: "число строк матрицы", range: "1 … n" },
       { name: "m", role: "число столбцов матрицы", range: "1 … m" },
@@ -89,6 +134,11 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "dynamic-programming": {
     vizTitle: "Динамическое программирование (мемоизация)",
     stepNote: "Шаг = вызов fibMemo(n): попадание в кэш memo или вычисление fib(n−1) + fib(n−2).",
+    code: `n = 5                       # цель (демо)
+memo = {}                   # кэш подзадач
+
+# шаг: fib(n) → memo[n] или fib(n−1) + fib(n−2)
+print("fib(", n, ") → memo", memo, "?")`,
     variables: [
       { name: "n", role: "номер числа Фибоначчи, которое сейчас считаем", range: "1 … targetN (по умолчанию 5)" },
       { name: "memo[n]", role: "кэш уже посчитанных значений — второй заход отдаёт ответ за O(1)", range: "заполняется снизу вверх" },
@@ -97,6 +147,13 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "heap-beam-search": {
     vizTitle: "Куча (priority queue)",
     stepNote: "Шаг = просеивание: вставленный элемент всплывает, пока не окажется ниже по приоритету, чем родитель — лучший всегда наверху.",
+    code: `a = [7, 3, 5, 1]            # куча-массивом
+n = len(a)
+i = n - 1                   # всплываемый элемент
+
+parent = (i - 1) // 2       # родитель
+kids = (2 * i + 1, 2 * i + 2)   # дети
+print(f"i={i} parent={parent} kids={kids}")`,
     variables: [
       { name: "n", role: "текущее число элементов в куче (n = len(a))", range: "растёт/падает при push/pop" },
       { name: "i", role: "индекс элемента, который сейчас просеиваем", range: "0 … n−1" },
@@ -107,6 +164,11 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "stack-dfs": {
     vizTitle: "Стек и обход в глубину",
     stepNote: "Шаг = push новой вершины на стек или pop — возврат рекурсии на уровень выше.",
+    code: `st = []                     # стек = рекурсия DFS
+st.append("A")              # push — зашли в вершину
+st.append("B")
+top = st.pop()              # pop — возврат на уровень выше
+print("pop →", top, "стек:", st)`,
     variables: [
       { name: "top", role: "вершина стека — то, откуда DFS пойдёт дальше", range: "последний добавленный" },
       { name: "v", role: "текущая вершина графа, которую обрабатываем", range: "0 … n−1" },
@@ -115,6 +177,12 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "queue-bfs": {
     vizTitle: "Очередь и обход в ширину",
     stepNote: "Шаг = dequeue вершины из головы очереди и enqueue всех её непосещённых соседей.",
+    code: `from collections import deque
+
+q = deque(["A"])
+q.append("B")               # enqueue соседа
+v = q.popleft()             # шаг: обрабатываем голову
+print("v =", v, "очередь:", list(q))`,
     variables: [
       { name: "front", role: "голова очереди — вершина, которую обрабатываем следующей", range: "первый в очереди" },
       { name: "v", role: "вершина, извлечённая из очереди на этом шаге", range: "по слоям от старта" },
@@ -124,6 +192,12 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "everyday-basics": {
     vizTitle: "Бытовой тренажёр: стек, очередь, куча",
     stepNote: "Шаг = одна бытовая операция: тарелка на стопку, человек в очередь, гипотеза в кучу.",
+    code: `from collections import deque
+
+st, q = [], deque()         # тарелки и очередь
+st.append("🍽️"); top = st.pop()
+q.append("🧍"); q.append("🧍"); first = q.popleft()
+print("тарелка:", top, "| первый из очереди:", first)`,
     variables: [
       { name: "top / front", role: "верх стопки (стек) и голова очереди — кого заберут первым", range: "LIFO и FIFO" },
       { name: "i", role: "индекс в массиве кучи; родитель (i−1)//2, дети 2·i+1 и 2·i+2", range: "0 … n−1" },
@@ -132,6 +206,17 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "graph-dfs-bfs": {
     vizTitle: "DFS и BFS на графе",
     stepNote: "Шаг = переход из текущей вершины v к непосещённому соседу to (DFS — вглубь, BFS — по слоям).",
+    code: `adj = {"A": ["B", "C"], "B": ["D"], "C": [], "D": []}
+visited, order = set(), []
+
+stack = ["A"]               # BFS: deque + popleft()
+while stack:
+    v = stack.pop()         # шаг: достали вершину
+    if v in visited:
+        continue
+    visited.add(v); order.append(v)
+    stack += adj[v]         # соседи v → на стек
+print(order)`,
     variables: [
       { name: "v", role: "текущая вершина обхода", range: "вершины демо-графа" },
       { name: "to / u", role: "очередной сосед вершины v из списка смежности adj[v]", range: "adj[v]" },
@@ -146,6 +231,20 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "top-sort": {
     vizTitle: "Топологическая сортировка",
     stepNote: "Шаг = выход рекурсии из вершины v: она дописывается в order, потом order разворачивается.",
+    code: `adj = {0: [1, 4], 1: [2, 3], 2: [], 3: [2], 4: []}
+used, order = set(), []
+
+def dfs(v):
+    used.add(v)
+    for to in adj[v]:       # шаг: ребро v → to
+        if to not in used:
+            dfs(to)
+    order.append(v)         # выход из v!
+
+for v in adj:
+    if v not in used:
+        dfs(v)
+print(order[::-1])          # разворот — ответ`,
     variables: [
       { name: "v", role: "текущая вершина DFS", range: "0 … 4 на демо" },
       { name: "to", role: "вершина, куда ведёт ребро из v", range: "adj[v]" },
@@ -156,6 +255,18 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "scc-kosaraju": {
     vizTitle: "Компоненты сильной связности (Косарайю)",
     stepNote: "Шаг = вершина из order (в обратном порядке) запускает DFS по транспонированному графу и красит свою SCC.",
+    code: `adj = {0: [1], 1: [2], 2: [0, 3], 3: [], 4: [3]}
+adjT = {v: [] for v in adj}
+for v in adj:
+    for to in adj[v]:
+        adjT[to].append(v)  # транспонирование
+
+order = [3, 2, 1, 0, 4]     # фаза 1 уже дала порядок выхода
+comp = {}                   # фаза 2: вершина → № SCC
+
+for i in range(len(order) - 1, -1, -1):
+    v = order[i]            # шаг: DFS по adjT из v красит comp[v]
+    print(i, "старт из", v, comp)`,
     variables: [
       { name: "v", role: "текущая вершина DFS (первый проход — обычный граф)", range: "0 … 4" },
       { name: "to", role: "сосед по ребру (на 2-м проходе — по обратному ребру)", range: "adj / adjT" },
@@ -167,6 +278,15 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "graph-articulation": {
     vizTitle: "Точки сочленения",
     stepNote: "Шаг = обновление low[v] по ребру; вершина v — точка сочленения, когда low[to] ≥ tin[v].",
+    code: `tin, low, timer = {}, {}, 0
+
+v, to = 0, 1                # текущее ребро DFS
+tin[v] = tin.get(v, timer); low[v] = tin[v]
+
+# шаг: возврат из to
+low[v] = min(low[v], low.get(to, tin[v]))
+critical = low.get(to, 0) >= tin[v]   # → v — точка сочленения
+print(f"v={v} to={to} critical={critical}")`,
     variables: [
       { name: "v", role: "текущая вершина DFS", range: "вершины демо-графа" },
       { name: "to", role: "сосед: либо ребёнок в DFS-дереве, либо обратное ребро", range: "adj[v]" },
@@ -178,6 +298,12 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "bridges-code": {
     vizTitle: "Мосты: DFS + tin/low",
     stepNote: "Шаг = строка псевдокода слева; ребро (v, to) — мост, когда low[to] > tin[v].",
+    code: `tin, low = {"A": 1, "B": 2, "G": 3}, {"A": 1, "B": 2, "G": 3}
+timer = 3                   # как на демо
+
+v, to = "B", "G"            # шаг: возврат из G
+is_bridge = low[to] > tin[v]        # 3 > 2 → мост!
+print(f"ребро {v}-{to}: мост? {is_bridge}")`,
     variables: [
       { name: "v", role: "текущая вершина DFS", range: "A…G на демо" },
       { name: "to", role: "сосед; ребро (v, to) проверяем на мост", range: "adj[v]" },
@@ -189,6 +315,15 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "euler-path-vs-cycle": {
     vizTitle: "Эйлеров путь и цикл",
     stepNote: "Шаг = один клик по следующей вершине маршрута; ребро при этом «сгорает».",
+    code: `edges = [(0,1), (0,2), (1,3), (2,4), (1,2), (3,4)]
+deg = {}
+for u, v in edges:          # степени вершин
+    deg[u] = deg.get(u, 0) + 1
+    deg[v] = deg.get(v, 0) + 1
+
+odd = [v for v in deg if deg[v] % 2]
+print(deg, "нечётных:", len(odd))
+# 0 → цикл · 2 → путь · иначе — нельзя`,
     variables: [
       { name: "path", role: "текущий маршрут — последовательность пройденных вершин", range: "растёт по кликам" },
       { name: "last", role: "последняя вершина пути — отсюда выбираем следующее ребро", range: "path[-1]" },
@@ -198,6 +333,11 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "planarity-euler-formula": {
     vizTitle: "Планарность: K5 и K3,3",
     stepNote: "Шаг = попытка перетащить вершину так, чтобы рёбра перестали пересекаться.",
+    code: `V, E = 5, 10                # K5   (K3,3: V=6, E=9)
+F = 2 - V + E               # формула: V − E + F = 2
+
+not_planar = E > 3 * V - 6  # 10 > 9 → K5 непланарен
+print(f"V={V} E={E} F={F} непланарен={not_planar}")`,
     variables: [
       { name: "V", role: "число вершин графа", range: "K5: 5 · K3,3: 6" },
       { name: "E", role: "число рёбер", range: "K5: 10 · K3,3: 9" },
@@ -207,6 +347,16 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   dijkstra: {
     vizTitle: "Дейкстра",
     stepNote: "Шаг = выбор ближайшей непосещённой вершины u и релаксация всех её рёбер (u → v).",
+    code: `import heapq
+
+dist = {"A": 0}             # остальные = ∞
+pq = [(0, "A")]
+
+u, v, w = "A", "B", 4       # шаг: ребро u → v веса w
+if dist.get(u, float("inf")) + w < dist.get(v, float("inf")):
+    dist[v] = dist[u] + w   # релаксация!
+    heapq.heappush(pq, (dist[v], v))
+print(dist, pq)`,
     variables: [
       { name: "u", role: "вершина с минимальным dist среди непосещённых — её обрабатываем", range: "argmin dist" },
       { name: "v", role: "сосед вершины u, до которого пробуем улучшить путь", range: "соседи u" },
@@ -217,6 +367,16 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "bellman-ford": {
     vizTitle: "Форд—Беллман",
     stepNote: "Шаг = одна релаксация ребра (u, v, w) внутри i-й итерации по всем рёбрам.",
+    code: `n, m = 7, 10                # вершин, рёбер (демо)
+dist = {"S": 0}
+
+for i in range(1, n):       # итерация i = 1 … n−1
+    u, v, w = "S", "A", 5   # шаг: очередное ребро
+    if dist.get(u, float("inf")) + w < dist.get(v, float("inf")):
+        dist[v] = dist[u] + w   # релаксация
+    if i == 1:
+        print(f"итерация {i}: {dist}")
+        break`,
     variables: [
       { name: "n", role: "число вершин графа — ровно n−1 полных итераций", range: "7 на демо" },
       { name: "m", role: "число рёбер, по которым проходим на каждой итерации", range: "список E" },
@@ -228,6 +388,13 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   floyd: {
     vizTitle: "Флойд—Уоршелл",
     stepNote: "Шаг = проверка dist[i][j] > dist[i][k] + dist[k][j] для текущей промежуточной вершины k.",
+    code: `n = 7                       # матрица n×n (демо)
+dist = [[float("inf")] * n for _ in range(n)]
+
+for k in range(n):          # промежуточная вершина
+    for i in range(n):      # откуда
+        for j in range(n):  # куда
+            pass            # шаг: dist[i][j] vs dist[i][k] + dist[k][j]`,
     variables: [
       { name: "n", role: "число вершин — размер квадратной матрицы расстояний n × n", range: "7 на демо" },
       { name: "k", role: "промежуточная вершина — ВНЕШНИЙ цикл; на шаге k разрешено ходить через вершины 0 … k", range: "0 … n−1" },
@@ -239,6 +406,13 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "johnson-algo": {
     vizTitle: "Алгоритм Джонсона (перевзвешивание)",
     stepNote: "Шаг = Беллман-Форд из фиктивной вершины считает h[v], затем n запусков Дейкстры в новых весах.",
+    code: `# потенциалы из Беллмана-Форда от фиктивной вершины S
+h = {"A": 0, "B": -3, "C": -1, "D": 1, "E": 2, "F": 4}
+
+u, v, w = "A", "B", -3      # ребро с отрицательным весом
+w_new = w + h[u] - h[v]     # w′ = w + h[u] − h[v] ≥ 0
+print(f"w′({u}→{v}) = {w_new}")
+# после Дейкстры: ответ = d[v] − h[start] + h[v]`,
     variables: [
       { name: "h[v]", role: "потенциал вершины — кратчайший путь от фиктивной вершины; делает веса неотрицательными", range: "после Беллмана–Форда" },
       { name: "u, v", role: "ребро (u, v) перевзвешивается: w′(u,v) = w(u,v) + h[u] − h[v]", range: "все рёбра" },
@@ -248,6 +422,21 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "mst-kruskal": {
     vizTitle: "Краскал и DSU",
     stepNote: "Шаг = следующее ребро из отсортированных: если концы в разных компонентах — берём в остов.",
+    code: `edges = [(3, "B", "C"), (1, "A", "B"), (2, "A", "C")]
+edges.sort()                # по весу
+
+parent = {v: v for v in "ABC"}   # DSU
+def find(x):
+    while parent[x] != x:
+        x = parent[x]
+    return x
+
+mst = []
+for w, u, v in edges:       # шаг: очередное ребро
+    if find(u) != find(v):  # разные компоненты → берём
+        parent[find(u)] = find(v)
+        mst.append((w, u, v))
+print(mst)`,
     variables: [
       { name: "n", role: "число вершин; в остов войдёт ровно n−1 ребро", range: "вершины демо-графа" },
       { name: "m", role: "число рёбер, сортируем по весу в начале", range: "список E" },
@@ -259,6 +448,14 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "mst-prima": {
     vizTitle: "Прим",
     stepNote: "Шаг = из кучи достаётся самое лёгкое ребро, ведущее из выращенного дерева наружу.",
+    code: `import heapq
+
+start = "A"
+heap = [(0, start, "start")]   # (вес, вершина, откуда)
+
+w, v, parent = heapq.heappop(heap)  # шаг: берём минимум
+taken = {start}             # дерево растёт от start
+print(f"берём {v} за {w} (из {parent})")`,
     variables: [
       { name: "v", role: "вершина, которую только что добавили в остовное дерево", range: "из кучи" },
       { name: "u", role: "ещё не взятый сосед v — кандидат на добавление", range: "соседи v" },
@@ -269,6 +466,13 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "mst-boruvka": {
     vizTitle: "Борувка",
     stepNote: "Шаг = каждая компонента одновременно выбирает своё самое дешёвое исходящее ребро.",
+    code: `comp = {v: v for v in "ABC"}   # корень компоненты
+cheapest = {}               # comp → самое дешёвое ребро наружу
+
+u, v, w = "A", "B", 1       # шаг: ребро-кандидат
+if comp[u] != comp[v]:
+    cheapest[comp[u]] = (w, u, v)
+print(cheapest)             # за фазу компонент станет ÷2`,
     variables: [
       { name: "comp", role: "компонента связности текущего леса (DSU)", range: "число компонент ÷≥2 за фазу" },
       { name: "cheapest[comp]", role: "самое дешёвое ребро из компоненты наружу", range: "обновляется каждую фазу" },
@@ -278,6 +482,18 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "string-kmp": {
     vizTitle: "Префикс-функция (КМП)",
     stepNote: "Шаг = обработка символа s[i]: откаты по j = π[j−1], пока не совпадёт s[j] с s[i].",
+    code: `s = "aabaabaaa"
+n = len(s)
+pi = [0] * n
+
+for i in range(1, n):       # шаг: считаем pi[i]
+    j = pi[i - 1]           # длина совпадения
+    while j > 0 and s[i] != s[j]:
+        j = pi[j - 1]       # откат назад
+    if s[i] == s[j]:
+        j += 1
+    pi[i] = j
+print(pi)`,
     variables: [
       { name: "n", role: "длина строки s, для которой строим префикс-функцию", range: "n = len(s)" },
       { name: "i", role: "индекс текущего символа — считаем π[i], идём слева направо", range: "1 … n−1" },
@@ -288,6 +504,19 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "string-z-func": {
     vizTitle: "Z-функция",
     stepNote: "Шаг = вычисление z[i]: внутри Z-блока [l, r] берём инициализацию из z[i−l], потом досчитаем в лоб.",
+    code: `s = "abacaba"
+n = len(s)
+z = [0] * n
+l = r = 0                   # правый Z-блок [l, r]
+
+for i in range(1, n):       # шаг: вычисляем z[i]
+    if i <= r:
+        z[i] = min(r - i + 1, z[i - l])   # из блока
+    while i + z[i] < n and s[z[i]] == s[i + z[i]]:
+        z[i] += 1           # досчёт в лоб
+    if i + z[i] - 1 > r:
+        l, r = i, i + z[i] - 1
+print(z)`,
     variables: [
       { name: "n", role: "длина строки s", range: "n = len(s)" },
       { name: "i", role: "позиция, для которой считаем z[i]", range: "1 … n−1" },
@@ -298,6 +527,11 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "aho-corasick": {
     vizTitle: "Ахо—Корасик",
     stepNote: "Шаг = построение бора по образцам, затем BFS-обход, натягивающий суффиксные ссылки (водопад «лосося»).",
+    code: `trie = {"": {}}             # бор: вершина → переходы
+state, c = "", "a"          # шаг: автомат идёт по символу
+
+nxt = trie.get(state, {}).get(c, "")   # go(state, c) с суф. ссылкой
+print(f"δ({state!r}, {c!r}) → {nxt!r}")`,
     variables: [
       { name: "state", role: "текущее состояние автомата — вершина бора", range: "0 … число вершин" },
       { name: "c", role: "очередной символ текста — переход из state по c", range: "алфавит образцов" },
@@ -319,3 +553,22 @@ export const PAGE_SYNC: Record<string, PageSync> = {
 /** Безопасный доступ: страница без записи получает пустую синхронизацию. */
 export const getPageSync = (chapterId?: string | null): PageSync =>
   (chapterId && PAGE_SYNC[chapterId]) || { variables: [] };
+
+/**
+ * Стартовое содержимое редактора для страницы.
+ *
+ * Формат: короткий комментарий-шапка + МИНИМАЛЬНЫЙ исполняемый скелет,
+ * строки которого идут шаг-в-шаг с подсветкой визуализации
+ * (i = 0, j = 0…; структуры вида «4 ключа → значение» для 2D).
+ * Никаких словесных описаний внутри — только код.
+ */
+export function buildSyncTemplate(chapterId: string, chapterTitle: string): string {
+  const sync = getPageSync(chapterId);
+
+  const head = sync.vizTitle
+    ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle} · строки ниже = шаги подсветки\n`
+    : `# «${chapterTitle}»\n# демо на странице нет — свободный режим (стрелки ← → листают страницы)\n`;
+
+  if (!sync.code) return head;
+  return `${head}\n${sync.code}\n`;
+}

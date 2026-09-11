@@ -15,7 +15,7 @@ import {
   Variable,
   X,
 } from "lucide-react";
-import { getPageSync } from "../data/vizSync";
+import { buildSyncTemplate, getPageSync } from "../data/vizSync";
 import { Tooltip } from "./Tooltip";
 
 const PYODIDE_VERSION = "0.27.7";
@@ -60,35 +60,9 @@ function errorText(error: unknown) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Шаблон синхронизации: ТОЛЬКО комментарий с переменными страницы.  */
-/*  Кода алгоритма здесь нет по замыслу — шаги повторяются руками.    */
+/*  Шаблон синхронизации: короткая шапка + минимальный исполняемый    */
+/*  скелет, шаг-в-шаг с подсветкой визуализации (см. data/vizSync.ts).*/
 /* ------------------------------------------------------------------ */
-
-function buildSyncTemplate(chapterId: string, chapterTitle: string): string {
-  const sync = getPageSync(chapterId);
-  const bar = "# " + "─".repeat(44);
-  const lines: string[] = [bar, "#  СИНХРОНИЗАЦИЯ С ВИЗУАЛИЗАЦИЕЙ", `#  Страница: «${chapterTitle}»`];
-  if (sync.vizTitle) lines.push(`#  Демонстрация: ${sync.vizTitle}`);
-  lines.push(bar, "#");
-
-  if (sync.variables.length === 0) {
-    lines.push(
-      "#  На этой странице нет интерактивной визуализации —",
-      "#  компилятор работает в свободном режиме.",
-      "#  Откройте страницу с демонстрацией (стрелки ← →),",
-      "#  и здесь появятся её переменные синхронизации."
-    );
-  } else {
-    lines.push("#  Пошаговая подсветка идёт по переменным:");
-    for (const v of sync.variables) {
-      const range = v.range ? `  (${v.range})` : "";
-      lines.push(`#    ${v.name} — ${v.role}${range}`);
-    }
-    if (sync.stepNote) lines.push("#", `#  Шаг = ${sync.stepNote}`);
-    lines.push("#", "#  Кода тут нет нарочно: повторите шаги визуализации,", "#  задавая переменным значения текущего шага.");
-  }
-  return lines.join("\n") + "\n";
-}
 
 /* ------------------------------------------------------------------ */
 /*  Шпаргалка Python: команды сортировки, циклы, структуры.           */
