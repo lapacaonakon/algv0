@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Code, Eye, RefreshCw } from 'lucide-react';
 
 interface DPStep {
@@ -23,6 +24,7 @@ export function DPVisualizer() {
   const [targetN, setTargetN] = useState<number>(5);
   const [steps, setSteps] = useState<DPStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed] = useState<number>(800);
   const [activeTab, setActiveTab] = useState<'table' | 'code'>('table');

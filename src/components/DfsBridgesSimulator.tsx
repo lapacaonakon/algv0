@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import { Undo, Play, Pause, SkipForward, RefreshCw } from "lucide-react";
 
 interface CodeLine {
@@ -179,6 +180,7 @@ const DFS_STEPS: DfsStep[] = [
 
 export function DfsBridgesSimulator() {
   const [dfsIdx, setDfsIdx] = useState(0);
+  useVizStepSync(dfsIdx, setDfsIdx, DFS_STEPS.length - 1);
   const [dfsAuto, setDfsAuto] = useState(false);
   const dfsTimer = useRef<NodeJS.Timeout | null>(null);
 

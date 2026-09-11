@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 
 interface Step {
   k: number; i: number; j: number;
@@ -9,6 +10,7 @@ interface Step {
 export default function FloydViz() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodeNames = ['А 0', 'Б 1', 'В 2', 'Г 3', 'Д 4', 'Е 5', 'Ж 6'];

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -16,6 +17,7 @@ export default function BellmanFordViz() {
   const [hasCycle, setHasCycle] = useState(false);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodes: Node[] = [

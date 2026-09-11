@@ -4,6 +4,7 @@ import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
 import { getViz } from "./vizRegistry";
+import { VizChapterContext } from "../data/vizStepBus";
 import { ChapterNav } from "./ChapterNav";
 import { downloadChapterHtml } from "../utils/exportHtml";
 
@@ -168,7 +169,9 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
               </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
-            <viz.Component />
+            <VizChapterContext.Provider value={chapter.id}>
+              <viz.Component />
+            </VizChapterContext.Provider>
           </section>
         )}
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import {
   Play,
   Pause,
@@ -47,6 +48,7 @@ interface TStep {
 export const TopologicalSortViz: React.FC = () => {
   const [steps, setSteps] = useState<TStep[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from "lucide-react";
 
 function generateKmpSteps(pattern: string, text: string) {
@@ -99,6 +100,7 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
 
     const [autoPlay, setAutoPlay] = useState(false);
     const [stepIdx, setStepIdx] = useState(0);
+    useVizStepSync(stepIdx, setStepIdx, steps.length - 1);
     const timer = useRef<NodeJS.Timeout | null>(null);
 
     // Reset when inputs or mode change

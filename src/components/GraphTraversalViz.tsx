@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from 'lucide-react';
 
 type Node = { id: string; label: string; x: number; y: number };
@@ -98,6 +99,7 @@ export function GraphTraversalViz() {
     const [stepIdx, setStepIdx] = useState(0);
 
     const steps = useMemo(() => mode === 'dfs' ? generateDFSSteps('A') : generateBFSSteps('A'), [mode]);
+    useVizStepSync(stepIdx, setStepIdx, steps.length - 1);
 
     useEffect(() => {
         setStepIdx(0);
