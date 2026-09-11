@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 20:27:15
+Дата генерации:            11.09.2026, 20:37:42
 Файлов исходного кода:     82
 Суммарный объём кода:      1.14 MB
 Глав/билетов в пособии:    30
@@ -2316,7 +2316,7 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/82: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 996 | РАЗМЕР: 79.6 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1010 | РАЗМЕР: 80.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2394,13 +2394,13 @@ int minimum = min(ans1, ans2);</pre>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🗡️ Аналогия 1: Удар катаной (Split)
+                        🗡️ Аналогия 1: Split — таможня
                     </div>
                     <p class="text-slate-300 text-sm mb-4">Split(t, x) — таможня с двумя коридорами: зелёный «все x ≤ x₀», красный «все x &gt; x₀». Спуск от корня: узел, который вместе со своим поддеревом целиком проходит по одному коридору, отправляется туда <b>без вскрытия</b> — дальше досматривается только одна ветка. Поэтому split стоит O(h), а не O(n).</p>
                 </div>
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🧲 Аналогия 2: Слияние капель (Merge)
+                        🧲 Аналогия 2: Merge — стыковка колонн
                     </div>
                     <p class="text-slate-300 text-sm mb-4">Merge(a, b) склеивает два дерева при условии «все x в a меньше всех x в b». Каждый шаг — одно сравнение: чей y у корня больше, тот и принимает колонну, а «стыковка» продолжается в одном его поддереве (том, что сохраняет порядок x). Итого O(h) сравнений y — без перестроек и поворотов.</p>
                 </div>
@@ -2430,16 +2430,30 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-emerald-400 mb-4">Как построить: точки и линии</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-emerald-500/30">
-                <p class="text-lg text-emerald-300 italic mb-2">Общепринятое определение:</p>
+                <p class="text-lg text-emerald-300 italic mb-2">Строгое правило / Формула:</p>
                 <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Пара (x; y) — точка на декартовой плоскости, отсюда и название.</p>
             </div>
 
-            <div class="bg-slate-900 p-6 rounded-lg border-2 border-rose-500/60 mb-6">
-                <p class="text-2xl sm:text-3xl font-bold text-rose-300 uppercase tracking-wide text-center">Малый x — огромный y: <span class="text-white">Х!Й</span></p>
-                <p class="text-lg text-slate-200 font-mono text-center mt-2">! = y = приоритет = вершина кучи</p>
-            </div>
-                    <p class="text-slate-300 text-sm mb-2">Вкладка <b>«Собрать»</b>: точки приходят как попало → видимая сортировка по y (попробуй обе: quicksort против counting — разница есть) → соединение линиями в <b>любом</b> порядке: по y или слева-направо, результат один. Чек-лист ✅ проверяет инварианты сам: ребро вниз по y, обход по x отсортирован, линий n−1.</p>
-                    <p class="text-slate-300 text-sm">Вкладки <b>Split / Merge / Erase</b> — операции по шагам; <b>«Миф 2k/2k+1»</b> и <b>«Поиск ≠ сортировка»</b> — разбор двух граблей справа вживую.</p>
+            <p class="text-center mb-6 py-4 bg-slate-900/60 rounded-lg border border-rose-500/40">
+                <span class="text-sm text-slate-400 align-middle">малый </span><span class="text-xl font-bold text-sky-300 align-middle">x</span>
+                <span class="text-slate-500 align-middle"> — </span>
+                <span class="text-sm text-slate-400 align-middle">огромный </span>
+                <span class="relative inline-block align-middle mx-1">
+                    <span class="text-6xl font-black text-white leading-none">и</span>
+                    <span class="absolute -top-2 left-1/2 -translate-x-1/2 text-4xl font-black text-rose-400 leading-none">!</span>
+                </span>
+                <span class="block mt-1 font-mono text-slate-300">! = y = приоритет = вершина кучи</span>
+            </p>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
+                        🗺️ Аналогия 1: Точки на клетчатой бумаге
+                    </div>
+                    <p class="text-slate-300 text-sm mb-4">
+                        Каждая пара — точка на бумаге в клетку: x по горизонтали, y по вертикали. Точки не двигаются никогда. Построить дерево = правильно соединить: линия всегда падает вниз по y («!» у родителя громче), а левее/правее подсказывает x — сравнением на каждом шаге спуска от корня.<br><br>
+                        «!» держит всё слово: убери его из Х!Й — рассыплется набор букв; убери y из пары — рассыплется куча, останется дерево поиска, которое на неудачном вводе вырождается в палку. Равные «!» — выше тот, кто раньше заявил заявку в списке; равные x — идут влево по уставу. В демо-наборе все x и все y различны — потому дерево ровно одно.
+                    </p>
                 </div>
 
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
@@ -2452,9 +2466,9 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
                 </div>
             </div>
 
-            <p class="text-slate-300 text-sm mt-5"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code>: сортировка (n·log n сравнений или O(n) counting по целым y) плюс n спусков. Худший случай — приоритеты вытянулись в цепочку: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
+            <p class="text-slate-400 text-sm mt-6">Симулятор под билетом: <b>Собрать</b> (приходят как попало → видимая сортировка по y: quicksort против counting → линии в любом порядке, чек-лист ✅ сам проверяет инварианты), <b>Split / Merge / Erase</b> по шагам, <b>Миф 2k/2k+1</b> и <b>Поиск ≠ сортировка</b> — обе грабли вживую.</p>
 
-            <p class="text-slate-400 text-xs mt-4 leading-relaxed">Х!Й — расшифровка: «!» — это y (приоритет): маленький знак держит всё слово — убери, и останется набор букв, как treap без y останется обычным деревом поиска-палкой. Х — это x (ключ): место по алфавиту, левее — налево, правее — направо. Все стоят по алфавиту, но кричат по «!»: корень самый громкий, родитель всегда громче детей. Равные «!» — выше тот, кто раньше заявил заявку в списке; равные x — идут влево по уставу.</p>
+            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code> (сортировка + n спусков; counting по целым y — O(n)). Худший случай — цепочка приоритетов: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
@@ -2489,7 +2503,7 @@ def erase(root, key):              # удалить произвольную т�
             </details>
         </div>
     </div>
-</section>`,
+</section>`
   },
   {
     id: "splay-tree",
@@ -23311,5 +23325,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 11.09.2026, 20:27:15
+КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 11.09.2026, 20:37:42
 ==========================================================================================================================================
