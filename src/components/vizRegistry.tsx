@@ -18,9 +18,7 @@ import { PlanarityDemo } from "./PlanarityDemo";
 import { QueueViz } from "./QueueViz";
 import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
 import { SegmentTreeVisualizer } from "./SegmentTreeVisualizer";
-import { SplayTreeViz } from "./SplayTreeViz";
-import { SplayRotationsViz } from "./SplayRotationsViz";
-import { SplayRotationSandbox } from "./SplayRotationSandbox";
+import SplayWalkViz from "./SplayWalkViz";
 import { StackViz } from "./StackViz";
 import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
@@ -30,26 +28,6 @@ import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
 import { TreapBuildViz } from "./TreapBuildViz";
-
-/** Разбор поворота и песочница всегда идут парой: посмотрел — сразу повтори сам. */
-/**
- * Анимация и песочница идут друг под другом, а не в две колонки: в узкой
- * колонке дерево сжималось до нечитаемого размера, а понятность здесь важнее
- * компактности. Между ними — подпись, объясняющая переход от «смотрю» к «делаю».
- */
-const SplayRotationsPair: React.FC = () => (
-  <div className="space-y-4">
-    <SplayRotationsViz />
-    <p className="flex items-start gap-2 text-[12px] leading-relaxed text-slate-400 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
-      <span aria-hidden="true">👇</span>
-      <span>
-        Разобрался — проверь себя: ниже то же самое дерево, но крутить его нужно самому. Подсказок не будет, пока
-        не решишь.
-      </span>
-    </p>
-    <SplayRotationSandbox />
-  </div>
-);
 
 export interface VizEntry {
   /** Заголовок панели/модалки. */
@@ -111,19 +89,14 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     Component: DPVisualizer,
   },
   "splay-tree": {
-    title: "Splay-дерево",
-    hint: "Покадровый разбор трёх поворотов, песочница на них же и живое дерево целиком.",
-    Component: () => (
-      <div className="space-y-10">
-        <SplayRotationsPair />
-        <SplayTreeViz />
-      </div>
-    ),
+    title: "Splay на большом дереве, пошагово",
+    hint: "Кликни узел — он поднимется в корень по одному повороту: прицел ребра, поворот, переехавшие поддеревья. Zig-Zig — верхнее ребро первым, Zig-Zag — нижним.",
+    Component: SplayWalkViz,
   },
   "splay-rotations": {
-    title: "Splay: Zig, Zig-Zig и Zig-Zag по шагам",
-    hint: "Сверху — покадровый разбор поворота, снизу — песочница, где то же самое делаешь сам.",
-    Component: () => <SplayRotationsPair />,
+    title: "Zig / Zig-Zig / Zig-Zag на большом дереве",
+    hint: "Те же случаи, что в конспекте, но на настоящем дереве: каждый одиночный поворот — отдельный шаг.",
+    Component: SplayWalkViz,
   },
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
   "top-sort": { title: "Топологическая сортировка", Component: TopologicalSortViz },
