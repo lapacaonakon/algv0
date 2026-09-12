@@ -296,7 +296,7 @@ const depthOf = (t: SN | null, key: number): number => {
 const heightOf = (t: SN | null): number => (t ? 1 + Math.max(heightOf(t.left), heightOf(t.right)) : 0);
 const inorderKeys = (t: SN | null): number[] => (t ? [...inorderKeys(t.left), t.key, ...inorderKeys(t.right)] : []);
 
-export const INITIAL_KEYS = [50, 40, 35, 32, 30, 60, 55, 70];
+export const INITIAL_KEYS = [50, 40, 35, 32, 30, 28, 12, 60, 55, 70, 65, 80, 75, 90];
 
 const buildInitial = (): SN => {
   let t: SN | null = null;
@@ -388,6 +388,17 @@ const SplayWalkViz: React.FC = () => {
 
   const autoW = Math.max(VIEW_W, ...nodes.map((n) => n.px + 60));
   const autoH = Math.max(300, ...nodes.map((n) => n.py + 60));
+
+  // Шаг "поворот": подсветить рёбра, которых не было на предыдущем шаге
+  // (развернувшиеся и переехавшие поддеревья — то, что обещает текст главы).
+  const prevEdgeSet = useMemo(() => {
+    if (!steps || !step || step.kind !== "rot" || idx <= 0) return null;
+    return new Set(collectEdges(steps[idx - 1].root));
+  }, [steps, step, idx]);
+  const movedCount = useMemo(() => {
+    if (!prevEdgeSet) return 0;
+    return edges.filter((e) => !prevEdgeSet.has(`${e.a}→${e.b}`)).length;
+  }, [prevEdgeSet, edges]);
 
   const dBefore = useMemo(() => (steps ? depthOf(steps[0].root, steps[steps.length - 1].root?.key ?? NaN) : 0), [steps]);
   const dNow = steps ? depthOf(viewRoot, steps[steps.length - 1].root?.key ?? NaN) : 0;
@@ -511,6 +522,7 @@ const SplayWalkViz: React.FC = () => {
             const b = pos.get(e.b);
             if (!a || !b) return null;
             const isAim = step?.aimEdge && step.aimEdge.includes(e.a) && step.aimEdge.includes(e.b);
+            const isMoved = !isAim && prevEdgeSet !== null && !prevEdgeSet.has(`${e.a}→${e.b}`);
             return (
               <line
                 key={`e-${e.a}-${e.b}`}
@@ -518,8 +530,8 @@ const SplayWalkViz: React.FC = () => {
                 y1={a.py}
                 x2={b.px}
                 y2={b.py}
-                stroke={isAim ? "#f59e0b" : "#475569"}
-                strokeWidth={isAim ? 4 : 2}
+                stroke={isAim ? "#f59e0b" : isMoved ? "#10b981" : "#475569"}
+                strokeWidth={isAim ? 4 : isMoved ? 3.5 : 2}
                 strokeDasharray={isAim ? "6,4" : "none"}
                 className="transition-all duration-500"
               />
@@ -559,6 +571,11 @@ const SplayWalkViz: React.FC = () => {
             {step?.kind === "aim" ? "🎯 Прицел:" : step?.kind === "rot" ? "🔁 Поворот:" : step?.kind === "search" ? "🔍 Спуск:" : "Статус:"}
           </p>
           <p className="min-h-[40px] flex items-center">{step ? step.note : "Кликни по узлу или введи ключ — увидишь каждый поворот по отдельности: прицел на ребро, поворот, переехавшие поддеревья."}</p>
+          {steps && step && step.kind !== "search" && (
+            <p className={`text-xs mt-2 ${inorderKeys(step.root).join(",") === inorderKeys(steps[0].root).join(",") ? "text-emerald-400" : "text-rose-400"}`}>
+              {inorderKeys(step.root).join(",") === inorderKeys(steps[0].root).join(",") ? "✅" : "❌"} проверка шага: обход слева-направо (сортировка) не изменился · узлов {inorderKeys(step.root).length}{movedCount > 0 ? ` · переехало рёбер: ${movedCount}` : ""}
+            </p>
+          )}
         </div>
       </div>
 
