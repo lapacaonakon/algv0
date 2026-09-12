@@ -162,12 +162,11 @@ def erase(root, key):              # удалить произвольную т�
         </div>
     </div>
 </section>`,
-  },
-  {
+  },  {
     id: "splay-tree",
     title: "4. Splay-дерево",
     type: "html",
-    description: "Самонастраивающееся дерево: поднимаем тронутый ключ в корень.",
+    description: "Дерево поиска, которое чинит само себя прямо во время запросов.",
     category: "Продвинутые структуры",
     content: `
 <section id="splay-tree" class="mb-12 scroll-mt-10">
@@ -175,74 +174,341 @@ def erase(root, key):              # удалить произвольную т�
         <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold">Билет 4</span>
         <h2 class="text-2xl sm:text-3xl font-bold text-white">Splay-дерево</h2>
     </div>
+
     <div class="space-y-8">
+
+        <!-- 0. Определение -->
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-blue-400 mb-4">Тронул — поднял в корень</h3>
-            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
-                <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">После каждого обращения к ключу x поднимаем его в корень поворотами. Нет деда — Zig; x и родитель на одной линии — Zig-Zig (первым ВЕРХНЕЕ ребро); змейка — Zig-Zag (первым НИЖНЕЕ).</p>
+            <h3 class="text-xl font-bold text-blue-400 mb-4">Одной фразой</h3>
+            <div class="bg-slate-900 p-4 rounded-lg mb-6 border border-blue-500/30">
+                <p class="text-lg text-blue-300 italic mb-2 text-center">Строгое правило / Формула:</p>
+                <p class="text-lg sm:text-xl font-mono text-white text-center leading-relaxed">Splay-дерево — это обычное бинарное дерево поиска <span class="text-slate-500">без</span> балансировочных полей.<br>После каждого обращения к узлу v выполняется Splay(v): серия поворотов, которая поднимает v в корень.</p>
+                <p class="text-sm text-slate-400 text-center mt-3">Никаких высот, цветов и приоритетов не хранится. Единственный инструмент — поворот.</p>
+                <p class="text-slate-300 text-sm mt-3"><b class="text-amber-300">Сложность — явно:</b> одна операция — до <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code>; m операций подряд — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(m·log n)</code> всего, т.е. амортизированное <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> на операцию; память — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n)</code> (ключ + 2 ссылки).</p>
             </div>
 
-            <p class="text-slate-300 text-sm mb-4">Весь кирпичик — <b>одиночный поворот</b> «a–b–c: схватил за середину b и потянул — b наверху». Ходит он как вправление вывиха: одна кость (b) ходит вокруг другой (a), а <b>среднее поддерево β</b>, зажатое между ними, переезжает по кругу на свободную сторону к a. Кто β — видно в симуляторе: перед каждым поворотом отдельный кадр «✂️ отстёгиваем груз» с пунктиром прямо на ребре. Вкладка <b>«1 · Механика»</b> — три случая покадрово в своём темпе, с призраками старых позиций и обходом слева-направо под каждым кадром (он не меняется — доказательство, что дерево осталось деревом поиска). Вкладка <b>«2 · Большое дерево»</b> — те же случаи в настоящем дереве из 14 узлов: кликни узел — и каждый поворот по кадрам. Вкладка <b>«3 · Собери сам»</b> — подними узел кликами; проверка скажет, совпал ли твой порядок со splay.</p>
-
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        📚 Аналогия 1: Стопка бумаг
-                    </div>
-                    <p class="text-slate-300 text-sm">Splay — стопка бумаг на столе: что взял в руки — кладёшь наверх. Вчерашний отчёт не трогаешь — он уполз вглубь. Ничего не удаляется и не балансируется «специально»: структура сама подтягивает горячее к вершине, а холодное тонет.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 text-sm">
+                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                    <p class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Одна операция</p>
+                    <p class="text-white font-bold">может стоить O(n)</p>
+                    <p class="text-slate-400 text-xs mt-1">гарантии на каждый отдельный запрос нет</p>
                 </div>
-
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🥾 Аналогия 2: Тропинка через газон
-                    </div>
-                    <p class="text-slate-300 text-sm">Частые запросы протаптывают тропинку. В отличие от AVL жёсткого баланса нет: дереву разрешено временно быть кривым — серия обращений дешевеет на глазах. Плата за одну операцию бывает до O(n); выгода живёт в амортизированном O(log n).</p>
+                <div class="bg-slate-900 rounded-lg p-4 border border-emerald-700/60">
+                    <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций</p>
+                    <p class="text-emerald-300 font-bold">стоят O(m·log n)</p>
+                    <p class="text-slate-400 text-xs mt-1">то есть амортизированное O(log n) на операцию</p>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                    <p class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Память</p>
+                    <p class="text-white font-bold">O(n), только ключ и 2 ссылки</p>
+                    <p class="text-slate-400 text-xs mt-1">легче, чем AVL или красно-чёрное</p>
                 </div>
             </div>
-
-            <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-6">
-                <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
-                <p class="text-slate-400 text-sm mb-1">· Zig-Zig ≠ Zig+Zig: первым крутится ВЕРХНЕЕ ребро — иначе бамбук почти не сплющится. Порядок виден во вкладке «Механика».</p>
-                <p class="text-slate-400 text-sm mb-1">· «Между A и B при повороте ничего нет» — есть: среднее поддерево β переезжает от низа к верху. Кадр «✂️ груз» показывает его явно.</p>
-                <p class="text-slate-400 text-sm">· «Splay всегда балансирует» — одиночная операция может УВЕЛИЧИТЬ высоту (бамбук 1→2→…→n поднимается за n−1 поворотов и остаётся бамбуком в другую сторону); гарантия только амортизированная.</p>
-            </div>
-
-            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — амортизированно <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code>; одиночная операция — до <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code>. Повторное обращение к тому же ключу — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(1)</code>: он уже в корне. Все операции через один splay: поиск — splay(найденное); вставка — BST-вставка + splay; удаление — splay(удаляемое) → вырезать корень → splay максимума левой половины → повесить правую.</p>
-
-            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
-                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Код: поворот и splay (Скрыто)
-                </summary>
-                <div class="p-5 text-sm text-slate-300 space-y-4">
-                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def rotate_up(x):                  # один поворот: x поднимается над родителем
-    p = x.parent
-    if p.left is x:
-        p.left, x.right = x.right, p   # среднее поддерево β — к p
-    else:
-        p.right, x.left = x.left, p
-    g = p.parent
-    x.parent = g
-    if g:                          # повесить x вместо p у деда
-        if g.left is p: g.left = x
-        else:            g.right = x</pre>
-                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def splay(x):                      # подъём x до корня
-    while x.parent:
-        p, g = x.parent, x.parent.parent
-        if g is None:                         # Zig: хватит одного
-            rotate_up(x)
-        elif (g.left is p) == (p.left is x):  # Zig-Zig: одна линия
-            rotate_up(p)                      # ВЕРХНЕЕ ребро первым
-            rotate_up(x)
-        else:                                 # Zig-Zag: змейка
-            rotate_up(x)                      # НИЖНЕЕ ребро первым
-            rotate_up(x)
-    return x</pre>
-                </div>
-            </details>
         </div>
+
+        <!-- 1. Зачем -->
+        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-bold text-white mb-3">Шаг 1. От какой боли это лечит</h3>
+            <p class="text-slate-300 text-sm mb-4">В обычном бинарном дереве поиска всё хорошо, пока оно «кустистое». Но стоит вставить ключи по возрастанию — и дерево вырождается в список, а поиск становится O(n):</p>
+            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-slate-300 border border-slate-800 leading-relaxed">вставили 10, 20, 30, 40, 50 подряд:
+
+  10
+    \\
+     20
+       \\
+        30            высота = 5, поиск 50 = 5 сравнений
+          \\           это уже не дерево, а односвязный список
+           40
+             \\
+              50</pre>
+            <p class="text-slate-300 text-sm mt-4">Есть два способа с этим бороться:</p>
+            <ul class="list-disc list-inside text-slate-300 text-sm space-y-1 mt-2">
+                <li><span class="text-white font-bold">Профилактика.</span> AVL и красно-чёрные деревья хранят в узлах высоту/цвет и после каждой вставки чинят дерево, чтобы оно <em>никогда</em> не становилось кривым. За это платим памятью и кучей случаев в коде.</li>
+                <li><span class="text-white font-bold">Лечение по факту (это и есть splay).</span> Ничего не храним и позволяем дереву временно быть кривым. Но каждый раз, когда мы по нему <em>проходим</em>, мы этот путь заодно и распрямляем. Чем чаще ходишь — тем ровнее становится.</li>
+            </ul>
+        </div>
+
+        <!-- 2. Аналогии -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
+                    📚 Аналогия 1: стопка бумаг на столе
+                </div>
+                <p class="text-slate-300 text-sm">У тебя на столе стопка документов. Понадобился какой-то лист — ты роешься в стопке, вытаскиваешь его и, поработав, кладёшь <span class="text-white font-bold">сверху</span>. Никакой сортировки ты не ведёшь, но через неделю самые нужные бумаги сами собой оказываются в верхних сантиметрах стопки, а всё забытое утонуло вниз. Splay-дерево делает ровно это: «взял → положил наверх».</p>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
+                    🛗 Аналогия 2: тропинка через газон
+                </div>
+                <p class="text-slate-300 text-sm">Ты идёшь длинной кривой дорожкой до подъезда. Splay — это как если бы после каждого прохода дорожка сама укорачивалась вдвое: чем чаще ты ходишь, тем короче путь. Первый проход дорогой (шёл по всей кривой), зато он оплачивает все следующие. Пойдёшь один раз в год — сэкономить не выйдет, и это честная слабость структуры.</p>
+            </div>
+        </div>
+
+        <!-- 3. Поворот -->
+        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-bold text-white mb-3">Шаг 2. Единственный кирпичик — поворот</h3>
+            <p class="text-slate-300 text-sm mb-4">Поворот меняет местами узел и его родителя. Это <span class="text-white font-bold">одно движение, три перевешенные ссылки</span> и ничего больше:</p>
+            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-slate-300 border border-slate-800 leading-relaxed">        40                          20
+       /  \\      поворот 20        /  \\
+     20    C     ------------&gt;    A    40
+    /  \\         &lt;------------         /  \\
+   A    B          поворот 40         B    C
+
+обход слева направо ДО:     A 20 B 40 C
+обход слева направо ПОСЛЕ:  A 20 B 40 C     ← тот же самый!</pre>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-slate-900 rounded-lg p-4 border border-emerald-700/50">
+                    <p class="text-emerald-400 font-bold text-sm mb-1">Что сохраняется</p>
+                    <p class="text-slate-300 text-xs">Порядок ключей слева направо. Поэтому дерево остаётся деревом поиска после любого числа поворотов — сломать его поворотами невозможно.</p>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-4 border border-amber-700/50">
+                    <p class="text-amber-400 font-bold text-sm mb-1">Куда девается «средний» подвес</p>
+                    <p class="text-slate-300 text-xs">Поддерево B висело справа от 20 и слева от 40 — то есть его ключи между 20 и 40. Это одно и то же место, поэтому B просто перевешивается с одного на другое. Только оно и меняет хозяина. Как вправление вывиха: одна кость (x) ходит вокруг другой (p), а «суставной груз» B перетекает с низа на верх — потому между A и B и «ничего не видно» на мгновенных схемах: движение происходит в одной точке, всё остальное стоит.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Три случая -->
+        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-bold text-white mb-3">Шаг 3. Splay(x) = крутим, пока x не станет корнем</h3>
+            <p class="text-slate-300 text-sm mb-4">Обозначения на всю оставшуюся главу: <span class="font-mono text-indigo-300">x</span> — узел, который поднимаем, <span class="font-mono text-sky-300">p</span> — его родитель, <span class="font-mono text-amber-300">g</span> — дед (родитель родителя). Смотрим на эту тройку и выбираем один из трёх случаев:</p>
+
+            <div class="overflow-x-auto -mx-2 px-2">
+                <table class="w-full text-xs sm:text-sm border-collapse min-w-[520px]">
+                    <thead>
+                        <tr class="text-left text-slate-400 border-b border-slate-600">
+                            <th class="py-2 pr-3 font-bold">Случай</th>
+                            <th class="py-2 pr-3 font-bold">Как узнать</th>
+                            <th class="py-2 pr-3 font-bold">Что крутим ПЕРВЫМ</th>
+                            <th class="py-2 font-bold">Итог</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300">
+                        <tr class="border-b border-slate-700/60">
+                            <td class="py-3 pr-3 font-bold text-indigo-300">Zig</td>
+                            <td class="py-3 pr-3">деда нет, p — корень</td>
+                            <td class="py-3 pr-3">сам x (один поворот)</td>
+                            <td class="py-3">x стал корнем, конец</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/60">
+                            <td class="py-3 pr-3 font-bold text-indigo-300">Zig-Zig</td>
+                            <td class="py-3 pr-3">x и p — дети с <span class="text-white font-bold">одной</span> стороны (лево-лево или право-право)</td>
+                            <td class="py-3 pr-3"><span class="text-amber-300 font-bold">родителя p</span> вокруг деда, потом x</td>
+                            <td class="py-3">x поднялся на 2 уровня, ветка укоротилась вдвое</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 pr-3 font-bold text-indigo-300">Zig-Zag</td>
+                            <td class="py-3 pr-3">x и p — дети с <span class="text-white font-bold">разных</span> сторон («змейка»)</td>
+                            <td class="py-3 pr-3"><span class="text-amber-300 font-bold">сам x</span> вокруг p, потом x вокруг g</td>
+                            <td class="py-3">p и g стали двумя детьми x</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-slate-300 text-sm mt-4">И так по кругу: определили случай → сделали 1–2 поворота → x поднялся ближе к корню → снова смотрим на тройку. Zig может случиться только один раз — самым последним, если до корня остался ровно один шаг.
+
+            <div class="text-center my-5 bg-slate-950/70 rounded-xl border border-indigo-500/40 px-4 py-4">
+                <p class="text-xl sm:text-2xl font-bold text-white">ЛИНИЯ → крути <span class="text-amber-300">СВЕРХУ</span> &nbsp;·&nbsp; ЗМЕЙКА → крути <span class="text-amber-300">СНИЗУ</span></p>
+                <p class="text-slate-400 text-xs mt-2">Zig-Zig — линия (лево-лево или право-право). Zig-Zag — змейка. Порядок — всё: он и отличает splay от «просто поворотов».</p>
+            </div></p>
+            <p class="text-slate-400 text-xs mt-3">👇 Ниже на этой странице интерактив на большом дереве (14 узлов): кликни узел — и его подъём в корень разложится на атомарные кадры: <b>прицел на ребро</b> → <b>отстёгиваем среднее поддерево</b> (пунктиром показано, какой груз переедет) → <b>поворот</b> (зелёным горят переехавшие рёбра). Рядом с логом — врезка «Механика одного поворота» (схема p↔x с α/β/γ), а под демо — песочница: подними узел сам по одному повороту за клик, и проверка сверит твой порядок со splay.</p>
+        </div>
+
+        <!-- 5. Главная ловушка -->
+        <div class="bg-rose-950/30 p-6 rounded-xl border border-rose-800/60">
+            <h3 class="text-lg font-bold text-rose-300 mb-3">⚠️ Шаг 4. Почему Zig-Zig — это НЕ «два раза Zig»</h3>
+            <p class="text-slate-300 text-sm mb-4">Это любимый вопрос на экзамене. Возьмём бамбук 60 → 40 → 20 и поднимем 20 двумя способами.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-slate-950 rounded-lg p-4 border border-rose-800/60">
+                    <p class="text-rose-400 font-bold text-xs uppercase tracking-wider mb-2">❌ Наивно: два раза поднимаем x</p>
+                    <pre class="overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 leading-relaxed">    60          60             20
+    /           /              \\
+  40    →     20        →       60
+  /             \\              /
+20              40           40
+
+было: бамбук влево
+стало: бамбук вправо
+глубина никого не сократилась!</pre>
+                    <p class="text-slate-400 text-xs mt-2">Дерево просто «перевернулось». Следующий запрос снова пройдёт O(n), и никакой амортизации не получится.</p>
+                </div>
+                <div class="bg-slate-950 rounded-lg p-4 border border-emerald-800/60">
+                    <p class="text-emerald-400 font-bold text-xs uppercase tracking-wider mb-2">✅ Zig-Zig: сначала верхняя пара</p>
+                    <pre class="overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 leading-relaxed">    60          40             20
+    /           /  \\           /  \\
+  40    →     20    60   →   A     40
+  /           /                      \\
+20          A                         60
+
+было: линия из 3 узлов
+стало: кустик высоты 2
+глубина ветки упала вдвое!</pre>
+                    <p class="text-slate-400 text-xs mt-2">Тот самый эффект «дорожка укоротилась вдвое». Именно он и даёт O(log n) в среднем.</p>
+                </div>
+            </div>
+            <p class="text-slate-300 text-sm mt-4"><span class="text-white font-bold">Мнемоника:</span> линия (zig-zig) — крути СВЕРХУ вниз, змейка (zig-zag) — крути СНИЗУ вверх.</p>
+        </div>
+
+        <!-- 6. Полный пример -->
+        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-bold text-white mb-3">Шаг 5. Полный прогон: ищем 10 в бамбуке</h3>
+            <p class="text-slate-300 text-sm mb-4">Дерево 40 → 30 → 20 → 10 (каждый следующий — левый сын). Ищем 10: спускаемся до него за 3 шага, а потом делаем Splay(10).</p>
+            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 border border-slate-800 leading-relaxed">старт           после Zig-Zig(10)     после Zig-Zig(10)
+                глубина 3 → 1          10 в корне
+
+   40                 30                   10
+   /                 /  \\                   \\
+ 30               10     40                  30
+ /                  \\                       /  \\
+20                   20                   20    40
+/
+10
+
+итог: было 4 узла в линию (высота 4) → стало высота 3,
+      а сама десятка теперь в корне: следующий запрос к ней = 0 сравнений</pre>
+            <p class="text-slate-300 text-sm mt-4">Обрати внимание: мы не только достали ключ, но и <span class="text-white font-bold">починили дерево по пути</span>. Все узлы, мимо которых мы проходили, тоже стали ближе к корню — примерно вдвое.</p>
+        </div>
+
+        <!-- 7. Амортизация -->
+        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-bold text-white mb-3">Шаг 6. Откуда берётся амортизированное O(log n)</h3>
+            <p class="text-slate-300 text-sm mb-3">Строгое доказательство — через метод потенциала: потенциалом считают сумму log(размер поддерева) по всем узлам, и Zig-Zig/Zig-Zag устроены так, что заплаченные повороты компенсируются падением потенциала. На пальцах идея такая:</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                    <p class="text-white font-bold mb-1">Дорогой запрос</p>
+                    <p class="text-slate-400 text-xs">спустились на глубину d — заплатили d</p>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                    <p class="text-white font-bold mb-1">…сам себя чинит</p>
+                    <p class="text-slate-400 text-xs">но заодно укоротил весь этот путь примерно вдвое</p>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                    <p class="text-white font-bold mb-1">Дважды не разоришься</p>
+                    <p class="text-slate-400 text-xs">длинный путь нельзя пройти много раз подряд — он кончается</p>
+                </div>
+            </div>
+            <p class="text-slate-400 text-xs mt-4">Отсюда же «теорема о статической оптимальности»: на любой фиксированной последовательности запросов splay-дерево не хуже (с точностью до константы), чем идеально подобранное под эту последовательность статическое дерево. Оно как бы само подстраивается под то, что у тебя спрашивают.</p>
+        </div>
+
+        <!-- 8. Операции -->
+        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-bold text-white mb-3">Шаг 7. Все операции — через один Splay</h3>
+            <p class="text-slate-300 text-sm mb-4">Красота структуры в том, что отдельной логики почти нет: сделал Splay — и дальше всё делается в корне.</p>
+            <div class="space-y-2 text-sm">
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">find(k)</span> <span class="text-slate-400">— спустились как в обычном дереве поиска, затем Splay(найденного). Если ключа нет — поднимаем последний узел на пути (соседний по значению).</span></div>
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">split(k)</span> <span class="text-slate-400">— Splay(k), после чего k в корне: левое поддерево = всё меньше k, правое = всё больше. Просто отрезаем ссылки.</span></div>
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">insert(k)</span> <span class="text-slate-400">— split по k, новый узел делаем корнем, а две половинки подвешиваем ему детьми.</span></div>
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">erase(k)</span> <span class="text-slate-400">— Splay(k), выкидываем корень, остаются два дерева L и R. Делаем Splay максимума в L: у него не будет правого сына — туда и вешаем R.</span></div>
+            </div>
+        </div>
+
+        <!-- 9. Код -->
+        <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group">
+            <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors cursor-pointer group-open:border-b border-slate-700/50">
+                💻 Код: rotate + splay + find (нажми, чтобы раскрыть)
+            </summary>
+            <div class="p-5 text-sm text-slate-300 space-y-4">
+                <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800 leading-relaxed">// узел: { key, left, right, parent }
+
+// один поворот: x встаёт на место своего родителя
+function rotate(x) {
+  const p = x.parent, g = p.parent;
+
+  if (p.left === x) {          // правый поворот
+    p.left = x.right;
+    if (x.right) x.right.parent = p;
+    x.right = p;
+  } else {                     // левый поворот (зеркально)
+    p.right = x.left;
+    if (x.left) x.left.parent = p;
+    x.left = p;
+  }
+
+  p.parent = x;                // родитель уехал вниз
+  x.parent = g;                // x занял его место
+  if (g) { if (g.left === p) g.left = x; else g.right = x; }
+}
+
+// поднимаем x в корень
+function splay(x) {
+  while (x.parent) {
+    const p = x.parent, g = p.parent;
+
+    if (!g) {                            // ZIG: деда нет
+      rotate(x);
+    } else if ((g.left === p) === (p.left === x)) {
+      rotate(p);                         // ZIG-ZIG: сначала ВЕРХНЯЯ пара!
+      rotate(x);
+    } else {
+      rotate(x);                         // ZIG-ZAG: сначала НИЖНЯЯ пара
+      rotate(x);
+    }
+  }
+  return x;                              // теперь x — корень
+}
+
+// поиск: спустились и подняли найденное наверх
+function find(root, key) {
+  let cur = root, last = null;
+  while (cur) {
+    last = cur;
+    if (key === cur.key) break;
+    cur = key &lt; cur.key ? cur.left : cur.right;
+  }
+  return last ? splay(last) : null;      // splay делаем ВСЕГДА
+}</pre>
+                <p class="text-xs text-slate-400">Вся разница между тремя случаями — это <span class="font-mono text-white">rotate(p); rotate(x);</span> против <span class="font-mono text-white">rotate(x); rotate(x);</span>. Одна строчка, а без неё структура теряет свою оценку.</p>
+            </div>
+        </details>
+
+        <!-- 10. Плюсы/минусы -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-emerald-950/30 rounded-xl p-5 border border-emerald-800/50">
+                <p class="text-emerald-300 font-bold mb-2">Сильные стороны</p>
+                <ul class="list-disc list-inside text-slate-300 text-sm space-y-1">
+                    <li>Простой код: нет высот, цветов, балансировочных случаев</li>
+                    <li>Меньше памяти, чем у AVL и красно-чёрного</li>
+                    <li>Сам подстраивается под «горячие» ключи (кеш-эффект)</li>
+                    <li>split / merge получаются почти бесплатно</li>
+                </ul>
+            </div>
+            <div class="bg-rose-950/30 rounded-xl p-5 border border-rose-800/50">
+                <p class="text-rose-300 font-bold mb-2">Слабые стороны</p>
+                <ul class="list-disc list-inside text-slate-300 text-sm space-y-1">
+                    <li>Нет гарантии на <em>отдельную</em> операцию — она может стоить O(n)</li>
+                    <li>Не годится для реального времени (медицина, авионика)</li>
+                    <li>Дерево меняется даже при чтении → плохо для многопоточности</li>
+                    <li>Постоянные записи в память при чисто читающей нагрузке</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 11. Вопросы -->
+        <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group">
+            <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors cursor-pointer group-open:border-b border-slate-700/50">
+                🎓 Вопросы, которые задают на экзамене (сначала ответь сам)
+            </summary>
+            <div class="p-5 text-sm text-slate-300 space-y-4">
+                <div>
+                    <strong class="text-white block mb-1">1. Ищем ключ, которого в дереве нет. Что окажется в корне?</strong>
+                    <p class="text-slate-400">Последний узел, до которого дошёл спуск, — то есть ближайший сосед искомого ключа (предшественник или преемник). Splay делают всегда, даже при неудачном поиске: иначе неудачные поиски по длинной ветке ничего не чинили бы, и амортизация сломалась бы.</p>
+                </div>
+                <div>
+                    <strong class="text-white block mb-1">2. Почему в Zig-Zig первым крутят родителя, а не x?</strong>
+                    <p class="text-slate-400">Потому что только такой порядок укорачивает всю ветку вдвое. Два подъёма самого x просто переворачивают бамбук в другую сторону (см. блок выше) и оценка O(log n) перестаёт работать.</p>
+                </div>
+                <div>
+                    <strong class="text-white block mb-1">3. Какая последовательность запросов «убивает» splay-дерево?</strong>
+                    <p class="text-slate-400">Чередование двух ключей с противоположных концов — минимума и максимума. Каждый Splay вытягивает один из них в корень, превращая дерево в бамбук для другого. Но даже это остаётся O(log n) амортизированно; катастрофа наступает только для <em>одной</em> конкретной операции, которая может обойтись в O(n).</p>
+                </div>
+                <div>
+                    <strong class="text-white block mb-1">4. Чем splay отличается от Treap?</strong>
+                    <p class="text-slate-400">Treap держит баланс случайным приоритетом (в среднем по монетке) и не меняется при чтении. Splay не хранит вообще ничего и держит баланс детерминированно — за счёт того, что перестраивает дерево при каждом обращении.</p>
+                </div>
+            </div>
+        </details>
+
     </div>
 </section>`,
   },
