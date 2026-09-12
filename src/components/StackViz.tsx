@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ArrowUp, Sparkles } from 'lucide-react';
+import { useVizRuntime, vizArray } from '../data/vizStepBus';
 
 interface Plate {
   id: string;
@@ -27,6 +28,19 @@ export const StackViz: React.FC = () => {
     { id: 'p2', name: 'Тарелка из-под пиццы',   emoji: '🍕', color: 'from-orange-100 to-orange-200 border-orange-300', isDirty: true, animState: 'idle' },
     { id: 'p3', name: 'Блюдце от торта',       emoji: '🍰', color: 'from-pink-100 to-pink-200 border-pink-300',       isDirty: true, animState: 'idle' },
   ]);
+
+  const runtime = useVizRuntime();
+  const liveStack = vizArray(runtime?.variables?.st) ?? vizArray(runtime?.variables?.stack);
+  const displayStack: Plate[] = liveStack
+    ? liveStack.map((value, index) => ({
+        id: `python-${index}`,
+        name: String(value),
+        emoji: "🔢",
+        color: "from-indigo-500/20 to-indigo-600/20 border-indigo-400",
+        isDirty: true,
+        animState: "idle",
+      }))
+    : dirtyStack;
 
   const [cleanRack, setCleanRack] = useState<Plate[]>([]);
   const [isWashing, setIsWashing] = useState(false);
@@ -112,7 +126,7 @@ export const StackViz: React.FC = () => {
     setLog(['🔄 Стол сброшен. Посуда снова грязная!']);
   };
 
-  const topIndex = dirtyStack.length - 1;
+  const topIndex = displayStack.length - 1;
 
   return (
     <div className="flex flex-col gap-6">
@@ -180,7 +194,7 @@ export const StackViz: React.FC = () => {
             </div>
           )}
 
-          {dirtyStack.length === 0 ? (
+          {displayStack.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
               <span className="text-6xl mb-3 animate-pulse">✨🧼</span>
               <p className="text-white font-black text-lg">Вся посуда вымыта!</p>
@@ -202,8 +216,8 @@ export const StackViz: React.FC = () => {
               </div>
 
               {/* Тарелки (отрисовываем в обратном порядке, чтобы новые ложились СВЕРХУ) */}
-              {dirtyStack.slice().reverse().map((plate, revIdx) => {
-                const idx = dirtyStack.length - 1 - revIdx;
+              {displayStack.slice().reverse().map((plate, revIdx) => {
+                const idx = displayStack.length - 1 - revIdx;
                 const isTop = idx === topIndex;
                 return (
                   <div

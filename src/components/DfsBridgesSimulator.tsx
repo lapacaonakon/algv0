@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizNumber, vizString } from '../data/vizStepBus';
 import { Undo, Play, Pause, SkipForward, RefreshCw } from "lucide-react";
 
 interface CodeLine {
@@ -180,7 +180,22 @@ const DFS_STEPS: DfsStep[] = [
 
 export function DfsBridgesSimulator() {
   const [dfsIdx, setDfsIdx] = useState(0);
-  useVizStepSync(dfsIdx, setDfsIdx, DFS_STEPS.length - 1);
+  useVizStepSync(dfsIdx, setDfsIdx, DFS_STEPS.length - 1, (vars) => {
+    const rawV = vizString(vars.v) ?? (vizNumber(vars.v)?.toString() ?? null);
+    const rawTo = vizString(vars.to) ?? (vizNumber(vars.to)?.toString() ?? null);
+    const toId = (value: string | null) => {
+      if (value === null) return null;
+      const byLabel = GRAPH_NODES.find((node) => node.label === value)?.id;
+      return byLabel ?? (Number.isFinite(Number(value)) ? Number(value) : null);
+    };
+    const v = toId(rawV);
+    const to = toId(rawTo);
+    if (v === null) return null;
+    const candidates = DFS_STEPS
+      .map((step, index) => ({ step, index }))
+      .filter(({ step }) => step.currentNode === v && (to === null || step.activeEdge?.includes(to)));
+    return candidates.at(-1)?.index ?? null;
+  });
   const [dfsAuto, setDfsAuto] = useState(false);
   const dfsTimer = useRef<NodeJS.Timeout | null>(null);
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizNumber, vizRecord } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Code, Eye, RefreshCw } from 'lucide-react';
 
 interface DPStep {
@@ -24,7 +24,7 @@ export function DPVisualizer() {
   const [targetN, setTargetN] = useState<number>(5);
   const [steps, setSteps] = useState<DPStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed] = useState<number>(800);
   const [activeTab, setActiveTab] = useState<'table' | 'code'>('table');
@@ -121,8 +121,25 @@ export function DPVisualizer() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps, speed]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  const memoState = currentStep?.memoState || {};
+  const baseStep = steps[currentStepIndex] || null;
+  const vars = runtime?.variables;
+  const liveK = vizNumber(vars?.k) ?? vizNumber(vars?.n);
+  const liveMemo = vizRecord(vars?.memo);
+  const compilerLinked = liveK !== null || !!liveMemo;
+  const memoState = liveMemo
+    ? Object.fromEntries(Object.entries(liveMemo).flatMap(([key, value]) => {
+        const number = vizNumber(value);
+        return number === null ? [] : [[Number(key), number]];
+      }))
+    : baseStep?.memoState || {};
+  const currentStep: DPStep | null = baseStep && compilerLinked
+    ? {
+        ...baseStep,
+        n: liveK ?? baseStep.n,
+        memoState,
+        desc: `Компилятор: k=${liveK ?? "—"}; таблица memo взята из реального Python-кода.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4 md:p-8 my-12 shadow-2xl overflow-hidden">

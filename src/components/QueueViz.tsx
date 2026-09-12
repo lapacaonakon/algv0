@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useVizRuntime, vizArray, vizString } from '../data/vizStepBus';
 
 interface Customer {
   id: string;
@@ -27,6 +28,20 @@ export const QueueViz: React.FC = () => {
     { id: 'q2', name: 'Кодер Семён',   emoji: '👨‍💻', color: 'from-violet-500/20 to-violet-600/20 border-violet-500/40', bubbleText: 'Напишу ИИ за порцию борща!', animState: 'idle' },
     { id: 'q3', name: 'Кот Борис',    emoji: '🐱', color: 'from-amber-500/20 to-amber-600/20 border-amber-500/40', bubbleText: 'Мяу! Мне без сметаны, плиз.', animState: 'idle' },
   ]);
+
+  const runtime = useVizRuntime();
+  const liveQ = vizArray(runtime?.variables?.q);
+  const liveV = vizString(runtime?.variables?.v);
+  const displayQueue: Customer[] = liveQ
+    ? liveQ.map((value, index) => ({
+        id: `python-${index}`,
+        name: String(value),
+        emoji: "🔢",
+        color: "from-emerald-500/20 to-emerald-600/20 border-emerald-500/50",
+        bubbleText: `q[${index}] из Python`,
+        animState: "idle",
+      }))
+    : queue;
 
   const [servedHistory, setServedHistory] = useState<string[]>([]);
   const [isServing, setIsServing]         = useState(false);
@@ -157,6 +172,7 @@ export const QueueViz: React.FC = () => {
         <div className={`md:col-span-9 bg-slate-900 rounded-3xl border-2 border-slate-800 p-6 flex flex-col justify-between relative min-h-[300px] overflow-hidden ${shakeEmpty ? 'anim-shake' : ''}`}>
           <div className="absolute top-4 left-4 text-[10px] font-mono text-slate-500 uppercase tracking-widest">
             Очередь голодных гостей (Буфер FIFO / BFS)
+            {liveQ && <span className="ml-2 text-emerald-400">q из Python{liveV ? ` · v=${liveV}` : ""}</span>}
           </div>
 
           <div className="flex-1 flex flex-col justify-end pb-4 pt-12">
@@ -187,16 +203,16 @@ export const QueueViz: React.FC = () => {
 
               {/* СПИСОК ОЧЕРЕДИ */}
               <div className="flex-1 flex items-end gap-3 overflow-x-auto pb-1 justify-start">
-                {queue.length === 0 ? (
+                {displayQueue.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center py-6 text-slate-600">
                     <span className="text-4xl mb-1">😴</span>
                     <p className="text-xs font-bold font-mono uppercase">Очередь пуста</p>
                     <p className="text-[10px]">Все сыты и счастливы!</p>
                   </div>
                 ) : (
-                  queue.map((customer, idx) => {
+                  displayQueue.map((customer, idx) => {
                     const isHead = idx === 0;
-                    const isTail = idx === queue.length - 1;
+                    const isTail = idx === displayQueue.length - 1;
                     return (
                       <div
                         key={customer.id}

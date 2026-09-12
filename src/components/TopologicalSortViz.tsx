@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizArray, vizNumber } from '../data/vizStepBus';
 import {
   Play,
   Pause,
@@ -48,7 +48,15 @@ interface TStep {
 export const TopologicalSortViz: React.FC = () => {
   const [steps, setSteps] = useState<TStep[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
-  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1);
+  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1, (vars) => {
+    const v = vizNumber(vars.v);
+    const orderLength = vizArray(vars.order)?.length;
+    if (v === null && orderLength === undefined) return null;
+    const candidates = steps
+      .map((step, index) => ({ step, index }))
+      .filter(({ step }) => (v === null || step.currentNode === v) && (orderLength === undefined || step.topoList.length === orderLength));
+    return candidates.at(-1)?.index ?? null;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {

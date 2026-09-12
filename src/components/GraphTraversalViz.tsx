@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizArray, vizString } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from 'lucide-react';
 
 type Node = { id: string; label: string; x: number; y: number };
@@ -99,7 +99,20 @@ export function GraphTraversalViz() {
     const [stepIdx, setStepIdx] = useState(0);
 
     const steps = useMemo(() => mode === 'dfs' ? generateDFSSteps('A') : generateBFSSteps('A'), [mode]);
-    useVizStepSync(stepIdx, setStepIdx, steps.length - 1);
+    useVizStepSync(stepIdx, setStepIdx, steps.length - 1, (vars) => {
+      const v = vizString(vars.v);
+      const structure = vizArray(vars.stack) ?? vizArray(vars.q);
+      const visited = vizArray(vars.visited);
+      if (v === null && !structure && !visited) return null;
+      const candidates = steps
+        .map((step, index) => ({ step, index }))
+        .filter(({ step }) =>
+          (v === null || step.node === v) &&
+          (!structure || step.queueOrStack?.length === structure.length) &&
+          (!visited || step.visitedNodes?.length === visited.length)
+        );
+      return candidates.at(-1)?.index ?? null;
+    });
 
     useEffect(() => {
         setStepIdx(0);

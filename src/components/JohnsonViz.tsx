@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { RotateCcw, SkipForward, Undo } from 'lucide-react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizString } from '../data/vizStepBus';
 
 export function JohnsonViz() {
     const [step, setStep] = useState(0);
     const MAX_STEP = 7;
-    useVizStepSync(step, setStep, MAX_STEP);
+    useVizStepSync(step, setStep, MAX_STEP, (vars) => {
+        const edge = `${vizString(vars.u) ?? ""}${vizString(vars.v) ?? ""}`;
+        return edge === "AB" ? 4 : edge === "BC" ? 5 : edge === "CA" ? 6 : null;
+    });
 
     const nodes = [
         { id: 'S', x: 200, y: 150, label: 'S' },

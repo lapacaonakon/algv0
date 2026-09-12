@@ -4,19 +4,28 @@
  * как панель Variables в обычном отладчике.
  */
 
+export type DebugValue = null | boolean | number | string | DebugValue[] | { [key: string]: DebugValue };
+
 export interface DebugStep {
   /** Номер строки в коде пользователя (1-based). */
   line: number;
   /** Имя функции-фрейма ("<module>" — верхний уровень). */
   func: string;
-  /** Локальные переменные: имя → repr (усечённый). */
+  /** Локальные переменные: имя → repr (усечённый), для панели Variables. */
   locals: Record<string, string>;
+  /**
+   * JSON-снимок доступных имён (globals + locals). В отличие от repr его
+   * можно напрямую отдать визуализации: i/j остаются числами, st/P — массивами.
+   */
+  values?: Record<string, DebugValue>;
 }
 
 export interface DebugResult {
   steps: DebugStep[];
   /** Локали в момент возврата из модуля — «результат» последнего шага трассы. */
   finalLocals?: Record<string, string>;
+  /** Финальный машинно-читаемый снимок для визуализации. */
+  finalValues?: Record<string, DebugValue>;
   /** Текст последней необработанной ошибки (или пустая строка). */
   error: string;
   /** true, если уперлись в лимит шагов. */
@@ -38,7 +47,12 @@ export function buildDebugRunner(userSrc: string): string {
 __src = ${srcLiteral}
 __steps = []
 __final = {}
+__final_values = {}
 __CAP = ${DEBUG_STEP_CAP}
+__was_truncated = False
+
+class __TraceLimit(Exception):
+    pass
 
 def __safe(v):
     try:
@@ -47,36 +61,72 @@ def __safe(v):
         r = "<…>"
     return r if len(r) <= 80 else r[:77] + "…"
 
+def __snapshot(v, depth=0):
+    """Небольшой JSON-снимок: UI использует его без парсинга repr."""
+    if v is None or isinstance(v, (bool, int, str)):
+        return v
+    if isinstance(v, float):
+        return v if v == v and v not in (float("inf"), float("-inf")) else __safe(v)
+    if depth >= 4:
+        return __safe(v)
+    limit = 80 if depth < 2 else 32
+    if isinstance(v, (list, tuple)):
+        return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
+    if isinstance(v, (set, frozenset)):
+        return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
+    if isinstance(v, dict):
+        return {str(k): __snapshot(x, depth + 1) for k, x in list(v.items())[:limit]}
+    # deque, heap-подобные и другие итерируемые учебные структуры
+    if type(v).__name__ == "deque":
+        return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
+    return __safe(v)
+
+def __visible(items):
+    return {
+        k: v for k, v in items
+        if not k.startswith("__") and type(v).__name__ != "module"
+    }
+
+def __capture(frame):
+    local_values = __visible(frame.f_locals.items())
+    # Внутри функции алгоритма важные структуры (memo, dist, graph) часто
+    # глобальные. Локальные значения имеют приоритет над глобальными.
+    scope_values = __visible(frame.f_globals.items())
+    scope_values.update(local_values)
+    loc = {k: __safe(v) for k, v in local_values.items()}
+    values = {k: __snapshot(v) for k, v in scope_values.items()}
+    return loc, values
+
 def __tracer(frame, event, arg):
+    global __was_truncated
     if event == "line" and frame.f_code.co_filename == "<user-code>" \
             and not (frame.f_code.co_name.startswith("<") and frame.f_code.co_name != "<module>"):
-        loc = {}
-        for k, v in frame.f_locals.items():
-            if not k.startswith("__") and type(v).__name__ != "module":
-                loc[k] = __safe(v)
+        loc, values = __capture(frame)
         # PEP 709: с 3.12 компрехеншны встроены во фрейм модуля и шлют событие
-        # на своей строке каждую итерацию (9 ложных «шагов», v протекает в локали).
-        # Склеиваем ПОДРЯД идущие события одной строки в один шаг — последнее состояние.
+        # на своей строке каждую итерацию. Склеиваем подряд идущие повторы.
         if __steps and __steps[-1]["line"] == frame.f_lineno and __steps[-1]["func"] == frame.f_code.co_name:
             __steps[-1]["locals"] = loc
+            __steps[-1]["values"] = values
         else:
-            __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc})
+            __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc, "values": values})
         if len(__steps) >= __CAP:
-            __sys.settrace(None)
-    # Финальные локали программы (после последней строки новых событий не будет):
-    # кладём отдельно в __final — UI показывает их как результат ПОСЛЕДНЕГО шага.
+            # Нельзя просто отключить trace: бесконечный пользовательский цикл
+            # тогда продолжит работать вечно. Мягко прерываем только этот запуск.
+            __was_truncated = True
+            raise __TraceLimit()
+    # Финальные локали программы (после последней строки новых событий не будет).
     if event == "return" and frame.f_code.co_filename == "<user-code>" and frame.f_code.co_name == "<module>":
-        loc = {}
-        for k, v in frame.f_locals.items():
-            if not k.startswith("__") and type(v).__name__ != "module":
-                loc[k] = __safe(v)
+        loc, values = __capture(frame)
         __final.update(loc)
+        __final_values.update(values)
     return __tracer
 
 __err = ""
 try:
     __sys.settrace(__tracer)
     exec(compile(__src, "<user-code>", "exec"), {"__name__": "__main__"})
+except __TraceLimit:
+    pass
 except Exception:
     import traceback as __tb
     __err = __tb.format_exc(limit=3)
@@ -86,8 +136,9 @@ finally:
 __OUT = __json.dumps({
     "steps": __steps,
     "finalLocals": __final,
+    "finalValues": __final_values,
     "error": __err,
-    "truncated": len(__steps) >= __CAP,
+    "truncated": __was_truncated,
 })
 __OUT
 `;

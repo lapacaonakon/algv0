@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizArray, vizNumber, vizRecord, vizString } from '../data/vizStepBus';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -60,7 +60,7 @@ export default function DijkstraViz() {
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -143,9 +143,27 @@ export default function DijkstraViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
+  const baseStep = steps[currentStepIndex] || null;
 
-  if (!currentStep) return <div className="text-white">Загрузка симулятора...</div>;
+  if (!baseStep) return <div className="text-white">Загрузка симулятора...</div>;
+  const vars = runtime?.variables;
+  const liveU = vizString(vars?.u);
+  const liveV = vizString(vars?.v);
+  const liveDist = vizRecord(vars?.dist);
+  const livePrev = vizRecord(vars?.prev);
+  const liveDone = vizArray(vars?.done) ?? vizArray(vars?.visited);
+  const compilerLinked = liveU !== null || liveV !== null || !!liveDist;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        currentNode: liveU,
+        checkingEdge: liveU && liveV ? { u: liveU, v: liveV } : null,
+        distances: Object.fromEntries(nodes.map((node) => [node.id, vizNumber(liveDist?.[node.id]) ?? 999])),
+        previous: Object.fromEntries(nodes.map((node) => [node.id, vizString(livePrev?.[node.id])])),
+        visited: Object.fromEntries(nodes.map((node) => [node.id, !!liveDone?.includes(node.id)])),
+        log: `Компилятор: u=${liveU ?? "—"}, v=${liveV ?? "—"}; граф читает dist/done/prev напрямую.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">

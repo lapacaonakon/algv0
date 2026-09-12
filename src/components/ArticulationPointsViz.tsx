@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizNumber } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, Info } from "lucide-react";
 
 interface Node {
@@ -57,7 +57,11 @@ interface StepInfo {
 export const ArticulationPointsViz: React.FC = () => {
   const [steps, setSteps] = useState<StepInfo[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1, (vars) => {
+    const v = vizNumber(vars.v);
+    if (v === null) return null;
+    return steps.map((step, index) => ({ step, index })).filter(({ step }) => step.currentNode === v).at(-1)?.index ?? null;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {

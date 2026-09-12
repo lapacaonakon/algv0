@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, StepForward } from 'lucide-react';
 
 const NODES = [
@@ -123,7 +122,6 @@ const STEPS = generateBfsSteps();
 export default function BfsViz() {
   const [stepIdx, setStepIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  useVizStepSync(stepIdx, setStepIdx, STEPS.length - 1);
 
   const step = STEPS[stepIdx];
 

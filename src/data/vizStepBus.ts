@@ -1,88 +1,125 @@
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import type { DebugValue } from "./debugRunner";
 
 /**
- * Связь «компилятор ↔ открытая визуализация».
+ * Прямая связь «компилятор ↔ открытая визуализация».
  *
- * Панель компилятора в режиме пошагового отладчика транслирует номер
- * текущего шага трассы вместе с id текущей главы; пошаговые демонстрации
- * главы (через useVizStepSync) подхватывают его и прыгают на тот же шаг —
- * визуализация идёт в ногу с листингом (каждая исполняемая строка шаблона
- * = очередной шаг подсветки, см. vizSync.ts).
+ * Компилятор передаёт не «магический номер строки эталона», а снимок реально
+ * выполненного Python-кода. Визуализация читает захардкоженные учебные имена
+ * (i, j, k, v, dist, P, st…) и подсвечивает соответствующий объект. Поэтому
+ * любой пользовательский код работает, если в нём используются имена темы.
  */
 
 export const VizChapterContext = createContext("");
 
-const CHANNEL = "algo:viz-step";
+const CHANNEL = "algo:viz-state";
 
-export interface VizStepEventDetail {
+export interface VizStateEventDetail {
   chapterId: string;
-  step: number;
+  /** Строка и функция реально выполненного пользовательского кода. */
+  line?: number;
+  func?: string;
+  /** Машинно-читаемые globals + locals: числа остаются числами, массивы — массивами. */
+  variables?: Record<string, DebugValue>;
+  /** Имена, изменённые выделенной строкой. */
+  changed?: string[];
 }
 
-/** Транслировать текущий шаг отладчика визуализациям текущей главы. */
-export function emitVizStep(chapterId: string, step: number) {
+/** Последний снимок хранится, чтобы поздно смонтированная вкладка тоже сразу его увидела. */
+const latestByChapter = new Map<string, VizStateEventDetail>();
+
+/** Транслировать реальные переменные визуализациям текущей главы. */
+export function emitVizState(
+  chapterId: string,
+  snapshot: Omit<VizStateEventDetail, "chapterId">
+) {
   if (typeof window === "undefined") return;
-  window.dispatchEvent(new window.CustomEvent<VizStepEventDetail>(CHANNEL, { detail: { chapterId, step } }));
+  const detail: VizStateEventDetail = { chapterId, ...snapshot };
+  latestByChapter.set(chapterId, detail);
+  window.dispatchEvent(new window.CustomEvent<VizStateEventDetail>(CHANNEL, { detail }));
 }
+
+/** Вернуть демонстрацию в ручной режим при закрытии/редактировании компилятора. */
+export function clearVizState(chapterId: string) {
+  if (typeof window === "undefined") return;
+  latestByChapter.delete(chapterId);
+  window.dispatchEvent(new window.CustomEvent<VizStateEventDetail>(CHANNEL, { detail: { chapterId } }));
+}
+
+/** Текущий снимок компилятора для прямой отрисовки массивов/индексов. */
+export function useVizRuntime(): VizStateEventDetail | null {
+  const chapterId = useContext(VizChapterContext);
+  const [runtime, setRuntime] = useState<VizStateEventDetail | null>(() =>
+    chapterId ? latestByChapter.get(chapterId) ?? null : null
+  );
+
+  useEffect(() => {
+    setRuntime(chapterId ? latestByChapter.get(chapterId) ?? null : null);
+    if (!chapterId) return;
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<VizStateEventDetail>).detail;
+      if (detail?.chapterId === chapterId) {
+        setRuntime(detail.variables || detail.line !== undefined ? detail : null);
+      }
+    };
+    window.addEventListener(CHANNEL, handler);
+    return () => window.removeEventListener(CHANNEL, handler);
+  }, [chapterId]);
+
+  return runtime;
+}
+
+export type VizStepSelector = (variables: Record<string, DebugValue>) => number | null;
 
 /**
- * Подписка визуализации на шаги отладчика.
- * Вызывается внутри компонента демонстрации:
- *   useVizStepSync(currentStep, setCurrentStep, steps.length - 1);
+ * Подписка старых покадровых демонстраций. Если передан selectByVariables,
+ * номер кадра выбирается по именам/значениям переменных, а не по позиции строки.
  */
-export function useVizStepSync(currentStep: number, goToStep: (n: number) => void, maxStep: number) {
+export function useVizStepSync(
+  currentStep: number,
+  goToStep: (n: number) => void,
+  maxStep: number,
+  selectByVariables?: VizStepSelector
+) {
   const chapterId = useContext(VizChapterContext);
 
   useEffect(() => {
     if (!chapterId) return;
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent<VizStepEventDetail>).detail;
+
+    const apply = (detail?: VizStateEventDetail) => {
       if (!detail || detail.chapterId !== chapterId) return;
-      const target = Math.max(0, Math.min(maxStep, detail.step));
+      // Без явного селектора компонент либо рисует useVizRuntime() напрямую,
+      // либо остаётся ручным. Номер Python-строки никогда не становится кадром.
+      const requested =
+        selectByVariables && detail.variables ? selectByVariables(detail.variables) : null;
+      // null означает: компонент рисует runtime-переменные напрямую или пока
+      // не увидел знакомых захардкоженных имён.
+      if (requested === null || !Number.isFinite(requested)) return;
+      const target = Math.max(0, Math.min(Math.max(0, maxStep), requested));
       if (target !== currentStep) goToStep(target);
     };
+
+    apply(latestByChapter.get(chapterId));
+    const handler = (e: Event) => apply((e as CustomEvent<VizStateEventDetail>).detail);
     window.addEventListener(CHANNEL, handler);
     return () => window.removeEventListener(CHANNEL, handler);
-  }, [chapterId, currentStep, maxStep, goToStep]);
+  }, [chapterId, currentStep, maxStep, goToStep, selectByVariables]);
 }
 
-/**
- * Перевод индекса шага трассы в номер шага визуализации ПО СОДЕРЖИМУ строк.
- * Номер шага = сколько раз к этому моменту выполнилась «помеченная» строка
- * (`markedContents`, нормализовано trim) минус один — каждое срабатывание
- * помеченной строки = очередной шаг демонстрации. Работает и для эталонного
- * шаблона, и для кода, написанного руками: совпадающие по смыслу строки двигают
- * демонстрацию, остальные — нет. Пустое множество — грубое приближение (idx).
- */
-export function vizStepForTrace(
-  steps: ReadonlyArray<{ line: number }>,
-  idx: number,
-  srcLines: readonly string[],
-  markedContents?: ReadonlySet<string>
-): number {
-  if (!markedContents || markedContents.size === 0) return idx;
-  let hits = 0;
-  for (let t = 0; t <= idx && t < steps.length; t++) {
-    const content = srcLines[steps[t].line - 1];
-    if (content !== undefined && markedContents.has(content.trim())) hits++;
-  }
-  return Math.max(0, hits - 1);
-}
+/** Утилиты без небезопасных cast-ов для визуализаторов. */
+export const vizNumber = (value: DebugValue | undefined): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
 
-/** Сколько шаговых («помеченных») строк успело выполниться к индексу трассы. */
-export function vizHitsAtTrace(
-  steps: ReadonlyArray<{ line: number }>,
-  idx: number,
-  srcLines: readonly string[],
-  markedContents: ReadonlySet<string>
-): number {
-  let hits = 0;
-  for (let t = 0; t <= idx && t < steps.length; t++) {
-    const content = srcLines[steps[t].line - 1];
-    if (content !== undefined && markedContents.has(content.trim())) hits++;
-  }
-  return hits;
-}
+export const vizString = (value: DebugValue | undefined): string | null =>
+  typeof value === "string" ? value : null;
+
+export const vizArray = (value: DebugValue | undefined): DebugValue[] | null =>
+  Array.isArray(value) ? value : null;
+
+export const vizRecord = (value: DebugValue | undefined): Record<string, DebugValue> | null =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, DebugValue>)
+    : null;
 
 /* ── Выбор демонстрации внутри страницы (вкладки 1D / 2D build / 2D query) ─ */
 

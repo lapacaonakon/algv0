@@ -160,10 +160,10 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 {onOpenCompiler && (
                   <button
                     onClick={onOpenCompiler}
-                    title="Открыть Python-компилятор: он синхронизирован с этой демонстрацией — покажет её переменные (i, j, k, n, m…) в комментарии"
+                    title="Открыть Python: код выполняется автоматически, а значения i, j, k, v, P, st… сразу подсвечивают объекты демонстрации"
                     className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 hover:text-white hover:border-emerald-500 transition-colors"
                   >
-                    <Terminal className="w-3.5 h-3.5" /> Переменные в компиляторе
+                    <Terminal className="w-3.5 h-3.5" /> Код ↔ визуализация
                   </button>
                 )}
               </div>

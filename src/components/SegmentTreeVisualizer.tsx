@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, RefreshCw, Hammer, Search, Info } from 'lucide-react';
+import { useVizRuntime, vizNumber } from '../data/vizStepBus';
 
 // ===== TYPES =====
 interface Step {
@@ -323,6 +324,8 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 // MAIN EXPORTED COMPONENT
 // ==========================================================
 export function SegmentTreeVisualizer() {
+  const runtime = useVizRuntime();
+  const liveI = vizNumber(runtime?.variables?.i);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
@@ -378,8 +381,8 @@ export function SegmentTreeVisualizer() {
             </div>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {arr.map((v, i) => (
-                <span key={i} className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-xs font-mono text-slate-200">
-                  <span className="text-slate-500">A[{i}]=</span>{v}
+                <span key={i} className={`border px-2 py-0.5 rounded text-xs font-mono ${liveI === i ? "bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30" : "bg-slate-900 border-slate-800 text-slate-200"}`}>
+                  <span className={liveI === i ? "text-amber-300" : "text-slate-500"}>A[{i}]=</span>{v}
                 </span>
               ))}
               <span className="text-xs text-slate-500 flex items-center gap-1">| Σ = {totalSum}</span>

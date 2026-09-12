@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizNumber, vizRecord, vizString } from '../data/vizStepBus';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -17,7 +17,7 @@ export default function BellmanFordViz() {
   const [hasCycle, setHasCycle] = useState(false);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodes: Node[] = [
@@ -158,8 +158,24 @@ export default function BellmanFordViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  if (!currentStep) return <div>Загрузка...</div>;
+  const baseStep = steps[currentStepIndex] || null;
+  if (!baseStep) return <div>Загрузка...</div>;
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveU = vizString(vars?.u);
+  const liveV = vizString(vars?.v);
+  const liveW = vizNumber(vars?.w);
+  const liveDist = vizRecord(vars?.dist);
+  const compilerLinked = liveI !== null || liveU !== null || liveV !== null || !!liveDist;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        iteration: liveI ?? 0,
+        checkingEdge: liveU && liveV ? { u: liveU, v: liveV, w: liveW ?? 0 } : null,
+        distances: Object.fromEntries(nodes.map((node) => [node.id, vizNumber(liveDist?.[node.id]) ?? 999])),
+        log: `Компилятор: i=${liveI ?? "—"}, ребро ${liveU ?? "—"} → ${liveV ?? "—"}; dist взят из Python.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
