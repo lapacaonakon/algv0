@@ -162,7 +162,8 @@ def erase(root, key):              # удалить произвольную т�
         </div>
     </div>
 </section>`,
-  },  {
+  },
+  {
     id: "splay-tree",
     title: "4. Splay-дерево",
     type: "html",
@@ -176,38 +177,38 @@ def erase(root, key):              # удалить произвольную т�
     </div>
     <div class="space-y-8">
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-blue-400 mb-4">Одной фразой</h3>
+            <h3 class="text-xl font-bold text-blue-400 mb-4">Тронул — поднял в корень</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
                 <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">После каждого обращения к ключу x поднимаем его в корень поворотами: нет деда — Zig; x и родитель на одной линии — Zig-Zig (ВЕРХНЕЕ ребро первым); на разных — Zig-Zag (НИЖНЕЕ первым). Один кирпичик everywhere: поворот «a–b–c, поднять за середину b».</p>
+                <p class="text-xl font-mono text-white">После каждого обращения к ключу x поднимаем его в корень поворотами. Нет деда — Zig; x и родитель на одной линии — Zig-Zig (первым ВЕРХНЕЕ ребро); змейка — Zig-Zag (первым НИЖНЕЕ).</p>
             </div>
+
+            <p class="text-slate-300 text-sm mb-4">Весь кирпичик — <b>одиночный поворот</b> «a–b–c: схватил за середину b и потянул — b наверху». Ходит он как вправление вывиха: одна кость (b) ходит вокруг другой (a), а <b>среднее поддерево β</b>, зажатое между ними, переезжает по кругу на свободную сторону к a. Кто β — видно в симуляторе: перед каждым поворотом отдельный кадр «✂️ отстёгиваем груз» с пунктиром прямо на ребре. Вкладка <b>«1 · Механика»</b> — три случая покадрово в своём темпе, с призраками старых позиций и обходом слева-направо под каждым кадром (он не меняется — доказательство, что дерево осталось деревом поиска). Вкладка <b>«2 · Большое дерево»</b> — те же случаи в настоящем дереве из 14 узлов: кликни узел — и каждый поворот по кадрам. Вкладка <b>«3 · Собери сам»</b> — подними узел кликами; проверка скажет, совпал ли твой порядок со splay.</p>
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         📚 Аналогия 1: Стопка бумаг
                     </div>
-                    <p class="text-slate-300 text-sm">Splay — это стопка бумаг на столе: что взял в руки — кладёшь наверх. Вчерашний отчёт не трогаешь — он уполз вглубь. Ничего не удаляется и не балансируется «специально»: структура сама подтягивает горячее к вершине, а холодное само тонет.</p>
+                    <p class="text-slate-300 text-sm">Splay — стопка бумаг на столе: что взял в руки — кладёшь наверх. Вчерашний отчёт не трогаешь — он уполз вглубь. Ничего не удаляется и не балансируется «специально»: структура сама подтягивает горячее к вершине, а холодное тонет.</p>
                 </div>
 
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         🥾 Аналогия 2: Тропинка через газон
                     </div>
-                    <p class="text-slate-300 text-sm">Частые запросы протаптывают тропинку: в отличие от AVL здесь нет жёсткого баланса — дерево временно разрешено растить кривым, зато серия обращений дешевеет на глазах. Плата за одну операцию бывает до O(n); выгода живёт в амортизированном O(log n).</p>
+                    <p class="text-slate-300 text-sm">Частые запросы протаптывают тропинку. В отличие от AVL жёсткого баланса нет: дереву разрешено временно быть кривым — серия обращений дешевеет на глазах. Плата за одну операцию бывает до O(n); выгода живёт в амортизированном O(log n).</p>
                 </div>
             </div>
 
-            <p class="text-slate-300 text-sm mt-6">Почему в симуляторе большое дерево: на игрушечных трёхузловых схемах Zig-Zig неотличим от «двух зигов подряд» — а формы-то разные. Поэтому кликни любой узел в интерактиве под текстом: каждый <b>одиночный</b> поворот разложен на кадры — прицел на ребро → <b>отстёгиваем среднее поддерево</b> (видно, какое именно и куда встанет) → поворот с зелёной подсветкой переехавших рёбер. Рядом с логом всегда висит врезка «Механика одного поворота» — как инструкция по вправлению вывиха: одна кость ходит вокруг другой, груз β переезжает по кругу. А ниже — песочница: подними узел сам по одному повороту за клик, и проверка скажет, совпал ли твой порядок со splay (и где ты свернул не туда).</p>
-
-            <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-4">
+            <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-6">
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
-                <p class="text-slate-400 text-sm mb-1">· Zig-Zig ≠ Zig+Zig: порядок поворотов (верхнее ребро первым) сплющивает бамбук вдвое; два нижних зига оставили бы почти ту же глубину.</p>
-                <p class="text-slate-400 text-sm mb-1">· «При повороте между A и B ничего нет» — есть: среднее поддерево переезжает от низа к верху, симулятор подсвечивает переехавшие рёбра.</p>
-                <p class="text-slate-400 text-sm">· «Splay всегда балансирует» — одиночная операция может УВЕЛИЧИТЬ высоту; гарантия только амортизированная.</p>
+                <p class="text-slate-400 text-sm mb-1">· Zig-Zig ≠ Zig+Zig: первым крутится ВЕРХНЕЕ ребро — иначе бамбук почти не сплющится. Порядок виден во вкладке «Механика».</p>
+                <p class="text-slate-400 text-sm mb-1">· «Между A и B при повороте ничего нет» — есть: среднее поддерево β переезжает от низа к верху. Кадр «✂️ груз» показывает его явно.</p>
+                <p class="text-slate-400 text-sm">· «Splay всегда балансирует» — одиночная операция может УВЕЛИЧИТЬ высоту (бамбук 1→2→…→n поднимается за n−1 поворотов и остаётся бамбуком в другую сторону); гарантия только амортизированная.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск/вставка/удаление — амортизированное <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code>; одиночная операция — до <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code>. Все операции через один splay: поиск — splay(найденное); вставка — BST-вставка + splay; удаление — splay(удаляемое) → вырезать корень → merge двух половин через splay максимума левой.</p>
+            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — амортизированно <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code>; одиночная операция — до <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code>. Повторное обращение к тому же ключу — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(1)</code>: он уже в корне. Все операции через один splay: поиск — splay(найденное); вставка — BST-вставка + splay; удаление — splay(удаляемое) → вырезать корень → splay максимума левой половины → повесить правую.</p>
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
@@ -215,27 +216,28 @@ def erase(root, key):              # удалить произвольную т�
                 </summary>
                 <div class="p-5 text-sm text-slate-300 space-y-4">
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def rotate_up(x):                  # поднять x над его родителем
+def rotate_up(x):                  # один поворот: x поднимается над родителем
     p = x.parent
     if p.left is x:
-        p.left, x.right = x.right, p
+        p.left, x.right = x.right, p   # среднее поддерево β — к p
     else:
         p.right, x.left = x.left, p
-    g, x.parent = p.parent, p.parent
+    g = p.parent
+    x.parent = g
     if g:                          # повесить x вместо p у деда
         if g.left is p: g.left = x
-        else: g.right = x
-
-def splay(x):
+        else:            g.right = x</pre>
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
+def splay(x):                      # подъём x до корня
     while x.parent:
         p, g = x.parent, x.parent.parent
-        if g is None:                          # Zig
+        if g is None:                         # Zig: хватит одного
             rotate_up(x)
-        elif (g.left is p) == (p.left is x):   # Zig-Zig: на одной линии
-            rotate_up(p)                       # ВЕРХНЕЕ ребро первым
+        elif (g.left is p) == (p.left is x):  # Zig-Zig: одна линия
+            rotate_up(p)                      # ВЕРХНЕЕ ребро первым
             rotate_up(x)
-        else:                                  # Zig-Zag: змейка
-            rotate_up(x)                       # НИЖНЕЕ ребро первым
+        else:                                 # Zig-Zag: змейка
+            rotate_up(x)                      # НИЖНЕЕ ребро первым
             rotate_up(x)
     return x</pre>
                 </div>

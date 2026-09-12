@@ -18,8 +18,7 @@ import { PlanarityDemo } from "./PlanarityDemo";
 import { QueueViz } from "./QueueViz";
 import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
 import { SegmentTreeVisualizer } from "./SegmentTreeVisualizer";
-import SplayWalkViz from "./SplayWalkViz";
-import { SplayRotationSandbox } from "./SplayRotationSandbox";
+import SplayPlayground from "./SplayPlayground";
 import { StackViz } from "./StackViz";
 import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
@@ -90,28 +89,14 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     Component: DPVisualizer,
   },
   "splay-tree": {
-    title: "Splay: демо на большом дереве → собери сам",
-    hint: "Сначала демо: кликни узел — он поднимется в корень по кадрам (прицел → отстёгиваем среднее поддерево → поворот). Ниже — песочница: подними узел сам, порядок сверится со splay.",
-    Component: () => (
-      <div className="space-y-10">
-        <SplayWalkViz />
-        <p className="flex items-start gap-2 text-[12px] leading-relaxed text-slate-400 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
-          <span aria-hidden="true">👇</span>
-          <span>Разобрался, как ходит один поворот? Ниже песочница: там поворот — по твоему клику, а проверка скажет, совпал ли твой порядок со splay.</span>
-        </p>
-        <SplayRotationSandbox />
-      </div>
-    ),
+    title: "Splay: механика → большое дерево → собери сам",
+    hint: "Три вкладки: покадровая механика поворотов в своём темпе, те же случаи на большом дереве (каждый одиночный поворот — кадры), и песочница «подними узел сам» с проверкой порядка.",
+    Component: SplayPlayground,
   },
   "splay-rotations": {
-    title: "Zig / Zig-Zig / Zig-Zag: демо и песочница",
-    hint: "Каждый одиночный поворот — отдельный шаг с механикой на врезке; ниже — песочница для самостоятельной сборки.",
-    Component: () => (
-      <div className="space-y-10">
-        <SplayWalkViz />
-        <SplayRotationSandbox />
-      </div>
-    ),
+    title: "Splay: механика → большое дерево → собери сам",
+    hint: "Три вкладки: покадровая механика поворотов в своём темпе, те же случаи на большом дереве (каждый одиночный поворот — кадры), и песочница «подними узел сам» с проверкой порядка.",
+    Component: SplayPlayground,
   },
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
   "top-sort": { title: "Топологическая сортировка", Component: TopologicalSortViz },
