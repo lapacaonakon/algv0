@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            11.09.2026, 20:51:46
+Дата генерации:            12.09.2026, 18:30:11
 Файлов исходного кода:     87
-Суммарный объём кода:      1.21 MB
+Суммарный объём кода:      1.23 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -1829,7 +1829,7 @@ export default defineConfig({
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 11/87: src/App.tsx
-КАТЕГОРИЯ: Ядро приложения | СТРОК: 198 | РАЗМЕР: 9.4 KB
+КАТЕГОРИЯ: Ядро приложения | СТРОК: 208 | РАЗМЕР: 10.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -1858,6 +1858,14 @@ export default function App() {
   useEffect(() => {
     window.localStorage.setItem("compilerWidth", String(compilerWidth));
   }, [compilerWidth]);
+  /** Высота терминала: null оставляет адаптивную высоту по умолчанию. */
+  const [compilerHeight, setCompilerHeight] = useState<number | null>(() => {
+    const cached = typeof window !== "undefined" ? Number(window.localStorage.getItem("compilerHeight")) : NaN;
+    return Number.isFinite(cached) && cached >= 260 ? cached : null;
+  });
+  useEffect(() => {
+    if (compilerHeight !== null) window.localStorage.setItem("compilerHeight", String(compilerHeight));
+  }, [compilerHeight]);
   /** Содержание свернуто (по умолчанию сворачиваем само, если места мало). */
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     const cached = typeof window !== "undefined" ? window.localStorage.getItem("sidebarCollapsed") : null;
@@ -2021,7 +2029,9 @@ export default function App() {
           chapterId={activeChapter.id}
           chapterTitle={activeChapter.title}
           width={compilerWidth}
+          height={compilerHeight}
           onWidthChange={setCompilerWidth}
+          onHeightChange={setCompilerHeight}
           onOpenGuide={() => setActiveTab("guide")}
           onClose={() => setCompilerOpen(false)}
         />
@@ -3793,7 +3803,7 @@ export const activeVizIds = [
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 20/87: src/data/debugRunner.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 130 | РАЗМЕР: 5.5 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 181 | РАЗМЕР: 7.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -3802,19 +3812,28 @@ export const activeVizIds = [
  * как панель Variables в обычном отладчике.
  */
 
+export type DebugValue = null | boolean | number | string | DebugValue[] | { [key: string]: DebugValue };
+
 export interface DebugStep {
   /** Номер строки в коде пользователя (1-based). */
   line: number;
   /** Имя функции-фрейма ("<module>" — верхний уровень). */
   func: string;
-  /** Локальные переменные: имя → repr (усечённый). */
+  /** Локальные переменные: имя → repr (усечённый), для панели Variables. */
   locals: Record<string, string>;
+  /**
+   * JSON-снимок доступных имён (globals + locals). В отличие от repr его
+   * можно напрямую отдать визуализации: i/j остаются числами, st/P — массивами.
+   */
+  values?: Record<string, DebugValue>;
 }
 
 export interface DebugResult {
   steps: DebugStep[];
   /** Локали в момент возврата из модуля — «результат» последнего шага трассы. */
   finalLocals?: Record<string, string>;
+  /** Финальный машинно-читаемый снимок для визуализации. */
+  finalValues?: Record<string, DebugValue>;
   /** Текст последней необработанной ошибки (или пустая строка). */
   error: string;
   /** true, если уперлись в лимит шагов. */
@@ -3836,7 +3855,12 @@ export function buildDebugRunner(userSrc: string): string {
 __src = ${srcLiteral}
 __steps = []
 __final = {}
+__final_values = {}
 __CAP = ${DEBUG_STEP_CAP}
+__was_truncated = False
+
+class __TraceLimit(Exception):
+    pass
 
 def __safe(v):
     try:
@@ -3845,36 +3869,72 @@ def __safe(v):
         r = "<…>"
     return r if len(r) <= 80 else r[:77] + "…"
 
+def __snapshot(v, depth=0):
+    """Небольшой JSON-снимок: UI использует его без парсинга repr."""
+    if v is None or isinstance(v, (bool, int, str)):
+        return v
+    if isinstance(v, float):
+        return v if v == v and v not in (float("inf"), float("-inf")) else __safe(v)
+    if depth >= 4:
+        return __safe(v)
+    limit = 80 if depth < 2 else 32
+    if isinstance(v, (list, tuple)):
+        return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
+    if isinstance(v, (set, frozenset)):
+        return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
+    if isinstance(v, dict):
+        return {str(k): __snapshot(x, depth + 1) for k, x in list(v.items())[:limit]}
+    # deque, heap-подобные и другие итерируемые учебные структуры
+    if type(v).__name__ == "deque":
+        return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
+    return __safe(v)
+
+def __visible(items):
+    return {
+        k: v for k, v in items
+        if not k.startswith("__") and type(v).__name__ != "module"
+    }
+
+def __capture(frame):
+    local_values = __visible(frame.f_locals.items())
+    # Внутри функции алгоритма важные структуры (memo, dist, graph) часто
+    # глобальные. Локальные значения имеют приоритет над глобальными.
+    scope_values = __visible(frame.f_globals.items())
+    scope_values.update(local_values)
+    loc = {k: __safe(v) for k, v in local_values.items()}
+    values = {k: __snapshot(v) for k, v in scope_values.items()}
+    return loc, values
+
 def __tracer(frame, event, arg):
+    global __was_truncated
     if event == "line" and frame.f_code.co_filename == "<user-code>" \
             and not (frame.f_code.co_name.startswith("<") and frame.f_code.co_name != "<module>"):
-        loc = {}
-        for k, v in frame.f_locals.items():
-            if not k.startswith("__") and type(v).__name__ != "module":
-                loc[k] = __safe(v)
+        loc, values = __capture(frame)
         # PEP 709: с 3.12 компрехеншны встроены во фрейм модуля и шлют событие
-        # на своей строке каждую итерацию (9 ложных «шагов», v протекает в локали).
-        # Склеиваем ПОДРЯД идущие события одной строки в один шаг — последнее состояние.
+        # на своей строке каждую итерацию. Склеиваем подряд идущие повторы.
         if __steps and __steps[-1]["line"] == frame.f_lineno and __steps[-1]["func"] == frame.f_code.co_name:
             __steps[-1]["locals"] = loc
+            __steps[-1]["values"] = values
         else:
-            __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc})
+            __steps.append({"line": frame.f_lineno, "func": frame.f_code.co_name, "locals": loc, "values": values})
         if len(__steps) >= __CAP:
-            __sys.settrace(None)
-    # Финальные локали программы (после последней строки новых событий не будет):
-    # кладём отдельно в __final — UI показывает их как результат ПОСЛЕДНЕГО шага.
+            # Нельзя просто отключить trace: бесконечный пользовательский цикл
+            # тогда продолжит работать вечно. Мягко прерываем только этот запуск.
+            __was_truncated = True
+            raise __TraceLimit()
+    # Финальные локали программы (после последней строки новых событий не будет).
     if event == "return" and frame.f_code.co_filename == "<user-code>" and frame.f_code.co_name == "<module>":
-        loc = {}
-        for k, v in frame.f_locals.items():
-            if not k.startswith("__") and type(v).__name__ != "module":
-                loc[k] = __safe(v)
+        loc, values = __capture(frame)
         __final.update(loc)
+        __final_values.update(values)
     return __tracer
 
 __err = ""
 try:
     __sys.settrace(__tracer)
     exec(compile(__src, "<user-code>", "exec"), {"__name__": "__main__"})
+except __TraceLimit:
+    pass
 except Exception:
     import traceback as __tb
     __err = __tb.format_exc(limit=3)
@@ -3884,8 +3944,9 @@ finally:
 __OUT = __json.dumps({
     "steps": __steps,
     "finalLocals": __final,
+    "finalValues": __final_values,
     "error": __err,
-    "truncated": len(__steps) >= __CAP,
+    "truncated": __was_truncated,
 })
 __OUT
 `;
@@ -4954,98 +5015,136 @@ export const quizzes: Record<string, QuizQuestion[]> = {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 24/87: src/data/vizStepBus.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 113 | РАЗМЕР: 5.2 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 158 | РАЗМЕР: 7.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import type { DebugValue } from "./debugRunner";
 
 /**
- * Связь «компилятор ↔ открытая визуализация».
+ * Прямая связь «компилятор ↔ открытая визуализация».
  *
- * Панель компилятора в режиме пошагового отладчика транслирует номер
- * текущего шага трассы вместе с id текущей главы; пошаговые демонстрации
- * главы (через useVizStepSync) подхватывают его и прыгают на тот же шаг —
- * визуализация идёт в ногу с листингом (каждая исполняемая строка шаблона
- * = очередной шаг подсветки, см. vizSync.ts).
+ * Компилятор передаёт не «магический номер строки эталона», а снимок реально
+ * выполненного Python-кода. Визуализация читает захардкоженные учебные имена
+ * (i, j, k, v, dist, P, st…) и подсвечивает соответствующий объект. Поэтому
+ * любой пользовательский код работает, если в нём используются имена темы.
  */
 
 export const VizChapterContext = createContext("");
 
-const CHANNEL = "algo:viz-step";
+const CHANNEL = "algo:viz-state";
 
-export interface VizStepEventDetail {
+export interface VizStateEventDetail {
   chapterId: string;
-  step: number;
+  /** Строка и функция реально выполненного пользовательского кода. */
+  line?: number;
+  func?: string;
+  /** Машинно-читаемые globals + locals: числа остаются числами, массивы — массивами. */
+  variables?: Record<string, DebugValue>;
+  /** Имена, изменённые выделенной строкой. */
+  changed?: string[];
 }
 
-/** Транслировать текущий шаг отладчика визуализациям текущей главы. */
-export function emitVizStep(chapterId: string, step: number) {
+/** Последний снимок хранится, чтобы поздно смонтированная вкладка тоже сразу его увидела. */
+const latestByChapter = new Map<string, VizStateEventDetail>();
+
+/** Транслировать реальные переменные визуализациям текущей главы. */
+export function emitVizState(
+  chapterId: string,
+  snapshot: Omit<VizStateEventDetail, "chapterId">
+) {
   if (typeof window === "undefined") return;
-  window.dispatchEvent(new window.CustomEvent<VizStepEventDetail>(CHANNEL, { detail: { chapterId, step } }));
+  const detail: VizStateEventDetail = { chapterId, ...snapshot };
+  latestByChapter.set(chapterId, detail);
+  window.dispatchEvent(new window.CustomEvent<VizStateEventDetail>(CHANNEL, { detail }));
 }
+
+/** Вернуть демонстрацию в ручной режим при закрытии/редактировании компилятора. */
+export function clearVizState(chapterId: string) {
+  if (typeof window === "undefined") return;
+  latestByChapter.delete(chapterId);
+  window.dispatchEvent(new window.CustomEvent<VizStateEventDetail>(CHANNEL, { detail: { chapterId } }));
+}
+
+/** Текущий снимок компилятора для прямой отрисовки массивов/индексов. */
+export function useVizRuntime(): VizStateEventDetail | null {
+  const chapterId = useContext(VizChapterContext);
+  const [runtime, setRuntime] = useState<VizStateEventDetail | null>(() =>
+    chapterId ? latestByChapter.get(chapterId) ?? null : null
+  );
+
+  useEffect(() => {
+    setRuntime(chapterId ? latestByChapter.get(chapterId) ?? null : null);
+    if (!chapterId) return;
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<VizStateEventDetail>).detail;
+      if (detail?.chapterId === chapterId) {
+        setRuntime(detail.variables || detail.line !== undefined ? detail : null);
+      }
+    };
+    window.addEventListener(CHANNEL, handler);
+    return () => window.removeEventListener(CHANNEL, handler);
+  }, [chapterId]);
+
+  return runtime;
+}
+
+export type VizStepSelector = (variables: Record<string, DebugValue>) => number | null;
 
 /**
- * Подписка визуализации на шаги отладчика.
- * Вызывается внутри компонента демонстрации:
- *   useVizStepSync(currentStep, setCurrentStep, steps.length - 1);
+ * Подписка старых покадровых демонстраций. Если передан selectByVariables,
+ * номер кадра выбирается по именам/значениям переменных, а не по позиции строки.
  */
-export function useVizStepSync(currentStep: number, goToStep: (n: number) => void, maxStep: number) {
+export function useVizStepSync(
+  currentStep: number,
+  goToStep: (n: number) => void,
+  maxStep: number,
+  selectByVariables?: VizStepSelector
+) {
   const chapterId = useContext(VizChapterContext);
 
   useEffect(() => {
     if (!chapterId) return;
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent<VizStepEventDetail>).detail;
+
+    const apply = (detail?: VizStateEventDetail) => {
       if (!detail || detail.chapterId !== chapterId) return;
-      const target = Math.max(0, Math.min(maxStep, detail.step));
+      // Без явного селектора компонент либо рисует useVizRuntime() напрямую,
+      // либо остаётся ручным. Номер Python-строки никогда не становится кадром.
+      const requested =
+        selectByVariables && detail.variables ? selectByVariables(detail.variables) : null;
+      // null означает: компонент рисует runtime-переменные напрямую или пока
+      // не увидел знакомых захардкоженных имён.
+      if (requested === null || !Number.isFinite(requested)) return;
+      const target = Math.max(0, Math.min(Math.max(0, maxStep), requested));
       if (target !== currentStep) goToStep(target);
     };
+
+    apply(latestByChapter.get(chapterId));
+    const handler = (e: Event) => apply((e as CustomEvent<VizStateEventDetail>).detail);
     window.addEventListener(CHANNEL, handler);
     return () => window.removeEventListener(CHANNEL, handler);
-  }, [chapterId, currentStep, maxStep, goToStep]);
+  }, [chapterId, currentStep, maxStep, goToStep, selectByVariables]);
 }
 
-/**
- * Перевод индекса шага трассы в номер шага визуализации ПО СОДЕРЖИМУ строк.
- * Номер шага = сколько раз к этому моменту выполнилась «помеченная» строка
- * (`markedContents`, нормализовано trim) минус один — каждое срабатывание
- * помеченной строки = очередной шаг демонстрации. Работает и для эталонного
- * шаблона, и для кода, написанного руками: совпадающие по смыслу строки двигают
- * демонстрацию, остальные — нет. Пустое множество — грубое приближение (idx).
- */
-export function vizStepForTrace(
-  steps: ReadonlyArray<{ line: number }>,
-  idx: number,
-  srcLines: readonly string[],
-  markedContents?: ReadonlySet<string>
-): number {
-  if (!markedContents || markedContents.size === 0) return idx;
-  let hits = 0;
-  for (let t = 0; t <= idx && t < steps.length; t++) {
-    const content = srcLines[steps[t].line - 1];
-    if (content !== undefined && markedContents.has(content.trim())) hits++;
-  }
-  return Math.max(0, hits - 1);
-}
+/** Утилиты без небезопасных cast-ов для визуализаторов. */
+export const vizNumber = (value: DebugValue | undefined): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
 
-/** Сколько шаговых («помеченных») строк успело выполниться к индексу трассы. */
-export function vizHitsAtTrace(
-  steps: ReadonlyArray<{ line: number }>,
-  idx: number,
-  srcLines: readonly string[],
-  markedContents: ReadonlySet<string>
-): number {
-  let hits = 0;
-  for (let t = 0; t <= idx && t < steps.length; t++) {
-    const content = srcLines[steps[t].line - 1];
-    if (content !== undefined && markedContents.has(content.trim())) hits++;
-  }
-  return hits;
-}
+export const vizString = (value: DebugValue | undefined): string | null =>
+  typeof value === "string" ? value : null;
+
+export const vizArray = (value: DebugValue | undefined): DebugValue[] | null =>
+  Array.isArray(value) ? value : null;
+
+export const vizRecord = (value: DebugValue | undefined): Record<string, DebugValue> | null =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, DebugValue>)
+    : null;
 
 /* ── Выбор демонстрации внутри страницы (вкладки 1D / 2D build / 2D query) ─ */
 
 const DEMO_CHANNEL = "algo:viz-demo";
+const latestDemoByChapter = new Map<string, string>();
 
 export interface VizDemoEventDetail {
   chapterId: string;
@@ -5056,12 +5155,19 @@ export interface VizDemoEventDetail {
 /** Демонстрация сообщает, какая её вкладка сейчас открыта (код компилятора следует за ней). */
 export function emitVizDemo(chapterId: string, demoId: string) {
   if (typeof window === "undefined") return;
+  latestDemoByChapter.set(chapterId, demoId);
   window.dispatchEvent(new window.CustomEvent<VizDemoEventDetail>(DEMO_CHANNEL, { detail: { chapterId, demoId } }));
 }
 
-/** Подписка: панель компилятора следует за активной вкладкой демонстрации страницы. */
+/**
+ * Подписка: панель компилятора следует за активной вкладкой демонстрации.
+ * Сразу отдаём последнее значение: компилятор часто открывают уже ПОСЛЕ того,
+ * как пользователь переключился с 1D на 2D.
+ */
 export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
   if (typeof window === "undefined") return () => {};
+  const latest = latestDemoByChapter.get(chapterId);
+  if (latest !== undefined) cb(latest);
   const handler = (e: Event) => {
     const detail = (e as CustomEvent<VizDemoEventDetail>).detail;
     if (detail && detail.chapterId === chapterId) cb(detail.demoId);
@@ -5073,18 +5179,16 @@ export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 25/87: src/data/vizSync.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 744 | РАЗМЕР: 43.3 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 709 | РАЗМЕР: 42.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
  * Захардкоженная «карта синхронизации» компилятора с визуализациями.
  *
- * Для каждой страницы (главы) здесь вручную перечислены переменные,
- * по которым идёт пошаговая подсветка в её интерактивной демонстрации —
- * в первую очередь индексы циклов i, j, k и размеры n, m.
- *
- * Компилятор НЕ показывает код алгоритма — только комментарий с этими
- * переменными, чтобы студент повторял шаги руками, глядя на визуализацию.
+ * Для каждой страницы (главы) здесь вручную перечислены имена переменных,
+ * которые понимает её визуализация: i, j, k, v, dist, P, st и т.д.
+ * Компилятор выполняет любой Python-код и передаёт реальные значения этих
+ * имён напрямую; привязки к номерам или тексту строк эталона больше нет.
  */
 
 export interface SyncVariable {
@@ -5103,22 +5207,8 @@ export interface PageSync {
   stepNote?: string;
   /** Переменные синхронизации. Пусто — на странице нет визуализации. */
   variables: SyncVariable[];
-  /**
-   * Минимальный исполняемый скелет для редактора: строки идут
-   * шаг-в-шаг с подсветкой визуализации (без словесных описаний).
-   */
+  /** Полный референсный Python-код, который кнопка-глаз вставляет в редактор. */
   code?: string;
-  /**
-   * Номера строк ВНУТРИ code (с 1), каждое выполнение которых = один
-   * шаг визуализации: по ним отладчик точно переводит шаг трассы в
-   * шаг демонстрации (иначе — грубо «строчный индекс = шаг»).
-   */
-  stepCodeLines?: number[];
-  /**
-   * Может ли демонстрация страницы ходить за отладчиком по шагам.
-   * false/нет — интерактив руками (клики/наведение): чип в панели скажет честно.
-   */
-  stepDriven?: boolean;
 }
 
 /** Справочные значения, указанные внутри самих симуляторов (демо-графы, строки и т.п.). */
@@ -5179,7 +5269,6 @@ print("zig-zag: ", x, "↗", g)`,
   "sparse-table": {
     vizTitle: "Разреженная таблица (1D и 2D)",
     stepNote: "Шаг = одна ячейка st[i][j] = min(st[i][j−1], st[i+2^(j−1)][j−1]) при построении таблицы — как в демонстрации слева.",
-    stepDriven: true,
     code: `a = [2, 3, 5, 62, 3, 21, 1, 4]
 n, LOG = 8, 4
 i, j = 0, 0
@@ -5190,7 +5279,6 @@ for row in a:
 for j in range(1, LOG):
     for i in range(n - (1 << j) + 1):
         st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1])`,
-    stepCodeLines: [4, 10],
     variables: [
       { name: "n", role: "длина массива / сторона квадратной матрицы", range: "n = 8 на демо" },
       { name: "k", role: "уровень таблицы: ячейка хранит ответ на блоке длины 2^k", range: "0 … log₂ n" },
@@ -5203,7 +5291,6 @@ for j in range(1, LOG):
   "prefix-sums-2d": {
     vizTitle: "Префиксные суммы (1D и 2D)",
     stepNote: "Шаг = заполнение очередного P[i] = P[i−1] + a[i−1] в 1D-демонстрации слева.",
-    stepDriven: true,
     code: `a = [3, 1, 4, 1, 5, 9, 2, 6]
 i = 0
 
@@ -5211,7 +5298,6 @@ P = [0]
 for i in range(1, len(a) + 1):
     P.append(P[i - 1] + a[i - 1])
 print("P =", P)`,
-    stepCodeLines: [4, 6],
     variables: [
       { name: "n", role: "число строк матрицы", range: "1 … n" },
       { name: "m", role: "число столбцов матрицы", range: "1 … m" },
@@ -5238,10 +5324,9 @@ def fib(k):
     return memo[k]
 
 print("итог:", fib(n))`,
-    stepCodeLines: [5, 6, 8, 9, 12, 15],
-    stepDriven: true,
     variables: [
-      { name: "n", role: "номер числа Фибоначчи, которое сейчас считаем", range: "1 … targetN (по умолчанию 5)" },
+      { name: "n", role: "целевой номер числа Фибоначчи", range: "1 … targetN (по умолчанию 5)" },
+      { name: "k", role: "аргумент текущего рекурсивного вызова fib(k) — подсвечиваемая ячейка", range: "1 … n" },
       { name: "memo", role: "кэш уже посчитанных значений — кэш-хит отдаёт ответ за O(1)", range: "заполняется снизу вверх" },
       { name: "r1, r2", role: "ответы двух рекурсивных вызовов fib(k−1) и fib(k−2)", range: "числа Фибоначчи" },
     ],
@@ -5278,7 +5363,6 @@ print("pop →", top, "стек:", st)`,
   },
   "queue-bfs": {
     vizTitle: "Очередь и обход в ширину",
-    stepDriven: true,
     stepNote: "Шаг = dequeue вершины из головы очереди и enqueue всех её непосещённых соседей.",
     code: `from collections import deque
 
@@ -5308,7 +5392,6 @@ print("тарелка:", top, "| первый из очереди:", first)`,
   },
   "graph-dfs-bfs": {
     vizTitle: "DFS и BFS на графе",
-    stepDriven: true,
     stepNote: "Шаг = переход из текущей вершины v к непосещённому соседу to (DFS — вглубь, BFS — по слоям).",
     code: `adj = {"A": ["B", "C"], "B": ["D"], "C": [], "D": []}
 visited, order = set(), []
@@ -5334,7 +5417,6 @@ print(order)`,
   },
   "top-sort": {
     vizTitle: "Топологическая сортировка",
-    stepDriven: true,
     stepNote: "Шаг = выход рекурсии из вершины v: она дописывается в order, потом order разворачивается.",
     code: `adj = {0: [1, 4], 1: [2, 3], 2: [], 3: [2], 4: []}
 used, order = set(), []
@@ -5359,7 +5441,6 @@ print(order[::-1])          # разворот — ответ`,
   },
   "scc-kosaraju": {
     vizTitle: "Компоненты сильной связности (Косарайю)",
-    stepDriven: true,
     stepNote: "Шаг = вершина из order (в обратном порядке) запускает DFS по транспонированному графу и красит свою SCC.",
     code: `adj = {0: [1], 1: [2], 2: [0, 3], 3: [], 4: [3]}
 adjT = {}
@@ -5385,7 +5466,6 @@ for i in range(len(order) - 1, -1, -1):
   },
   "graph-articulation": {
     vizTitle: "Точки сочленения",
-    stepDriven: true,
     stepNote: "Шаг = обновление low[v] по ребру; вершина v — точка сочленения, когда low[to] ≥ tin[v].",
     code: `tin, low, timer = {}, {}, 0
 
@@ -5406,7 +5486,6 @@ print(f"v={v} to={to} critical={critical}")`,
   },
   "bridges-code": {
     vizTitle: "Мосты: DFS + tin/low",
-    stepDriven: true,
     stepNote: "Шаг = строка псевдокода слева; ребро (v, to) — мост, когда low[to] > tin[v].",
     code: `tin, low = {"A": 1, "B": 2, "G": 3}, {"A": 1, "B": 2, "G": 3}
 timer = 3                   # как на демо
@@ -5459,7 +5538,6 @@ print(f"V={V} E={E} F={F} непланарен={not_planar}")`,
   },
   dijkstra: {
     vizTitle: "Дейкстра",
-    stepDriven: true,
     stepNote: "Шаг = старт, извлечение ближайшей вершины u из кучи или релаксация ребра (u → v) — как в демонстрации слева.",
     code: `import heapq
 
@@ -5483,7 +5561,6 @@ while pq:
             prev[v] = u
             heapq.heappush(pq, (dist[v], v))
 print("итог:", dist)`,
-    stepCodeLines: [4, 13, 17, 19, 22],
     variables: [
       { name: "u", role: "вершина с минимальным dist среди непосещённых — её обрабатываем", range: "argmin dist" },
       { name: "v", role: "сосед вершины u, до которого пробуем улучшить путь", range: "соседи u" },
@@ -5493,7 +5570,6 @@ print("итог:", dist)`,
   },
   "bellman-ford": {
     vizTitle: "Форд—Беллман",
-    stepDriven: true,
     stepNote: "Шаг = одна релаксация ребра (u, v, w) внутри i-й итерации по всем рёбрам.",
     code: `n, m = 7, 10                # вершин, рёбер (демо)
 dist = {"S": 0}
@@ -5515,7 +5591,6 @@ for i in range(1, n):       # итерация i = 1 … n−1
   },
   floyd: {
     vizTitle: "Флойд—Уоршелл",
-    stepDriven: true,
     stepNote: "Шаг = инициализация матрицы, смена промежуточной вершины k или улучшение dist[i][j] — как в демонстрации слева.",
     code: `INF = 999
 
@@ -5529,7 +5604,6 @@ for k in range(n):
                 if d[i][k] + d[k][j] < d[i][j]:
                     d[i][j] = d[i][k] + d[k][j]
 print("итог: все пары посчитаны")`,
-    stepCodeLines: [3, 6, 11, 12],
     variables: [
       { name: "n", role: "число вершин — размер квадратной матрицы расстояний n × n", range: "7 на демо" },
       { name: "k", role: "промежуточная вершина — ВНЕШНИЙ цикл; на шаге k разрешено ходить через вершины 0 … k", range: "0 … n−1" },
@@ -5540,7 +5614,6 @@ print("итог: все пары посчитаны")`,
   },
   "johnson-algo": {
     vizTitle: "Алгоритм Джонсона (перевзвешивание)",
-    stepDriven: true,
     stepNote: "Шаг = Беллман-Форд из фиктивной вершины считает h[v], затем n запусков Дейкстры в новых весах.",
     code: `# потенциалы из Беллмана-Форда от фиктивной вершины S
 h = {"A": 0, "B": -3, "C": -1, "D": 1, "E": 2, "F": 4}
@@ -5621,7 +5694,6 @@ print(cheapest)             # за фазу компонент станет ÷2`
   },
   "string-kmp": {
     vizTitle: "Префикс-функция (КМП)",
-    stepDriven: true,
     stepNote: "Шаг = обработка символа s[i]: откаты по j = π[j−1], пока не совпадёт s[j] с s[i].",
     code: `s = "aabaabaaa"
 n = len(s)
@@ -5646,7 +5718,6 @@ print(pi)`,
   },
   "string-z-func": {
     vizTitle: "Z-функция",
-    stepDriven: true,
     stepNote: "Шаг = вычисление z[i]: внутри Z-блока [l, r] берём инициализацию из z[i−l], потом досчитаем в лоб.",
     code: `s = "abacaba"
 n = len(s)
@@ -5701,13 +5772,15 @@ print(f"δ({state!r}, {c!r}) → {nxt!r}")`,
   "sparse-table#2d-build": {
     vizTitle: "Разреженная таблица 2D: построение",
     stepNote: "Шаг = новый уровень k: блоки 2^k×2^k дописываются из четырёх квадрантов предыдущего уровня.",
-    stepDriven: true,
     code: `A = [[45, 12, 88, 34, 11, 76, 23, 90], [67, 19, 44, 55, 33, 21, 65, 87], [14, 51, 99, 13, 22, 64, 43, 76], [89, 32, 54, 71, 15, 88, 29, 60], [25, 41, 16, 92, 9, 17, 56, 31], [59, 18, 77, 24, 61, 82, 35, 12], [73, 8, 38, 85, 47, 95, 19, 58], [39, 81, 62, 28, 51, 42, 85, 14]]
 r, c, k = 0, 0, 0
-st2 = {}                       # пустой словарь: клетки появятся по шагам
-for r in range(8):
-    for c in range(8):
-        st2[(r, c, 0, 0)] = A[r][c]
+st2 = {}                       # пустой каркас виден до начала построения
+
+# --- тело алгоритма ---
+# База не отдельный уровень вычислений: блок 1×1 — это сама A[r][c].
+# Записываем её одним шагом, а не проигрываем 64 однотипных присваивания.
+st2.update({(r, c, 0, 0): A[r][c] for r in range(8) for c in range(8)})
+
 for k in range(1, 4):
     print(f"уровень k={k}: блоки {1 << k}x{1 << k}")
     size = 9 - (1 << k)
@@ -5715,7 +5788,6 @@ for k in range(1, 4):
     for r in range(size):
         for c in range(size):
             st2[(r, c, k, k)] = min(st2[(r, c, k - 1, k - 1)], st2[(r + half, c, k - 1, k - 1)], st2[(r, c + half, k - 1, k - 1)], st2[(r + half, c + half, k - 1, k - 1)])`,
-    stepCodeLines: [1, 8],
     variables: [
       { name: "r, c", role: "левый верхний угол блока, для которого считаем минимум", range: "0 … 8−2^k" },
       { name: "k", role: "уровень: блоки 2^k × 2^k (шаг демонстрации)", range: "0 … 3" },
@@ -5770,17 +5842,16 @@ export const getPageSync = (chapterId?: string | null, demoId?: string | null): 
 /**
  * Стартовое содержимое редактора для страницы.
  *
- * Формат: короткий комментарий-шапка + МИНИМАЛЬНЫЙ исполняемый скелет,
- * строки которого идут шаг-в-шаг с подсветкой визуализации
- * (i = 0, j = 0…; структуры вида «4 ключа → значение» для 2D).
- * Никаких словесных описаний внутри — только код.
+ * Формат: короткий комментарий-шапка + исполняемый референсный код.
+ * Визуализация читает из его трассы знакомые имена (i, j, k, P, st…),
+ * но точно так же примет пользовательский код с теми же именами.
  */
 export function buildSyncTemplate(chapterId: string, chapterTitle: string, demoId?: string | null): string {
   const sync = getPageSync(chapterId, demoId);
 
   const head = sync.vizTitle
-    ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle} · строки ниже = шаги подсветки\n`
-    : `# «${chapterTitle}»\n# демо на странице нет — свободный режим (стрелки ← → листают страницы)\n`;
+    ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle} · связь по именам переменных\n`
+    : `# «${chapterTitle}»\n# демо на странице нет — свободный Python\n`;
 
   if (!sync.code) return head;
   return `${head}\n${sync.code}\n`;
@@ -5789,14 +5860,14 @@ export function buildSyncTemplate(chapterId: string, chapterTitle: string, demoI
 /**
  * Инициализация скелета: только объявление демо-данных, без тела алгоритма
  * (без for/while/def/if/print). Именно это показывается в редакторе по
- * умолчанию — дальше пользователь пишет свой вариант, а полный эталон
- * подсматривает через кнопку-«глаз».
+ * умолчанию — дальше пользователь пишет свой вариант, а кнопка-«глаз»
+ * заменяет редактор полным референсным кодом.
  */
 function extractInit(code: string): string {
   const keep: string[] = [];
   for (const line of code.split("\n")) {
     const t = line.trim();
-    if (/^(for|while|def|class|if\s|elif\s|else|try|except|print\()/.test(t)) break;
+    if (t === "# --- тело алгоритма ---" || /^(for|while|def|class|if\s|elif\s|else|try|except|print\()/.test(t)) break;
     keep.push(line);
   }
   // убрать пустые строки с конца
@@ -5812,8 +5883,8 @@ export function buildInitTemplate(chapterId: string, chapterTitle: string, demoI
   const sync = getPageSync(chapterId, demoId);
 
   const head = sync.vizTitle
-    ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle}\n# ниже — инициализация данных демо; допишите свой вариант, или подсмотрите эталон кнопкой-«глазом»\n`
-    : `# «${chapterTitle}»\n# демо на странице нет — свободный режим (стрелки ← → листают страницы)\n`;
+    ? `# «${chapterTitle}»\n# демо: ${sync.vizTitle}\n# ниже — инициализация; допишите свой код или вставьте референс кнопкой-глазом\n`
+    : `# «${chapterTitle}»\n# демо на странице нет — свободный Python\n`;
 
   if (!sync.code) return head;
   const init = extractInit(sync.code);
@@ -7128,11 +7199,11 @@ void dfs(int v, int p = -1) {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 30/87: src/components/ArticulationPointsViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 373 | РАЗМЕР: 12.2 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 377 | РАЗМЕР: 12.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizNumber } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, Info } from "lucide-react";
 
 interface Node {
@@ -7190,7 +7261,11 @@ interface StepInfo {
 export const ArticulationPointsViz: React.FC = () => {
   const [steps, setSteps] = useState<StepInfo[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1, (vars) => {
+    const v = vizNumber(vars.v);
+    if (v === null) return null;
+    return steps.map((step, index) => ({ step, index })).filter(({ step }) => step.currentNode === v).at(-1)?.index ?? null;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -7507,11 +7582,11 @@ export const ArticulationPointsViz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 31/87: src/components/BellmanFordViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 309 | РАЗМЕР: 16.7 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 325 | РАЗМЕР: 17.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizNumber, vizRecord, vizString } from '../data/vizStepBus';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -7529,7 +7604,7 @@ export default function BellmanFordViz() {
   const [hasCycle, setHasCycle] = useState(false);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodes: Node[] = [
@@ -7670,8 +7745,24 @@ export default function BellmanFordViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  if (!currentStep) return <div>Загрузка...</div>;
+  const baseStep = steps[currentStepIndex] || null;
+  if (!baseStep) return <div>Загрузка...</div>;
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveU = vizString(vars?.u);
+  const liveV = vizString(vars?.v);
+  const liveW = vizNumber(vars?.w);
+  const liveDist = vizRecord(vars?.dist);
+  const compilerLinked = liveI !== null || liveU !== null || liveV !== null || !!liveDist;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        iteration: liveI ?? 0,
+        checkingEdge: liveU && liveV ? { u: liveU, v: liveV, w: liveW ?? 0 } : null,
+        distances: Object.fromEntries(nodes.map((node) => [node.id, vizNumber(liveDist?.[node.id]) ?? 999])),
+        log: `Компилятор: i=${liveI ?? "—"}, ребро ${liveU ?? "—"} → ${liveV ?? "—"}; dist взят из Python.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -7822,11 +7913,10 @@ export default function BellmanFordViz() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 32/87: src/components/BfsViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 308 | РАЗМЕР: 11.5 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 306 | РАЗМЕР: 11.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useCallback } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, StepForward } from 'lucide-react';
 
 const NODES = [
@@ -7950,7 +8040,6 @@ const STEPS = generateBfsSteps();
 export default function BfsViz() {
   const [stepIdx, setStepIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  useVizStepSync(stepIdx, setStepIdx, STEPS.length - 1);
 
   const step = STEPS[stepIdx];
 
@@ -8432,10 +8521,10 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 {onOpenCompiler && (
                   <button
                     onClick={onOpenCompiler}
-                    title="Открыть Python-компилятор: он синхронизирован с этой демонстрацией — покажет её переменные (i, j, k, n, m…) в комментарии"
+                    title="Открыть Python: код выполняется автоматически, а значения i, j, k, v, P, st… сразу подсвечивают объекты демонстрации"
                     className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 hover:text-white hover:border-emerald-500 transition-colors"
                   >
-                    <Terminal className="w-3.5 h-3.5" /> Переменные в компиляторе
+                    <Terminal className="w-3.5 h-3.5" /> Код ↔ визуализация
                   </button>
                 )}
               </div>
@@ -8467,11 +8556,11 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 36/87: src/components/DfsBridgesSimulator.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 346 | РАЗМЕР: 15.6 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 361 | РАЗМЕР: 16.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useRef } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizNumber, vizString } from '../data/vizStepBus';
 import { Undo, Play, Pause, SkipForward, RefreshCw } from "lucide-react";
 
 interface CodeLine {
@@ -8652,7 +8741,22 @@ const DFS_STEPS: DfsStep[] = [
 
 export function DfsBridgesSimulator() {
   const [dfsIdx, setDfsIdx] = useState(0);
-  useVizStepSync(dfsIdx, setDfsIdx, DFS_STEPS.length - 1);
+  useVizStepSync(dfsIdx, setDfsIdx, DFS_STEPS.length - 1, (vars) => {
+    const rawV = vizString(vars.v) ?? (vizNumber(vars.v)?.toString() ?? null);
+    const rawTo = vizString(vars.to) ?? (vizNumber(vars.to)?.toString() ?? null);
+    const toId = (value: string | null) => {
+      if (value === null) return null;
+      const byLabel = GRAPH_NODES.find((node) => node.label === value)?.id;
+      return byLabel ?? (Number.isFinite(Number(value)) ? Number(value) : null);
+    };
+    const v = toId(rawV);
+    const to = toId(rawTo);
+    if (v === null) return null;
+    const candidates = DFS_STEPS
+      .map((step, index) => ({ step, index }))
+      .filter(({ step }) => step.currentNode === v && (to === null || step.activeEdge?.includes(to)));
+    return candidates.at(-1)?.index ?? null;
+  });
   const [dfsAuto, setDfsAuto] = useState(false);
   const dfsTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -8819,11 +8923,11 @@ export function DfsBridgesSimulator() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 37/87: src/components/DijkstraViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 388 | РАЗМЕР: 18.2 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 406 | РАЗМЕР: 19.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizArray, vizNumber, vizRecord, vizString } from '../data/vizStepBus';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -8884,7 +8988,7 @@ export default function DijkstraViz() {
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -8967,9 +9071,27 @@ export default function DijkstraViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
+  const baseStep = steps[currentStepIndex] || null;
 
-  if (!currentStep) return <div className="text-white">Загрузка симулятора...</div>;
+  if (!baseStep) return <div className="text-white">Загрузка симулятора...</div>;
+  const vars = runtime?.variables;
+  const liveU = vizString(vars?.u);
+  const liveV = vizString(vars?.v);
+  const liveDist = vizRecord(vars?.dist);
+  const livePrev = vizRecord(vars?.prev);
+  const liveDone = vizArray(vars?.done) ?? vizArray(vars?.visited);
+  const compilerLinked = liveU !== null || liveV !== null || !!liveDist;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        currentNode: liveU,
+        checkingEdge: liveU && liveV ? { u: liveU, v: liveV } : null,
+        distances: Object.fromEntries(nodes.map((node) => [node.id, vizNumber(liveDist?.[node.id]) ?? 999])),
+        previous: Object.fromEntries(nodes.map((node) => [node.id, vizString(livePrev?.[node.id])])),
+        visited: Object.fromEntries(nodes.map((node) => [node.id, !!liveDone?.includes(node.id)])),
+        log: `Компилятор: u=${liveU ?? "—"}, v=${liveV ?? "—"}; граф читает dist/done/prev напрямую.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -9213,11 +9335,11 @@ export default function DijkstraViz() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 38/87: src/components/DPVisualizer.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 333 | РАЗМЕР: 14.2 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 350 | РАЗМЕР: 14.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizNumber, vizRecord } from '../data/vizStepBus';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Code, Eye, RefreshCw } from 'lucide-react';
 
 interface DPStep {
@@ -9242,7 +9364,7 @@ export function DPVisualizer() {
   const [targetN, setTargetN] = useState<number>(5);
   const [steps, setSteps] = useState<DPStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [speed] = useState<number>(800);
   const [activeTab, setActiveTab] = useState<'table' | 'code'>('table');
@@ -9339,8 +9461,25 @@ export function DPVisualizer() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps, speed]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  const memoState = currentStep?.memoState || {};
+  const baseStep = steps[currentStepIndex] || null;
+  const vars = runtime?.variables;
+  const liveK = vizNumber(vars?.k) ?? vizNumber(vars?.n);
+  const liveMemo = vizRecord(vars?.memo);
+  const compilerLinked = liveK !== null || !!liveMemo;
+  const memoState = liveMemo
+    ? Object.fromEntries(Object.entries(liveMemo).flatMap(([key, value]) => {
+        const number = vizNumber(value);
+        return number === null ? [] : [[Number(key), number]];
+      }))
+    : baseStep?.memoState || {};
+  const currentStep: DPStep | null = baseStep && compilerLinked
+    ? {
+        ...baseStep,
+        n: liveK ?? baseStep.n,
+        memoState,
+        desc: `Компилятор: k=${liveK ?? "—"}; таблица memo взята из реального Python-кода.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4 md:p-8 my-12 shadow-2xl overflow-hidden">
@@ -9917,22 +10056,23 @@ export const ExpressQuiz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 41/87: src/components/FloydViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 278 | РАЗМЕР: 15.4 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 303 | РАЗМЕР: 16.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizArray, vizNumber } from '../data/vizStepBus';
 
 interface Step {
   k: number; i: number; j: number;
-  matrix: number[][]; updated: boolean;
+  matrix: (number | null)[][]; updated: boolean;
   log: string; activeCodeLine: number;
 }
 
 export default function FloydViz() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  useVizStepSync(currentStepIndex, setCurrentStepIndex, steps.length - 1);
+  const runtime = useVizRuntime();
+  // k/i/j/d приходят напрямую; номер строки произвольной программы не используется.
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodeNames = ['А 0', 'Б 1', 'В 2', 'Г 3', 'Д 4', 'Е 5', 'Ж 6'];
@@ -10034,8 +10174,32 @@ export default function FloydViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  if (!currentStep) return <div>Загрузка...</div>;
+  const baseStep = steps[currentStepIndex] || null;
+  if (!baseStep) return <div>Загрузка...</div>;
+
+  const vars = runtime?.variables;
+  const liveK = vizNumber(vars?.k);
+  const liveI = vizNumber(vars?.i);
+  const liveJ = vizNumber(vars?.j);
+  const rawMatrix = vizArray(vars?.d) ?? vizArray(vars?.dist);
+  const liveMatrix = rawMatrix
+    ? baseStep.matrix.map((row, i) => {
+        const values = vizArray(rawMatrix[i]);
+        return row.map((_, j) => vizNumber(values?.[j]));
+      })
+    : undefined;
+  const compilerLinked = liveK !== null || liveI !== null || liveJ !== null || !!rawMatrix;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        k: liveK ?? -1,
+        i: liveI ?? -1,
+        j: liveJ ?? -1,
+        matrix: liveMatrix ?? baseStep.matrix,
+        updated: !!runtime?.changed?.some((name) => name === "d" || name === "dist"),
+        log: `Компилятор: k=${liveK ?? "—"}, i=${liveI ?? "—"}, j=${liveJ ?? "—"}. Подсветка взята из реальных переменных.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -10170,7 +10334,7 @@ export default function FloydViz() {
                       else if (currentStep.i === -1 && currentStep.k >= 0 && (i === currentStep.k || j === currentStep.k))
                         bg = 'bg-indigo-950/60 text-indigo-200 border border-indigo-800/60'; // вся строка/столбец текущего посредника k
                       else if (i === j) bg = 'bg-slate-950/60 text-slate-500';
-                      return (<td key={j} className={`p-2 border-r border-rose-900/50 transition-colors ${bg}`}>{val === 999 ? '∞' : val}</td>);
+                      return (<td key={j} className={`p-2 border-r border-rose-900/50 transition-colors ${bg}`}>{val === null ? '·' : val === 999 ? '∞' : val}</td>);
                     })}
                   </tr>
                 ))}
@@ -10201,11 +10365,11 @@ export default function FloydViz() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 42/87: src/components/GraphTraversalViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 255 | РАЗМЕР: 12.8 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 268 | РАЗМЕР: 13.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useMemo } from 'react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizArray, vizString } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from 'lucide-react';
 
 type Node = { id: string; label: string; x: number; y: number };
@@ -10305,7 +10469,20 @@ export function GraphTraversalViz() {
     const [stepIdx, setStepIdx] = useState(0);
 
     const steps = useMemo(() => mode === 'dfs' ? generateDFSSteps('A') : generateBFSSteps('A'), [mode]);
-    useVizStepSync(stepIdx, setStepIdx, steps.length - 1);
+    useVizStepSync(stepIdx, setStepIdx, steps.length - 1, (vars) => {
+      const v = vizString(vars.v);
+      const structure = vizArray(vars.stack) ?? vizArray(vars.q);
+      const visited = vizArray(vars.visited);
+      if (v === null && !structure && !visited) return null;
+      const candidates = steps
+        .map((step, index) => ({ step, index }))
+        .filter(({ step }) =>
+          (v === null || step.node === v) &&
+          (!structure || step.queueOrStack?.length === structure.length) &&
+          (!visited || step.visitedNodes?.length === visited.length)
+        );
+      return candidates.at(-1)?.index ?? null;
+    });
 
     useEffect(() => {
         setStepIdx(0);
@@ -10462,11 +10639,12 @@ export function GraphTraversalViz() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 43/87: src/components/HeapViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 416 | РАЗМЕР: 18.2 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 436 | РАЗМЕР: 19.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useCallback } from 'react';
 import { Heart } from 'lucide-react';
+import { useVizRuntime, vizArray, vizNumber } from '../data/vizStepBus';
 
 interface Patient {
   id: string;
@@ -10553,6 +10731,23 @@ let uid = 300;
 
 export const HeapViz: React.FC = () => {
   const [heap, setHeap]                 = useState<Patient[]>(INITIAL_PATIENTS);
+  const runtime = useVizRuntime();
+  const liveHeap = vizArray(runtime?.variables?.h) ?? vizArray(runtime?.variables?.a);
+  const liveI = vizNumber(runtime?.variables?.i);
+  const visualHeap: Patient[] = liveHeap
+    ? liveHeap.map((value, index) => {
+        const tuple = vizArray(value);
+        const priority = vizNumber(tuple?.[0]) ?? vizNumber(value) ?? 0;
+        return {
+          id: `python-${index}`,
+          name: tuple ? String(tuple[1] ?? value) : String(value),
+          emoji: "🔢",
+          symptom: `индекс ${index}`,
+          priority,
+          animState: "idle",
+        };
+      })
+    : heap;
   const [customName, setCustomName]     = useState('');
   const [customPriority, setCustomPriority] = useState(50);
   const [log, setLog]                   = useState<string[]>(['🚑 Скорая помощь везёт пациентов! Нажми INSERT или EXTRACT.']);
@@ -10667,12 +10862,12 @@ export const HeapViz: React.FC = () => {
   };
 
   // --- Render binary tree lines ---
-  const edges = heap.flatMap((_, idx) => {
+  const edges = visualHeap.flatMap((_, idx) => {
     const res: React.ReactElement[] = [];
     const p = nodePos(idx);
     const l = 2 * idx + 1;
     const r = 2 * idx + 2;
-    if (l < heap.length) {
+    if (l < visualHeap.length) {
       const lp = nodePos(l);
       res.push(
         <line key={`el${idx}`}
@@ -10682,7 +10877,7 @@ export const HeapViz: React.FC = () => {
         />
       );
     }
-    if (r < heap.length) {
+    if (r < visualHeap.length) {
       const rp = nodePos(r);
       res.push(
         <line key={`er${idx}`}
@@ -10782,9 +10977,10 @@ export const HeapViz: React.FC = () => {
               {edges}
             </svg>
 
-            {heap.map((patient, idx) => {
+            {visualHeap.map((patient, idx) => {
               const pos = nodePos(idx);
               const isRoot = idx === 0;
+              const isCompilerNode = liveI === idx;
               return (
                 <div
                   key={patient.id}
@@ -10794,6 +10990,7 @@ export const HeapViz: React.FC = () => {
                     ${patient.animState === 'in' ? 'anim-patient-in' : ''}
                     ${patient.animState === 'winner' ? 'anim-winner-glow ring-4 ring-emerald-400' : ''}
                     ${patient.animState === 'out' ? 'anim-heal-exit' : ''}
+                    ${isCompilerNode ? 'ring-4 ring-amber-400 border-amber-300 scale-110 z-30' : ''}
                     ${isRoot ? 'bg-rose-950/80 border-rose-500/80 scale-110 z-20' : 'bg-slate-950/90 border-slate-800'}
                   `}
                   style={{
@@ -12016,17 +12213,20 @@ export const TermPopover: React.FC<Props> = ({ anchor, onClose, onOpenSimulator,
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 51/87: src/components/JohnsonViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 317 | РАЗМЕР: 17.0 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 320 | РАЗМЕР: 17.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState } from 'react';
 import { RotateCcw, SkipForward, Undo } from 'lucide-react';
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizString } from '../data/vizStepBus';
 
 export function JohnsonViz() {
     const [step, setStep] = useState(0);
     const MAX_STEP = 7;
-    useVizStepSync(step, setStep, MAX_STEP);
+    useVizStepSync(step, setStep, MAX_STEP, (vars) => {
+        const edge = `${vizString(vars.u) ?? ""}${vizString(vars.v) ?? ""}`;
+        return edge === "AB" ? 4 : edge === "BC" ? 5 : edge === "CA" ? 6 : null;
+    });
 
     const nodes = [
         { id: 'S', x: 200, y: 150, label: 'S' },
@@ -12339,11 +12539,11 @@ export function JohnsonViz() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 52/87: src/components/KosarajuViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 507 | РАЗМЕР: 16.1 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 515 | РАЗМЕР: 16.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizArray, vizNumber } from '../data/vizStepBus';
 import {
   Play,
   Pause,
@@ -12395,7 +12595,15 @@ interface AlgoStep {
 export const KosarajuViz: React.FC = () => {
   const [steps, setSteps] = useState<AlgoStep[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
-  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1);
+  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1, (vars) => {
+    const v = vizNumber(vars.v);
+    const orderLength = vizArray(vars.order)?.length;
+    if (v === null && orderLength === undefined) return null;
+    const candidates = steps
+      .map((step, index) => ({ step, index }))
+      .filter(({ step }) => (v === null || step.currentNode === v) && (orderLength === undefined || step.order.length === orderLength));
+    return candidates.at(-1)?.index ?? null;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -14392,7 +14600,7 @@ export function PlanarityDemo() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 58/87: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 978 | РАЗМЕР: 50.7 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1019 | РАЗМЕР: 50.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -14404,7 +14612,6 @@ import {
   ChevronRight,
   Copy,
   Eye,
-  EyeOff,
   HelpCircle,
   Link2,
   Loader2,
@@ -14421,7 +14628,7 @@ import {
   X,
 } from "lucide-react";
 import { buildInitTemplate, buildSyncTemplate, getPageSync } from "../data/vizSync";
-import { emitVizStep, onVizDemo, vizHitsAtTrace, vizStepForTrace } from "../data/vizStepBus";
+import { clearVizState, emitVizState, onVizDemo } from "../data/vizStepBus";
 import {
   baseVarName,
   buildDebugRunner,
@@ -14435,14 +14642,18 @@ import { Tooltip } from "./Tooltip";
 const PYODIDE_VERSION = "0.27.7";
 const PYODIDE_MODULE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`;
 const PYODIDE_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+const PLAYBACK_SPEED_KEY = "pythonCompilerPlaybackSpeed";
+const PLAYBACK_SPEEDS = [0.25, 0.5, 1, 1.5, 2, 4] as const;
 
 interface PythonCompilerProps {
   /** Страница, с которой синхронизируется редактор. */
   chapterId: string;
   chapterTitle: string;
-  /** Ширина панели на десктопе (px) — управляется родителем, растягивается ручкой слева. */
+  /** Размер панели (px) управляется родителем и сохраняется между открытиями. */
   width?: number;
+  height?: number | null;
   onWidthChange?: (w: number) => void;
+  onHeightChange?: (h: number) => void;
   /** Перейти к странице пособия (посмотреть визуализацию). */
   onOpenGuide: () => void;
   /** Скрыть панель. */
@@ -14573,25 +14784,27 @@ const SNIPPETS: { group: string; items: Snippet[] }[] = [
 /** Переживает скрытие панели: код пользователя не теряется. */
 let savedEditor: { code: string; template: string; chapterId: string } | null = null;
 
-export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, onOpenGuide, onClose }: PythonCompilerProps) {
+export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidthChange, onHeightChange, onOpenGuide, onClose }: PythonCompilerProps) {
   /** Активная вкладка демонстрации страницы (у sparse-table: 1d / 2d-build / 2d-query). */
   const [demoId, setDemoId] = useState<string | null>(null);
   const sync = useMemo(() => getPageSync(chapterId, demoId), [chapterId, demoId]);
-  const syncVarBases = useMemo(() => sync.variables.map((v) => baseVarName(v.name)), [sync]);
+  const syncVarBases = useMemo(
+    () =>
+      [...new Set(
+        sync.variables.flatMap((v) =>
+          v.name
+            .split(/\s*(?:,|\/)\s*/)
+            .map(baseVarName)
+            .filter((name) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name))
+        )
+      )],
+    [sync]
+  );
   const syncVarSet = useMemo(() => new Set(syncVarBases), [syncVarBases]);
-  /** Полный эталонный код — подсматривается «глазом», вставляется кнопкой, сам по себе в редактор не лезет. */
+  /** Полный эталон: глаз сразу вставляет его в обычный редактор. */
   const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle, demoId), [chapterId, chapterTitle, demoId]);
-  /** Дефолт редактора: шапка + только инициализированные переменные демо, без тела алгоритма. */
+  /** Дефолт редактора: только инициализация демо; она тоже выполняется автоматически. */
   const initTemplate = useMemo(() => buildInitTemplate(chapterId, chapterTitle, demoId), [chapterId, chapterTitle, demoId]);
-  /** Помеченные строки эталона по содержимому: каждое их выполнение = шаг демо на визуализации. */
-  const markedContents = useMemo(() => {
-    const marks = sync.stepCodeLines;
-    if (!marks || marks.length === 0) return undefined;
-    const lines = template.split("\n");
-    return new Set(marks.map((l) => (lines[l + 2] ?? "").trim()).filter((t) => t.length > 0));
-  }, [sync, template]);
-  /** Режим «подсмотреть эталон»: показывает полный код только для чтения, код пользователя не затирает. */
-  const [showRef, setShowRef] = useState(false);
 
   const [code, setCode] = useState(() => {
     if (!savedEditor) return initTemplate;
@@ -14599,10 +14812,12 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
     return savedEditor.code;
   });
   const [stdin, setStdin] = useState("");
-  const [output, setOutput] = useState("Нажмите «Запустить» (Ctrl/Cmd + Enter).");
+  const [output, setOutput] = useState("Код выполнится автоматически после короткой паузы.");
   const [running, setRunning] = useState(false);
   const [runtimeReady, setRuntimeReady] = useState(false);
-  const [runtimeMessage, setRuntimeMessage] = useState("Python загрузится при первом запуске");
+  const [runtimeMessage, setRuntimeMessage] = useState("Python загружается автоматически…");
+  /** Принудительный повтор (глаз / Ctrl+Enter), даже если текст не изменился. */
+  const [traceRequest, setTraceRequest] = useState(0);
   const [copied, setCopied] = useState(false);
   const [stripTab, setStripTab] = useState<"vars" | "hints">("vars");
   const [outputOpen, setOutputOpen] = useState(true);
@@ -14620,11 +14835,22 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
   );
   const prevTplRef = useRef({ base: initTemplate, full: template });
 
-  /** Активная отладочная сессия: трасса по шагам + текущий индекс шага. */
-  const [debug, setDebug] = useState<{ result: DebugResult; idx: number; src: string } | null>(null);
-  /** Автопроход: «Запустить» сам прокручивает шаги трассы до конца. */
+  /** Активная трасса. input нужен, чтобы изменение stdin тоже запускало её заново. */
+  const [debug, setDebug] = useState<{ result: DebugResult; idx: number; src: string; input: string; request: number } | null>(null);
+  /** Esc оставляет неизменённый текст в редакторе, пока пользователь не начнёт печатать. */
+  const [editHold, setEditHold] = useState<string | null>(null);
+  /** Автопроход включается пользователем; первый шаг показывается сразу после автозапуска. */
   const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const saved = Number(window.localStorage.getItem(PLAYBACK_SPEED_KEY));
+    return PLAYBACK_SPEEDS.includes(saved as (typeof PLAYBACK_SPEEDS)[number]) ? saved : 1;
+  });
   const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.localStorage.setItem(PLAYBACK_SPEED_KEY, String(playbackSpeed));
+  }, [playbackSpeed]);
 
   useEffect(() => {
     savedEditor = { code, template: initTemplate, chapterId };
@@ -14633,6 +14859,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
   // демонстрация сообщает, какая вкладка открыта — код панели следует за ней
   useEffect(() => setDemoId(null), [chapterId]);
   useEffect(() => onVizDemo(chapterId, (d) => setDemoId(d || null)), [chapterId]);
+  useEffect(() => () => clearVizState(chapterId), [chapterId]);
 
   // Смена страницы (или вкладки демо): нетронутый редактор получает свежую
   // инициализацию; свой код не затираем — предлагаем синхронизироваться кнопкой.
@@ -14641,8 +14868,8 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
     if (initTemplate === prev.base && template === prev.full) return;
     prevTplRef.current = { base: initTemplate, full: template };
     setPlaying(false);
+    setEditHold(null);
     setDebug(null); // трасса ссылается на строки старого источника — сбрасываем
-    setShowRef(false);
     if (code === prev.base || code === prev.full || code.trim() === "") {
       setCode(initTemplate);
       setDesyncedFrom(null);
@@ -14658,109 +14885,144 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
     setDesyncedFrom(null);
     setStripTab("vars");
     setPlaying(false);
+    setEditHold(null);
     setDebug(null);
-    setShowRef(false);
+    setTraceRequest((n) => n + 1);
   }, [initTemplate, template]);
 
   const copyCode = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(showRef ? template : code);
+      await navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
       setRuntimeMessage("Не получилось скопировать — буфер обмена недоступен");
     }
-  }, [code, showRef, template]);
+  }, [code]);
 
   /* ── Пошаговый отладчик ────────────────────────────────────────────── */
 
-  /** Редактор — в точности эталон (для подписи chip). */
-  const lockedToViz = code === template;
-  /** Пользователь дописал тело сам, перепечатав помощеченные строки дословно: связь по содержимому тоже ходит. */
-  const contentMatched = useMemo(() => {
-    if (!markedContents || markedContents.size === 0) return false;
-    const written = new Set(code.split("\n").map((l) => l.trim()).filter(Boolean));
-    return [...markedContents].every((m) => written.has(m));
-  }, [code, markedContents]);
-  /** Демонстрация реально умеет ходить по шагам за отладчиком (подписана на шину). */
-  const stepCapable = !!sync.code && sync.stepDriven === true && !!markedContents && markedContents.size > 0;
-  /** Хотя бы одна помеченная строка эталона присутствует в коде — такие строки двигают демо (init-шаблон → шаг 0). */
-  const hasAnyMarked = useMemo(() => {
-    if (!markedContents || markedContents.size === 0) return false;
-    const written = new Set(code.split("\n").map((l) => l.trim()).filter(Boolean));
-    return [...markedContents].some((m) => written.has(m));
-  }, [code, markedContents]);
-  /** Связь кода с демонстрацией: эталон / ваши строки (все пометки) / частично (инициализация) / нет. */
-  type VizLink = "exact" | "content" | "partial" | "none";
-  const vizLink: VizLink = stepCapable ? (lockedToViz ? "exact" : contentMatched ? "content" : hasAnyMarked ? "partial" : "none") : "exact";
+  /** Связь больше не зависит от эталонных строк: совпадают только имена переменных. */
+  const hasViz = sync.variables.length > 0;
 
-  /** Демо двигаем только если в ПРОТРАССИРОВАННОМ коде есть помеченные строки (трасса могла быть от старого текста). */
-  const vizActiveNow = useCallback(
-    (src: string) => {
-      if (!stepCapable || !markedContents || markedContents.size === 0) return false;
-      const written = new Set(src.split("\n").map((l) => l.trim()).filter(Boolean));
-      return [...markedContents].some((m) => written.has(m));
+  /**
+   * Снимок ПОСЛЕ выделенной строки. Контейнеры берём из следующего trace-event
+   * (там уже виден append/st[i][j]=…), но индексы цикла сохраняем с текущего
+   * события: после st[i][j]= Python уже мог увеличить i для новой итерации.
+   */
+  const snapshotAt = useCallback((result: DebugResult, idx: number, source = "") => {
+    const step = result.steps[idx];
+    const next = result.steps[idx + 1];
+    const afterLocals = next?.locals ?? result.finalLocals ?? step?.locals ?? {};
+    const afterValues = next?.values ?? result.finalValues ?? step?.values ?? {};
+    const beforeValues = step?.values ?? {};
+    const line = step?.line ? source.split("\n")[step.line - 1] ?? "" : "";
+    // Нас интересуют только простые скалярные цели (`i =`, `i, j =`,
+    // `i +=`). Контейнеры и так всегда берутся из afterValues. Так знак `=`
+    // внутри print(f"i={i}") не будет ошибочно принят за присваивание.
+    const assignment = line.match(
+      /^\s*([A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)\s*(?:\+=|-=|\*=|\/=|\/\/=|%=|=(?!=))/
+    );
+    const assigned = new Set(assignment?.[1].split(",").map((name) => name.trim()) ?? []);
+
+    const variables = { ...afterValues };
+    const locals = { ...afterLocals };
+    for (const [name, value] of Object.entries(beforeValues)) {
+      const scalar = value === null || typeof value !== "object";
+      if (scalar && !assigned.has(name) && name in afterValues) {
+        variables[name] = value;
+        if (step?.locals[name] !== undefined) locals[name] = step.locals[name];
+      }
+    }
+    const changed = changedVars(step?.locals, locals);
+    return {
+      line: step?.line,
+      func: step?.func,
+      locals,
+      variables,
+      changed: Object.keys(changed).filter((name) => changed[name]),
+    };
+  }, []);
+
+  const publishDebug = useCallback(
+    (result: DebugResult, idx: number, source: string) => {
+      if (!hasViz || result.steps.length === 0) return;
+      const snapshot = snapshotAt(result, idx, source);
+      emitVizState(chapterId, {
+        line: snapshot.line,
+        func: snapshot.func,
+        variables: snapshot.variables,
+        changed: snapshot.changed,
+      });
     },
-    [stepCapable, markedContents]
+    [chapterId, hasViz, snapshotAt]
   );
+
+  // Единственная точка публикации: любое перемещение трассы сразу отдаёт
+  // визуализации согласованный снимок, без side-effect внутри setState.
+  useEffect(() => {
+    if (debug) publishDebug(debug.result, debug.idx, debug.src);
+  }, [debug, publishDebug]);
 
   const goDebug = useCallback(
     (nextIdx: number) => {
       setDebug((d) => {
-        if (!d) return d;
+        if (!d || d.result.steps.length === 0) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
-        if (vizActiveNow(d.src)) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents)); // визуализация следует за шагом
         return { ...d, idx };
       });
     },
-    [chapterId, markedContents, stepCapable, vizActiveNow]
+    []
   );
 
   const stepBy = useCallback(
     (delta: number) => {
       setDebug((d) => {
-        if (!d) return d;
+        if (!d || d.result.steps.length === 0) return d;
         const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
-        if (vizActiveNow(d.src)) emitVizStep(chapterId, vizStepForTrace(d.result.steps, idx, d.src.split("\n"), markedContents));
         return { ...d, idx };
       });
     },
-    [chapterId, markedContents, stepCapable, vizActiveNow]
+    []
   );
 
   const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
 
   const stopDebug = useCallback(() => {
     setPlaying(false);
+    setEditHold(code);
     setDebug(null);
-  }, []);
+    clearVizState(chapterId);
+  }, [chapterId, code]);
 
-  /** Интервал автопрохода шагов (мс). */
-  const AUTOPLAY_MS = 650;
-
-  // Автопроход: пока включен, шагает stepBy каждые AUTOPLAY_MS; в конце трассы стоп.
+  // Базовый интервал 650 мс; множитель скорости хранится в localStorage.
   useEffect(() => {
     if (!playing || !debug) return;
     if (debug.idx >= debug.result.steps.length - 1) {
       setPlaying(false);
       return;
     }
-    const t = window.setTimeout(() => stepBy(1), AUTOPLAY_MS);
+    const t = window.setTimeout(() => stepBy(1), 650 / playbackSpeed);
     return () => window.clearTimeout(t);
-  }, [playing, debug, stepBy]);
+  }, [playing, debug, stepBy, playbackSpeed]);
 
   const debugRun = useCallback(async () => {
     if (running) return;
 
+    const source = code;
+    const input = stdin;
+    const request = traceRequest;
     setRunning(true);
     setPlaying(false);
+    setEditHold(null);
     setDebug(null);
+    clearVizState(chapterId);
     setOutputOpen(false);
-    setRuntimeMessage(runtimeReady ? "Трассирую код…" : "Загружаю Python в браузер…");
+    setRuntimeMessage(runtimeReady ? "Обновляю трассу…" : "Загружаю Python в браузер…");
 
     const stdout: string[] = [];
     const stderr: string[] = [];
-    const inputLines = stdin.split(/\r?\n/);
+    const inputLines = input.split(/\r?\n/);
 
     try {
       const runtime = await getPythonRuntime();
@@ -14769,26 +15031,35 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
       runtime.setStderr({ batched: (message) => stderr.push(message) });
       runtime.setStdin({ stdin: () => (inputLines.length > 0 ? inputLines.shift() ?? "" : null) });
 
-      const raw = await runtime.runPythonAsync(buildDebugRunner(code));
+      const raw = await runtime.runPythonAsync(buildDebugRunner(source));
       const result = JSON.parse(String(raw)) as DebugResult;
 
-      setDebug({ result, idx: 0, src: code });
-      setPlaying(true); // «Запустить» — это автопроход: шаги, подсветка присваиваний и демо идут сами
-      if (vizActiveNow(code)) emitVizStep(chapterId, vizStepForTrace(result.steps, 0, code.split("\n"), markedContents)); // старт: демонстрация на первом шаге
+      setDebug({ result, idx: 0, src: source, input, request });
       const printed = [...stdout, ...stderr].join("");
-      setOutput(printed || "Программа ничего не вывела (и это нормально для скелета-шаблона).");
+      setOutput(printed || "Программа ничего не вывела — трасса и переменные всё равно доступны.");
       setRuntimeMessage(
         result.truncated
-          ? "Трасса обрезана лимитом шагов — автопроход идёт, ⏸ — пауза, ← → — ручные шаги"
-          : "Автопроход шагов: подсветка присваиваний и демо синхронно. ⏸ — пауза, ← → — вручную (Esc — выход)"
+          ? `Выполнение остановлено после ${DEBUG_STEP_CAP} шагов (защита от бесконечного цикла).`
+          : "Трасса готова автоматически. ← → — шаги, пробел — воспроизведение, Esc — редактирование."
       );
     } catch (error) {
-      setOutput(`Ошибка:\n${errorText(error)}`);
-      setRuntimeMessage("Не удалось протрассировать — проверьте код и доступ к CDN Pyodide");
+      const message = errorText(error);
+      setDebug({ result: { steps: [], error: message, truncated: false }, idx: 0, src: source, input, request });
+      setOutput(`Ошибка:\n${message}`);
+      setRuntimeMessage("Не удалось выполнить код — проверьте синтаксис и доступ к CDN Pyodide");
     } finally {
       setRunning(false);
     }
-  }, [code, stdin, running, runtimeReady, chapterId, markedContents, stepCapable, vizActiveNow]);
+  }, [chapterId, code, stdin, traceRequest, running, runtimeReady]);
+
+  // Код выполняется сам: debounce даёт спокойно допечатать строку. Если текст
+  // изменился во время загрузки Pyodide, после завершения запустится свежая версия.
+  useEffect(() => {
+    if (running || editHold === code) return;
+    if (debug?.src === code && debug.input === stdin && debug.request === traceRequest) return;
+    const timer = window.setTimeout(() => void debugRun(), runtimeReady ? 450 : 80);
+    return () => window.clearTimeout(timer);
+  }, [code, stdin, traceRequest, running, runtimeReady, debug, debugRun, editHold]);
 
   // Стрелки ← → в режиме отладки листают ШАГИ (а не страницы), Esc — выход из отладчика.
   useEffect(() => {
@@ -14837,17 +15108,10 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
   // трейсером на возврате из фрейма). Значит на строке `i, j = 0, 0` видны именно 0, 0.
   const shownLocals = useMemo(() => {
     if (!debug || !curDebug?.step) return {};
-    const next = debug.result.steps[debug.idx + 1];
-    if (next) return next.locals ?? {};
-    return debug.result.finalLocals ?? curDebug.step.locals ?? {};
-  }, [debug, curDebug]);
+    return snapshotAt(debug.result, debug.idx, debug.src).locals;
+  }, [debug, curDebug, snapshotAt]);
   const debugChanged = curDebug?.step ? changedVars(curDebug.step.locals, shownLocals) : {};
   const debugOrdered = curDebug?.step ? orderVars(shownLocals, syncVarBases) : [];
-  /** Сколько помеченных строк кода уже выполнено к текущему шагу: 0–1 = инициализация, дальше — шаги демо. */
-  const curHits =
-    debug && curDebug?.step && markedContents
-      ? vizHitsAtTrace(debug.result.steps, debug.idx, debug.src.split("\n"), markedContents)
-      : 0;
 
   /** Вставка сниппета из шпаргалки в позицию курсора. */
   const insertSnippet = useCallback((snippet: string) => {
@@ -14866,15 +15130,49 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
     });
   }, []);
 
-  const hasViz = sync.variables.length > 0;
-
   return (
     <aside
       aria-label="Python-компилятор"
-      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-16 lg:bottom-0 lg:h-auto lg:w-[560px] xl:w-[620px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
-      style={width && typeof window !== "undefined" && window.innerWidth >= 1024 ? { width } : undefined}
+      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-auto lg:h-[calc(100dvh-4rem)] lg:w-[560px] xl:w-[620px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
+      style={typeof window !== "undefined" ? {
+        ...(width && window.innerWidth >= 1024 ? { width } : {}),
+        ...(height ? { height: Math.min(height, window.innerHeight - (window.innerWidth >= 1024 ? 64 : 0)) } : {}),
+      } : undefined}
     >
-      {/* Ручка растягивания панели за левый край (только десктоп) */}
+      {/* Верхний край меняет высоту на телефоне и десктопе; панель закреплена снизу. */}
+      {onHeightChange && (
+        <div
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Потяните, чтобы изменить высоту терминала"
+          title="Потяните, чтобы изменить высоту терминала"
+          className="absolute -top-1.5 left-0 right-0 h-3 cursor-row-resize z-[51] group touch-none"
+          onPointerDown={(event) => {
+            const el = event.currentTarget;
+            el.setPointerCapture(event.pointerId);
+            const startY = event.clientY;
+            const startH = el.parentElement?.getBoundingClientRect().height ?? window.innerHeight * 0.58;
+            const onMove = (moveEvent: PointerEvent) => {
+              const maxHeight = window.innerHeight - (window.innerWidth >= 1024 ? 64 : 0);
+              const minHeight = Math.min(260, maxHeight);
+              const next = Math.round(startH + startY - moveEvent.clientY);
+              onHeightChange(Math.max(minHeight, Math.min(next, maxHeight)));
+            };
+            const onUp = () => {
+              el.removeEventListener("pointermove", onMove as EventListener);
+              el.removeEventListener("pointerup", onUp as EventListener);
+              el.removeEventListener("pointercancel", onUp as EventListener);
+            };
+            el.addEventListener("pointermove", onMove as EventListener);
+            el.addEventListener("pointerup", onUp as EventListener);
+            el.addEventListener("pointercancel", onUp as EventListener);
+          }}
+        >
+          <div className="absolute left-1/2 top-1/2 h-1 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-600 group-hover:bg-indigo-400 transition-colors" />
+        </div>
+      )}
+
+      {/* Левый край меняет ширину на десктопе. */}
       {onWidthChange && (
         <div
           role="separator"
@@ -14942,35 +15240,41 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
           </Tooltip>
           <Tooltip
             side="bottom"
-            content={
-              showRef
-                ? "Скрыть эталонный код и вернуться к своему редактору."
-                : "Подсмотреть эталонный код целиком (только чтение). Ваш код при этом не затирается."
-            }
+            content="Вставить полный эталонный код этого демо в редактор. Он выполнится автоматически; текущий код будет заменён."
           >
             <button
               type="button"
-              onClick={() => setShowRef((v) => !v)}
-              className={`p-1.5 rounded-lg transition-colors ${showRef ? "text-indigo-300 bg-indigo-500/20" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
-              aria-label={showRef ? "Скрыть эталонный код" : "Подсмотреть эталонный код"}
+              onClick={() => {
+                setCode(template);
+                setDesyncedFrom(null);
+                setPlaying(false);
+                setEditHold(null);
+                setDebug(null);
+                setTraceRequest((n) => n + 1);
+              }}
+              className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-500/20 transition-colors"
+              aria-label="Вставить эталонный код"
             >
-              {showRef ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <Eye className="w-4 h-4" />
             </button>
           </Tooltip>
-          <Tooltip
-            side="bottom"
-            content="Запуск = пошаговый отладчик: код выполняется построчно, переменные видны на каждом шаге (как Variables в IDE), демонстрация слева следует за шагами. Листайте ← → (Ctrl/Cmd + Enter — запуск из редактора)."
+          <label
+            className="ml-1 inline-flex items-center gap-1 rounded-lg bg-slate-800 pl-2 pr-1 py-1 text-[10px] font-bold text-slate-400 border border-slate-700 hover:border-emerald-500/60"
+            title="Скорость автоматического проигрывания шагов — сохраняется между открытиями"
           >
-            <button
-              type="button"
-              onClick={() => void debugRun()}
-              disabled={running}
-              className="ml-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white text-xs font-bold transition-colors"
+            {running ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" /> : <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+            <span>{running ? "авто…" : "авто"}</span>
+            <select
+              aria-label="Скорость автопрохода"
+              value={playbackSpeed}
+              onChange={(event) => setPlaybackSpeed(Number(event.target.value))}
+              className="cursor-pointer rounded bg-slate-950 px-1 py-0.5 text-[10px] font-bold text-emerald-300 outline-none"
             >
-              {running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-              {running ? "Запуск…" : "Запустить"}
-            </button>
-          </Tooltip>
+              {PLAYBACK_SPEEDS.map((speed) => (
+                <option key={speed} value={speed}>{speed}×</option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -15000,7 +15304,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
               side="bottom"
               content={
                 hasViz
-                  ? "Редактор и визуализация смотрят на одну страницу: переменные ниже — те, что подсвечиваются по шагам."
+                  ? "Связь идёт по именам ниже: реальные значения из любого Python-кода сразу управляют ячейками и вершинами. Текст эталона не сравнивается."
                   : "На выбранной странице нет интерактива — переменных синхронизации нет."
               }
             >
@@ -15116,7 +15420,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
           <div className="flex-1 min-h-[80px] flex flex-col">
             {/* панель управления шагами */}
             <div className="shrink-0 flex items-center gap-0.5 px-2 py-1 border-b border-slate-800 bg-slate-900">
-              <Tooltip content={playing ? "Пауза автопрохода (пробел)" : debug.idx >= debug.result.steps.length - 1 ? "Проиграть трассу заново (пробел)" : "Продолжить автопроход (пробел)"}>
+              <Tooltip content={playing ? `Пауза автопрохода ${playbackSpeed}× (пробел)` : debug.idx >= debug.result.steps.length - 1 ? `Проиграть трассу заново со скоростью ${playbackSpeed}× (пробел)` : `Продолжить автопроход со скоростью ${playbackSpeed}× (пробел)`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -15127,10 +15431,11 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
                       setPlaying(true);
                     }
                   }}
-                  className={`mx-0.5 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
-                  aria-label={playing ? "Пауза автопрохода" : "Пуск автопрохода"}
+                  className={`mx-0.5 inline-flex items-center gap-1 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
+                  aria-label={playing ? `Пауза автопрохода ${playbackSpeed}×` : `Пуск автопрохода ${playbackSpeed}×`}
                 >
                   {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <span className="text-[9px] font-bold">{playbackSpeed}×</span>
                 </button>
               </Tooltip>
               <Tooltip content="В начало трассы">
@@ -15158,62 +15463,31 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
                   <>
                     шаг {debug.idx + 1}/{debug.result.steps.length} · строка {curDebug.step.line}
                     {curDebug.step.func !== "<module>" && <> · {curDebug.step.func}()</>}
-                    {vizActiveNow(debug.src) && (
-                      <span className="text-indigo-300">
-                        {" · "}{curHits <= 1 ? "инициализация" : `демо шаг ${curHits - 1}`}
-                        {vizLink === "partial" && curHits > 0 && " (только init-строки)"}
-                      </span>
-                    )}
                   </>
                 ) : (
-                  "шагов нет — программа не выполнила ни одной строки"
+                  "шагов нет — исправьте ошибку и начните редактирование"
                 )}
               </span>
               {debug.result.truncated && (
-                <Tooltip content={`Трасса обрезана: лимит ${DEBUG_STEP_CAP} шагов, чтобы браузер не завис. Сократите цикл или введите меньшие данные.`}>
+                <Tooltip content={`Выполнение остановлено: лимит ${DEBUG_STEP_CAP} шагов защищает браузер от бесконечного цикла.`}>
                   <span tabIndex={0} className="cursor-help text-[9px] font-bold text-amber-400 border border-amber-500/40 bg-amber-500/10 rounded-full px-1.5 py-0.5">
                     лимит
                   </span>
                 </Tooltip>
               )}
-              <Tooltip
-                content={
-                  !stepCapable
-                    ? "На этой странице демонстрация — ручной интерактив (клики/наведение), за отладчиком по шагам она не ходит."
-                    : vizLink === "exact"
-                      ? "Код = эталон: каждый помеченный шаг трассы двигает демонстрацию слева — ячейки/вершины подсвечиваются синхронно (см. бейдж фазы: инициализация / демо шаг N)."
-                      : vizLink === "content"
-                        ? "Вы дописали тело сами, но помеченные строки совпадают с эталоном — демонстрация следует за вашим кодом, как за эталоном."
-                        : vizLink === "partial"
-                          ? "В коде только строки инициализации эталона: демонстрация встанет на начальный кадр (шаг 0), дальше за вашим кодом не ходит — допишите остальные помеченные строки (см. «глаз»)."
-                          : "В коде нет помеченных строк эталона (см. кнопку-глаз): демонстрация слева НЕ следует за шагами. Перепечатайте их дословно или нажмите «Сбросить к шаблону»."
-                }
-              >
+              <Tooltip content={hasViz ? "Визуализация читает реальные значения захардкоженных имён этой темы: i, j, k, v, dist, P, st… Эталонный текст не требуется." : "У страницы нет связанных имён визуализации; Python всё равно выполняет любой код."}>
                 <span
                   tabIndex={0}
-                  className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${
-                    stepCapable && vizLink !== "none"
-                      ? vizLink === "partial"
-                        ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
-                        : "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                      : "border-slate-600 bg-slate-800 text-slate-400"
-                  }`}
+                  className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${hasViz ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-slate-600 bg-slate-800 text-slate-400"}`}
                 >
-                  {stepCapable && vizLink !== "none" ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
-                  {stepCapable
-                    ? vizLink === "exact"
-                      ? "демо следует (эталон)"
-                      : vizLink === "content"
-                        ? "демо следует (ваши строки)"
-                        : vizLink === "partial"
-                          ? "демо: инициализация"
-                          : "демо отвязано"
-                    : "демо ручное"}
+                  {hasViz ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
+                  {hasViz ? "имена → демо" : "свободный Python"}
                 </span>
               </Tooltip>
-              <Tooltip content="Выход из отладчика (Esc)">
-                <button type="button" onClick={stopDebug} className="ml-auto p-1 rounded-md text-rose-400 hover:text-white hover:bg-rose-500/30 transition-colors">
+              <Tooltip content="Вернуться в редактор (Esc). После изменения новая трасса появится автоматически.">
+                <button type="button" aria-label="Редактировать код" onClick={stopDebug} className="ml-auto inline-flex items-center gap-1 p-1 rounded-md text-rose-400 hover:text-white hover:bg-rose-500/30 transition-colors">
                   <Square className="w-3.5 h-3.5" />
+                  <span className="text-[9px] font-bold">код</span>
                 </button>
               </Tooltip>
             </div>
@@ -15283,42 +15557,14 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
               </div>
             </div>
           </div>
-        ) : showRef ? (
-          <div className="flex-1 flex min-h-[70px] flex-col bg-[#0b1220]">
-            <div className="shrink-0 flex items-center gap-2 border-b border-dashed border-indigo-500/30 px-3 py-1.5">
-              <Eye className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-              <span className="text-[10.5px] font-bold uppercase tracking-wider text-indigo-300">
-                Эталонный код этого демо · только чтение
-              </span>
-              <div className="ml-auto flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCode(template);
-                    setShowRef(false);
-                  }}
-                  className="rounded-md bg-indigo-600 hover:bg-indigo-500 px-2 py-1 text-[10px] font-bold text-white transition-colors"
-                >
-                  вставить в редактор
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void copyCode()}
-                  className="rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-1 text-[10px] font-bold text-slate-200 transition-colors"
-                >
-                  копировать
-                </button>
-              </div>
-            </div>
-            <pre className="flex-1 min-h-0 overflow-auto px-3 py-2.5 font-mono text-[12px] leading-5 text-slate-400 whitespace-pre-wrap select-text">
-              {template}
-            </pre>
-          </div>
         ) : (
           <textarea
             ref={editorRef}
             value={code}
-            onChange={(event) => setCode(event.target.value)}
+            onChange={(event) => {
+              setEditHold(null);
+              setCode(event.target.value);
+            }}
             onKeyDown={(event) => {
               if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
                 event.preventDefault();
@@ -15339,7 +15585,10 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
           <input
             id="python-stdin"
             value={stdin}
-            onChange={(event) => setStdin(event.target.value)}
+            onChange={(event) => {
+              setEditHold(null);
+              setStdin(event.target.value);
+            }}
             spellCheck={false}
             placeholder="строки ввода через ↵"
             className="w-full bg-transparent font-mono text-[11.5px] text-slate-300 outline-none placeholder:text-slate-700"
@@ -15376,11 +15625,12 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 59/87: src/components/QueueViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 304 | РАЗМЕР: 16.3 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 320 | РАЗМЕР: 17.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useCallback } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useVizRuntime, vizArray, vizString } from '../data/vizStepBus';
 
 interface Customer {
   id: string;
@@ -15408,6 +15658,20 @@ export const QueueViz: React.FC = () => {
     { id: 'q2', name: 'Кодер Семён',   emoji: '👨‍💻', color: 'from-violet-500/20 to-violet-600/20 border-violet-500/40', bubbleText: 'Напишу ИИ за порцию борща!', animState: 'idle' },
     { id: 'q3', name: 'Кот Борис',    emoji: '🐱', color: 'from-amber-500/20 to-amber-600/20 border-amber-500/40', bubbleText: 'Мяу! Мне без сметаны, плиз.', animState: 'idle' },
   ]);
+
+  const runtime = useVizRuntime();
+  const liveQ = vizArray(runtime?.variables?.q);
+  const liveV = vizString(runtime?.variables?.v);
+  const displayQueue: Customer[] = liveQ
+    ? liveQ.map((value, index) => ({
+        id: `python-${index}`,
+        name: String(value),
+        emoji: "🔢",
+        color: "from-emerald-500/20 to-emerald-600/20 border-emerald-500/50",
+        bubbleText: `q[${index}] из Python`,
+        animState: "idle",
+      }))
+    : queue;
 
   const [servedHistory, setServedHistory] = useState<string[]>([]);
   const [isServing, setIsServing]         = useState(false);
@@ -15538,6 +15802,7 @@ export const QueueViz: React.FC = () => {
         <div className={`md:col-span-9 bg-slate-900 rounded-3xl border-2 border-slate-800 p-6 flex flex-col justify-between relative min-h-[300px] overflow-hidden ${shakeEmpty ? 'anim-shake' : ''}`}>
           <div className="absolute top-4 left-4 text-[10px] font-mono text-slate-500 uppercase tracking-widest">
             Очередь голодных гостей (Буфер FIFO / BFS)
+            {liveQ && <span className="ml-2 text-emerald-400">q из Python{liveV ? ` · v=${liveV}` : ""}</span>}
           </div>
 
           <div className="flex-1 flex flex-col justify-end pb-4 pt-12">
@@ -15568,16 +15833,16 @@ export const QueueViz: React.FC = () => {
 
               {/* СПИСОК ОЧЕРЕДИ */}
               <div className="flex-1 flex items-end gap-3 overflow-x-auto pb-1 justify-start">
-                {queue.length === 0 ? (
+                {displayQueue.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center py-6 text-slate-600">
                     <span className="text-4xl mb-1">😴</span>
                     <p className="text-xs font-bold font-mono uppercase">Очередь пуста</p>
                     <p className="text-[10px]">Все сыты и счастливы!</p>
                   </div>
                 ) : (
-                  queue.map((customer, idx) => {
+                  displayQueue.map((customer, idx) => {
                     const isHead = idx === 0;
-                    const isTail = idx === queue.length - 1;
+                    const isTail = idx === displayQueue.length - 1;
                     return (
                       <div
                         key={customer.id}
@@ -16337,11 +16602,12 @@ export const SalmonAutomatonWidget: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 61/87: src/components/SegmentTreeVisualizer.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 531 | РАЗМЕР: 29.8 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 534 | РАЗМЕР: 30.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, RefreshCw, Hammer, Search, Info } from 'lucide-react';
+import { useVizRuntime, vizNumber } from '../data/vizStepBus';
 
 // ===== TYPES =====
 interface Step {
@@ -16665,6 +16931,8 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 // MAIN EXPORTED COMPONENT
 // ==========================================================
 export function SegmentTreeVisualizer() {
+  const runtime = useVizRuntime();
+  const liveI = vizNumber(runtime?.variables?.i);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
@@ -16720,8 +16988,8 @@ export function SegmentTreeVisualizer() {
             </div>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {arr.map((v, i) => (
-                <span key={i} className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-xs font-mono text-slate-200">
-                  <span className="text-slate-500">A[{i}]=</span>{v}
+                <span key={i} className={`border px-2 py-0.5 rounded text-xs font-mono ${liveI === i ? "bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30" : "bg-slate-900 border-slate-800 text-slate-200"}`}>
+                  <span className={liveI === i ? "text-amber-300" : "text-slate-500"}>A[{i}]=</span>{v}
                 </span>
               ))}
               <span className="text-xs text-slate-500 flex items-center gap-1">| Σ = {totalSum}</span>
@@ -19093,11 +19361,12 @@ export const SplayTreeViz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 68/87: src/components/StackViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 290 | РАЗМЕР: 14.8 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 304 | РАЗМЕР: 15.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useCallback } from 'react';
 import { ArrowUp, Sparkles } from 'lucide-react';
+import { useVizRuntime, vizArray } from '../data/vizStepBus';
 
 interface Plate {
   id: string;
@@ -19125,6 +19394,19 @@ export const StackViz: React.FC = () => {
     { id: 'p2', name: 'Тарелка из-под пиццы',   emoji: '🍕', color: 'from-orange-100 to-orange-200 border-orange-300', isDirty: true, animState: 'idle' },
     { id: 'p3', name: 'Блюдце от торта',       emoji: '🍰', color: 'from-pink-100 to-pink-200 border-pink-300',       isDirty: true, animState: 'idle' },
   ]);
+
+  const runtime = useVizRuntime();
+  const liveStack = vizArray(runtime?.variables?.st) ?? vizArray(runtime?.variables?.stack);
+  const displayStack: Plate[] = liveStack
+    ? liveStack.map((value, index) => ({
+        id: `python-${index}`,
+        name: String(value),
+        emoji: "🔢",
+        color: "from-indigo-500/20 to-indigo-600/20 border-indigo-400",
+        isDirty: true,
+        animState: "idle",
+      }))
+    : dirtyStack;
 
   const [cleanRack, setCleanRack] = useState<Plate[]>([]);
   const [isWashing, setIsWashing] = useState(false);
@@ -19210,7 +19492,7 @@ export const StackViz: React.FC = () => {
     setLog(['🔄 Стол сброшен. Посуда снова грязная!']);
   };
 
-  const topIndex = dirtyStack.length - 1;
+  const topIndex = displayStack.length - 1;
 
   return (
     <div className="flex flex-col gap-6">
@@ -19278,7 +19560,7 @@ export const StackViz: React.FC = () => {
             </div>
           )}
 
-          {dirtyStack.length === 0 ? (
+          {displayStack.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
               <span className="text-6xl mb-3 animate-pulse">✨🧼</span>
               <p className="text-white font-black text-lg">Вся посуда вымыта!</p>
@@ -19300,8 +19582,8 @@ export const StackViz: React.FC = () => {
               </div>
 
               {/* Тарелки (отрисовываем в обратном порядке, чтобы новые ложились СВЕРХУ) */}
-              {dirtyStack.slice().reverse().map((plate, revIdx) => {
-                const idx = dirtyStack.length - 1 - revIdx;
+              {displayStack.slice().reverse().map((plate, revIdx) => {
+                const idx = displayStack.length - 1 - revIdx;
                 const isTop = idx === topIndex;
                 return (
                   <div
@@ -19389,11 +19671,11 @@ export const StackViz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 69/87: src/components/StringAlgorithmsViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 324 | РАЗМЕР: 19.0 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 346 | РАЗМЕР: 20.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizRuntime, vizArray, vizNumber, vizString } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from "lucide-react";
 
 function generateKmpSteps(pattern: string, text: string) {
@@ -19487,14 +19769,17 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
     const safePattern = pattern || " ";
     const safeText = text || " ";
 
-    const { s, steps, patternLength } = useMemo(() => {
+    const { s: demoString, steps, patternLength: demoPatternLength } = useMemo(() => {
        if (mode === "kmp") return generateKmpSteps(safePattern, safeText);
        else return generateZSteps(safePattern, safeText);
     }, [mode, safePattern, safeText]);
+    const runtime = useVizRuntime();
+    const runtimeString = vizString(runtime?.variables?.s);
+    const s = runtimeString ?? demoString;
+    const patternLength = runtimeString ? runtimeString.length : demoPatternLength;
 
     const [autoPlay, setAutoPlay] = useState(false);
     const [stepIdx, setStepIdx] = useState(0);
-    useVizStepSync(stepIdx, setStepIdx, steps.length - 1);
     const timer = useRef<NodeJS.Timeout | null>(null);
 
     // Reset when inputs or mode change
@@ -19521,7 +19806,26 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
     const prevStep = () => { setAutoPlay(false); setStepIdx(i => Math.max(0, i - 1)); };
     const reset = () => { setAutoPlay(false); setStepIdx(0); };
 
-    const step = steps[stepIdx] || steps[0];
+    const baseStep = steps[stepIdx] || steps[0];
+    const vars = runtime?.variables;
+    const liveValues = vizArray(mode === "kmp" ? vars?.pi : vars?.z);
+    const hasLiveValues = !!vars && Object.prototype.hasOwnProperty.call(vars, mode === "kmp" ? "pi" : "z");
+    const liveI = vizNumber(vars?.i);
+    const liveJ = vizNumber(vars?.j);
+    const liveL = vizNumber(vars?.l);
+    const liveR = vizNumber(vars?.r);
+    const compilerLinked = liveI !== null || hasLiveValues;
+    const step = compilerLinked
+      ? {
+          ...baseStep,
+          i: liveI ?? baseStep.i,
+          j: liveJ ?? baseStep.j,
+          l: liveL ?? baseStep.l,
+          r: liveR ?? baseStep.r,
+          [mode === "kmp" ? "pi" : "z"]: hasLiveValues ? liveValues ?? [] : baseStep[mode === "kmp" ? "pi" : "z"],
+          desc: `Компилятор: i=${liveI ?? "—"}${mode === "kmp" ? `, j=${liveJ ?? "—"}` : `, [l,r]=[${liveL ?? "—"},${liveR ?? "—"}]`}.`,
+        }
+      : baseStep;
 
     return (
         <div className="space-y-4">
@@ -19599,7 +19903,7 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
 
                                 {/* Value array box */}
                                 <div className="text-[10px] bg-slate-800 text-amber-300 w-full text-center py-[2px] rounded border border-slate-700/50 font-mono font-bold">
-                                    {mode === "kmp" ? step.pi[index] : step.z[index]}
+                                    {(mode === "kmp" ? step.pi?.[index] : step.z?.[index]) ?? "·"}
                                 </div>
 
                                 {/* KMP fingers */}
@@ -19772,11 +20076,11 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, side = "top
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 71/87: src/components/TopologicalSortViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 386 | РАЗМЕР: 13.1 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 394 | РАЗМЕР: 13.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect } from "react";
-import { useVizStepSync } from '../data/vizStepBus';
+import { useVizStepSync, vizArray, vizNumber } from '../data/vizStepBus';
 import {
   Play,
   Pause,
@@ -19825,7 +20129,15 @@ interface TStep {
 export const TopologicalSortViz: React.FC = () => {
   const [steps, setSteps] = useState<TStep[]>([]);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
-  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1);
+  useVizStepSync(currentStepIdx, setCurrentStepIdx, steps.length - 1, (vars) => {
+    const v = vizNumber(vars.v);
+    const orderLength = vizArray(vars.order)?.length;
+    if (v === null && orderLength === undefined) return null;
+    const candidates = steps
+      .map((step, index) => ({ step, index }))
+      .filter(({ step }) => (v === null || step.currentNode === v) && (orderLength === undefined || step.topoList.length === orderLength));
+    return candidates.at(-1)?.index ?? null;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -21124,11 +21436,17 @@ export const WaterfallAnimationWidget: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 74/87: src/components/visualizers/PrefixSumViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 360 | РАЗМЕР: 15.8 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 411 | РАЗМЕР: 18.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { emitVizDemo, useVizStepSync, VizChapterContext } from "../../data/vizStepBus";
+import {
+  emitVizDemo,
+  useVizRuntime,
+  vizArray,
+  vizNumber,
+  VizChapterContext,
+} from "../../data/vizStepBus";
 
 /**
  * Префиксные суммы: 1D и 2D.
@@ -21197,12 +21515,19 @@ const Prefix1D: React.FC = () => {
   /** Что сейчас под курсором: префикс P[i] или элемент a[i]. */
   const [hover, setHover] = useState<{ kind: "pref" | "a"; i: number } | null>(null);
   const [range, setRange] = useState<{ l: number; r: number }>({ l: 2, r: 5 });
-  /**
-   * Управляемый режим (отладчик «По шагам»): P заполняется по одной ячейке
-   * за шаг. null = обычный интерактив (наведение/клик).
-   */
-  const [driven, setDriven] = useState<number | null>(null);
-  useVizStepSync(driven ?? 0, setDriven, A1.length);
+  /** Снимок i/P из автоматически выполненного Python-кода. */
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveP = vizArray(vars?.P);
+  const hasLiveP = !!vars && Object.prototype.hasOwnProperty.call(vars, "P");
+  const compilerLinked = liveI !== null || hasLiveP;
+  // i/P управляют ячейками напрямую; индекс Python-строки здесь ничего не значит.
+  const shownDriven = compilerLinked
+    ? liveI !== null
+      ? Math.max(0, Math.min(A1.length, Math.trunc(liveI)))
+      : Math.max(0, Math.min(A1.length, (liveP?.length ?? 1) - 1))
+    : null;
 
   const covered =
     hover?.kind === "pref"
@@ -21232,7 +21557,7 @@ const Prefix1D: React.FC = () => {
             {A1.map((v, i) => {
               const inCover = covered && i >= covered.from && i <= covered.to;
               const inRange = i >= range.l && i <= range.r;
-              const isDrivenAdd = driven !== null && driven >= 1 && i === driven - 1; // a[i] сейчас прибавляем к P
+              const isDrivenAdd = shownDriven !== null && shownDriven >= 1 && i === shownDriven - 1; // a[i] сейчас прибавляем к P
               return (
                 <div
                   key={i}
@@ -21263,8 +21588,11 @@ const Prefix1D: React.FC = () => {
               const active = hover?.kind === "pref" && hover.i === i;
               const isL = i === range.l;
               const isR = i === range.r + 1;
-              const masked = driven !== null && i > driven;
-              const isDrivenCur = driven !== null && i === driven && driven >= 1;
+              const liveValue = liveP?.[i];
+              const blank = hasLiveP && (liveValue === undefined || liveValue === null);
+              const masked = !hasLiveP && shownDriven !== null && i > shownDriven;
+              const isDrivenCur = shownDriven !== null && i === shownDriven && (compilerLinked || shownDriven >= 1);
+              const shownValue = hasLiveP ? liveValue : v;
               return (
                 <div
                   key={i}
@@ -21273,6 +21601,8 @@ const Prefix1D: React.FC = () => {
                   className={`${cellBase} cursor-help ${
                     isDrivenCur
                       ? "bg-emerald-600 text-white ring-2 ring-emerald-300 font-extrabold scale-110 shadow-lg shadow-emerald-500/30"
+                      : blank
+                        ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
                       : masked
                         ? "bg-slate-800/50 text-slate-700 border border-dashed border-slate-700"
                         : active
@@ -21283,9 +21613,9 @@ const Prefix1D: React.FC = () => {
                               ? "bg-rose-700 text-white"
                               : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
                   }`}
-                  title={masked ? `P[${i}] — ещё не посчитано` : `P[${i}] = сумма a[0..${i - 1}]`}
+                  title={blank || masked ? `P[${i}] — пустая ячейка` : `P[${i}] = ${String(shownValue)}`}
                 >
-                  {masked ? "·" : v}
+                  {blank || masked ? "·" : String(shownValue)}
                 </div>
               );
             })}
@@ -21295,12 +21625,13 @@ const Prefix1D: React.FC = () => {
 
       {/* Пояснение под курсором */}
       <div className="min-h-[62px] bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm">
-        {driven !== null && !hover ? (
+        {shownDriven !== null && !hover ? (
           <p className="text-slate-300">
-            <b className="text-emerald-400">По шагам отладчика:</b> посчитано P[0..{driven}]{" "}
-            (последний:P[{driven}] = {pref[driven]}) — следующая ячейка{" "}
-            P[{Math.min(driven + 1, A1.length)}] = P[{driven}] + a[{driven === A1.length ? A1.length - 1 : driven}] ·{" "}
-            <span className="font-mono text-amber-400">a[…] горит янтарным, P-приёмник изумрудным</span>
+            <b className="text-emerald-400">Компилятор → визуализация:</b>{" "}
+            <span className="font-mono text-white">i = {shownDriven}</span>, активна ячейка{" "}
+            <span className="font-mono text-emerald-300">P[{shownDriven}]</span>
+            {hasLiveP && <> = <span className="font-mono text-amber-300">{String(liveP?.[shownDriven] ?? "пусто")}</span></>}.
+            <span className="ml-1 text-slate-500">Пустой P всё равно рисуется каркасом квадратов.</span>
           </p>
         ) : hover?.kind === "pref" ? (
           hover.i === 0 ? (
@@ -21359,6 +21690,12 @@ const Prefix1D: React.FC = () => {
 const Prefix2D: React.FC = () => {
   const n = A2.length;
   const m = A2[0].length;
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveJ = vizNumber(vars?.j);
+  const liveS = vizArray(vars?.S);
+  const hasLiveS = !!vars && Object.prototype.hasOwnProperty.call(vars, "S");
 
   const P = useMemo(() => {
     const p = Array.from({ length: n + 1 }, () => Array<number>(m + 1).fill(0));
@@ -21372,6 +21709,20 @@ const Prefix2D: React.FC = () => {
 
   const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
   const [rect, setRect] = useState({ r1: 1, c1: 1, r2: 2, c2: 2 });
+
+  useEffect(() => {
+    const r1 = vizNumber(vars?.r1);
+    const c1 = vizNumber(vars?.c1);
+    const r2 = vizNumber(vars?.r2);
+    const c2 = vizNumber(vars?.c2);
+    if (r1 === null || c1 === null || r2 === null || c2 === null) return;
+    setRect({
+      r1: Math.max(0, Math.min(n - 1, Math.trunc(r1))),
+      c1: Math.max(0, Math.min(m - 1, Math.trunc(c1))),
+      r2: Math.max(0, Math.min(n - 1, Math.trunc(r2))),
+      c2: Math.max(0, Math.min(m - 1, Math.trunc(c2))),
+    });
+  }, [vars, n, m]);
 
   const D = P[rect.r1][rect.c1];
   const B = P[rect.r1][rect.c2 + 1];
@@ -21426,8 +21777,13 @@ const Prefix2D: React.FC = () => {
             {P.map((row, i) => (
               <div key={i} className="flex gap-1.5 mb-1.5">
                 {row.map((v, j) => {
+                  const liveRow = vizArray(liveS?.[i]);
+                  const liveValue = liveRow?.[j];
+                  const blank = hasLiveS && (liveValue === undefined || liveValue === null);
+                  const shownValue = hasLiveS ? liveValue : v;
                   const corner = cornerOf(i, j);
                   const isHover = hover?.i === i && hover?.j === j;
+                  const isCompilerCell = liveI === i && liveJ === j;
                   const cornerColor =
                     corner === "A"
                       ? "bg-emerald-600 text-white"
@@ -21442,10 +21798,17 @@ const Prefix2D: React.FC = () => {
                       onMouseEnter={() => setHover({ i, j })}
                       onMouseLeave={() => setHover(null)}
                       className={`${cellBase} cursor-help relative ${
-                        isHover ? "bg-amber-500 text-white ring-2 ring-amber-300" : cornerColor
+                        isCompilerCell
+                          ? "bg-emerald-600 text-white ring-2 ring-emerald-300 scale-110"
+                          : isHover
+                            ? "bg-amber-500 text-white ring-2 ring-amber-300"
+                            : blank
+                              ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
+                              : cornerColor
                       }`}
+                      title={hasLiveS ? `S[${i}][${j}] = ${String(shownValue ?? "пусто")}` : undefined}
                     >
-                      {v}
+                      {blank ? "·" : String(shownValue)}
                       {corner && !isHover && (
                         <span className="absolute -top-1 -right-1 text-[9px] bg-slate-950 border border-slate-600 rounded px-1 leading-tight">
                           {corner}
@@ -21490,11 +21853,18 @@ const Prefix2D: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 75/87: src/components/visualizers/SparseTableViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 724 | РАЗМЕР: 44.6 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 791 | РАЗМЕР: 49.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useContext, useEffect, useState } from "react";
-import { emitVizDemo, useVizStepSync, VizChapterContext } from "../../data/vizStepBus";
+import {
+  emitVizDemo,
+  useVizRuntime,
+  vizArray,
+  vizNumber,
+  vizRecord,
+  VizChapterContext,
+} from "../../data/vizStepBus";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
@@ -21566,7 +21936,9 @@ for (let kx = 0; kx <= 3; kx++) {
 }
 
 export const SparseTableViz: React.FC = () => {
-  const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("1d");
+  // Эта страница посвящена именно двумерной таблице: 1D остаётся вводной
+  // вкладкой, но больше не подменяет 2D-визуализацию и её Python-референс.
+  const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("2d_build");
   const chapterId = useContext(VizChapterContext);
 
   // Каждая вкладка = своё демо с собственным скелетом: компилятор переключает код вслед за вкладкой.
@@ -21613,6 +21985,17 @@ export const SparseTableViz: React.FC = () => {
 const Viz1D: React.FC = () => {
   const [step, setStep] = useState(0);
   const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
+  const runtime = useVizRuntime();
+  const runtimeVars = runtime?.variables;
+  const liveI = vizNumber(runtimeVars?.i);
+  const liveJ = vizNumber(runtimeVars?.j);
+  const liveRows = vizArray(runtimeVars?.st);
+  const hasLiveTable = !!runtimeVars && Object.prototype.hasOwnProperty.call(runtimeVars, "st");
+  const compilerLinked = liveI !== null || liveJ !== null || hasLiveTable;
+  const liveTarget =
+    liveI !== null && liveJ !== null && Number.isInteger(liveI) && Number.isInteger(liveJ)
+      ? { i: liveI, j: liveJ }
+      : null;
 
   // Total steps: we animate computing each element for j=1, j=2, j=3.
   const computeSteps: { i: number; j: number }[] = [];
@@ -21623,8 +22006,10 @@ const Viz1D: React.FC = () => {
   }
 
   const maxStep = computeSteps.length;
-  useVizStepSync(step, setStep, maxStep);
-  const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
+  // Эта таблица читает i/j/st напрямую. Не двигаем её по случайному номеру
+  // строки произвольного Python-кода.
+  const pointedCell = hover ?? liveTarget;
+  const covered = pointedCell ? { from: pointedCell.i, to: pointedCell.i + (1 << pointedCell.j) - 1 } : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -21731,36 +22116,39 @@ const Viz1D: React.FC = () => {
                 </div>
                 {Array.from({ length: LOG }).map((_, j) => {
                   const isValid = i + (1 << j) <= N;
-                  const isVisible =
+                  const liveRow = vizArray(liveRows?.[i]);
+                  const liveValue = liveRow?.[j];
+                  const liveHasValue = liveValue !== undefined && liveValue !== null;
+                  const manualVisible =
                     isValid &&
-                    (j === 0 ||
-                      computeSteps.findIndex((s) => s.i === i && s.j === j) <
-                        step);
+                    (j === 0 || computeSteps.findIndex((s) => s.i === i && s.j === j) < step);
+                  const isVisible = compilerLinked ? liveHasValue : manualVisible;
 
-                  // Active computing state
-                  let isActive = false;
+                  let isActive = !!liveTarget && liveTarget.i === i && liveTarget.j === j;
                   let isSrc1 = false;
                   let isSrc2 = false;
 
-                  if (step > 0 && step <= maxStep) {
+                  if (compilerLinked && liveTarget && liveTarget.j > 0) {
+                    isSrc1 = i === liveTarget.i && j === liveTarget.j - 1;
+                    isSrc2 = i === liveTarget.i + (1 << (liveTarget.j - 1)) && j === liveTarget.j - 1;
+                  } else if (!compilerLinked && step > 0 && step <= maxStep) {
                     const currentStep = computeSteps[step - 1];
-                    if (currentStep.i === i && currentStep.j === j)
-                      isActive = true;
-                    if (currentStep.j === j + 1 && currentStep.i === i)
-                      isSrc1 = true;
-                    if (
-                      currentStep.j === j + 1 &&
-                      currentStep.i === i - (1 << (currentStep.j - 1))
-                    )
-                      isSrc2 = true; // wait, no. Src2 for ST[i][j] is ST[i + 2^(j-1)][j-1].
-                    // Let's re-eval exact source:
-                    // We are asking if THIS cell [i][j] is a source for current computation
+                    isActive = currentStep.i === i && currentStep.j === j;
                     if (currentStep.j - 1 === j) {
                       if (currentStep.i === i) isSrc1 = true;
-                      if (currentStep.i + (1 << (currentStep.j - 1)) === i)
-                        isSrc2 = true;
+                      if (currentStep.i + (1 << (currentStep.j - 1)) === i) isSrc2 = true;
                     }
                   }
+
+                  // Как только пришёл runtime, не подмешиваем готовую таблицу демо:
+                  // до строки `st = ...` виден пустой каркас, а не внезапно готовые числа.
+                  const shownValue = compilerLinked ? liveValue : st1D[i][j];
+                  const displayValue =
+                    shownValue === undefined || shownValue === null
+                      ? "·"
+                      : typeof shownValue === "object"
+                        ? JSON.stringify(shownValue)
+                        : String(shownValue);
 
                   return (
                     <div key={j} className="relative flex justify-center">
@@ -21768,13 +22156,14 @@ const Viz1D: React.FC = () => {
                         <div className="w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)]" />
                       ) : (
                         <motion.div
-                          onMouseEnter={() => isVisible && setHover({ i, j })}
+                          onMouseEnter={() => (compilerLinked || isVisible) && setHover({ i, j })}
                           onMouseLeave={() => setHover(null)}
-                          onClick={() => isVisible && setHover(hover && hover.i === i && hover.j === j ? null : { i, j })}
+                          onClick={() => (compilerLinked || isVisible) && setHover(hover && hover.i === i && hover.j === j ? null : { i, j })}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{
-                            opacity: isVisible ? 1 : 0,
-                            scale: isVisible ? 1 : 0.8,
+                            // При st = [] каркас уже существует: видны пустые квадраты.
+                            opacity: compilerLinked ? 1 : isVisible ? 1 : 0,
+                            scale: compilerLinked || isVisible ? 1 : 0.8,
                           }}
                           className={`w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)] flex items-center justify-center rounded-lg text-[clamp(11px,3vw,17px)] font-bold transition-colors cursor-pointer ${
                             hover && hover.i === i && hover.j === j
@@ -21787,10 +22176,13 @@ const Viz1D: React.FC = () => {
                                   ? "bg-amber-500 text-white ring-2 ring-amber-400 z-10"
                                   : isVisible
                                     ? "bg-slate-800 text-slate-300"
-                                    : "bg-transparent text-transparent"
+                                    : compilerLinked
+                                      ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
+                                      : "bg-transparent text-transparent"
                           }`}
+                          title={compilerLinked ? `st[${i}][${j}] = ${displayValue}` : undefined}
                         >
-                          {st1D[i][j]}
+                          {displayValue}
                         </motion.div>
                       )}
 
@@ -21827,7 +22219,14 @@ const Viz1D: React.FC = () => {
 
       {/* Formula helper text */}
       <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl min-h-[80px] flex items-center text-center justify-center">
-        {step > 0 && step <= maxStep ? (
+        {compilerLinked && liveTarget ? (
+          <p className="text-base text-slate-300">
+            <span className="text-emerald-400 font-bold">Компилятор → визуализация:</span>{" "}
+            <span className="font-mono text-white">i = {liveTarget.i}, j = {liveTarget.j}</span>{" "}
+            — активна ячейка <span className="font-mono text-indigo-300">st[{liveTarget.i}][{liveTarget.j}]</span>
+            {hasLiveTable && <> = <span className="font-mono text-amber-300">{String(vizArray(liveRows?.[liveTarget.i])?.[liveTarget.j] ?? "пусто")}</span></>}.
+          </p>
+        ) : step > 0 && step <= maxStep ? (
           (() => {
             const c = computeSteps[step - 1];
             const half = 1 << (c.j - 1);
@@ -21870,16 +22269,25 @@ const Viz2DBuild: React.FC = () => {
   const [k, setK] = useState(1);
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null);
   const [locked, setLocked] = useState<{ r: number; c: number } | null>(null);
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveK = vizNumber(vars?.k);
+  const liveR = vizNumber(vars?.r);
+  const liveC = vizNumber(vars?.c);
+  const liveTable = vizRecord(vars?.st2);
+  const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
+  const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
+  const compilerLinked = codeCell !== null || liveK !== null || hasLiveTable;
+  const shownK = liveK !== null ? Math.max(0, Math.min(3, Math.trunc(liveK))) : k;
 
-  // Отладчик переключает уровень k: строка с A=… = k0 (оригинал), каждая итерация for — следующий k.
-  useVizStepSync(k, setK, 3);
+  // Уровень и клетка берутся прямо из k/r/c; номер строки трассы не нужен.
   useEffect(() => {
     setHover(null);
     setLocked(null);
   }, [k]);
 
-  const L = 1 << k;
-  const activeCell = locked || hover;
+  const L = 1 << shownK;
+  const activeCell = codeCell || locked || hover;
 
   return (
     <div className="flex flex-col xl:flex-row gap-6">
@@ -21896,7 +22304,7 @@ const Viz2DBuild: React.FC = () => {
             <button
               key={step}
               onClick={() => { setK(step); setHover(null); setLocked(null); }}
-              className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${k === step ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+              className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${shownK === step ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
             >
               {step === 0 ? "Оригинал (1x1)" : `Шаг ${step} (${1<<step}x${1<<step})`}
             </button>
@@ -21904,10 +22312,10 @@ const Viz2DBuild: React.FC = () => {
         </div>
 
         <div className="flex flex-col items-center gap-4 w-full max-h-[70vh] sm:h-[600px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
-          {[...Array(k + 1)].map((_, i) => k - i).map((step, idx) => {
+          {[...Array(shownK + 1)].map((_, i) => shownK - i).map((step, idx) => {
              const stepL = 1 << step;
              const stepSize = 8 - stepL + 1;
-             const isCurr = step === k;
+             const isCurr = step === shownK;
 
              return (
                <React.Fragment key={step}>
@@ -21923,7 +22331,14 @@ const Viz2DBuild: React.FC = () => {
                         const r = Math.floor(idx / stepSize);
                         const c = idx % stepSize;
                         
-                        let highlightClass = isCurr ? 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white border-slate-700/50 cursor-pointer' : 'bg-slate-800/50 text-slate-600 border-transparent';
+                        const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
+                        const shownValue = compilerLinked ? liveValue : ST2D[r][c][step][step];
+                        const isBlank = shownValue === undefined || shownValue === null;
+                        let highlightClass = isBlank
+                          ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'
+                          : isCurr
+                            ? 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white border-slate-700/50 cursor-pointer'
+                            : 'bg-slate-800/50 text-slate-600 border-transparent';
                         let zIndex = 'z-0';
 
                         const isActive = !!activeCell && (r >= activeCell.r && r < activeCell.r + L) && (c >= activeCell.c && c < activeCell.c + L) && ((r - activeCell.r) % (1 << step) === 0) && ((c - activeCell.c) % (1 << step) === 0);
@@ -21933,7 +22348,7 @@ const Viz2DBuild: React.FC = () => {
                             highlightClass = `bg-indigo-500 text-white font-bold scale-[1.12] shadow-xl border-indigo-300 transition-all ${locked && locked.r === r && locked.c === c ? 'ring-[3px] ring-white ring-offset-2 ring-offset-[#0a0f1e]' : ''}`;
                             zIndex = 'z-10';
                           } else {
-                            const prevL = 1 << (k - 1);
+                            const prevL = 1 << (shownK - 1);
                             const isTop = r < activeCell.r + prevL;
                             const isLeft = c < activeCell.c + prevL;
                             
@@ -21962,8 +22377,9 @@ const Viz2DBuild: React.FC = () => {
                                }
                             }}
                             className={`flex items-center justify-center font-mono rounded border shrink-0 ${highlightClass} ${zIndex} ${isCurr ? 'w-[clamp(24px,6.5vw,38px)] h-[clamp(24px,6.5vw,38px)] text-[clamp(9px,2.4vw,13px)]' : 'w-[clamp(20px,5.2vw,30px)] h-[clamp(20px,5.2vw,30px)] text-[clamp(8px,2vw,11px)]'}`}
+                            title={hasLiveTable ? `st2[${r}, ${c}, ${step}, ${step}]` : undefined}
                           >
-                            {ST2D[r][c][step][step]}
+                            {isBlank ? "·" : String(shownValue)}
                           </div>
                         );
                      })}
@@ -21979,7 +22395,7 @@ const Viz2DBuild: React.FC = () => {
       <div className="flex-1 min-w-0 flex flex-col gap-4">
         <div className="bg-slate-900 p-4 sm:p-6 rounded-xl border border-slate-800 h-full flex flex-col">
           <h3 className="text-lg font-bold text-slate-300 mb-6 flex items-center gap-2">Код построения и формула</h3>
-          {k === 0 ? (
+          {shownK === 0 ? (
              <div className="text-slate-400 text-sm leading-relaxed font-sans mt-4">
                <p className="mb-4">При <span className="font-mono text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">k = 0</span> квадраты имеют размер <span className="font-bold text-white">1×1</span>.</p>
                <div className="bg-[#0a0f1e] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner">
@@ -22011,30 +22427,30 @@ const Viz2DBuild: React.FC = () => {
                        {locked && <span className="text-rose-400 flex items-center gap-1 font-sans font-bold bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20"><Lock size={12}/> Зафиксировано</span>}
                     </p>
                     <p className="text-indigo-300 border-b border-slate-800 pb-3 flex flex-wrap items-center gap-1.5">
-                      <span className="font-bold text-white bg-indigo-600/80 px-2 py-0.5 rounded text-xs">ST[{activeCell.r}][{activeCell.c}][{k}][{k}]</span> 
+                      <span className="font-bold text-white bg-indigo-600/80 px-2 py-0.5 rounded text-xs">ST[{activeCell.r}][{activeCell.c}][{shownK}][{shownK}]</span>
                       <span className="text-slate-400">= min(</span>
                     </p>
                     
                     <div className="space-y-2 pt-3 pl-2 text-[11px] sm:text-xs">
                         {(() => {
-                           const prevL = 1 << (k - 1);
+                           const prevL = 1 << (shownK - 1);
                            return (
                              <>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-rose-300"><div className="w-2 h-2 rounded-sm bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div> ST[{activeCell.r}][{activeCell.c}] (ЛВ)</span>
-                                  <span className="text-rose-400 font-bold bg-rose-950/40 px-2 rounded border border-rose-900/50">{ST2D[activeCell.r][activeCell.c][k-1][k-1]}</span>
+                                  <span className="text-rose-400 font-bold bg-rose-950/40 px-2 rounded border border-rose-900/50">{ST2D[activeCell.r][activeCell.c][shownK-1][shownK-1]}</span>
                                </div>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-blue-300"><div className="w-2 h-2 rounded-sm bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div> ST[{activeCell.r}][{activeCell.c + prevL}] (ПВ)</span>
-                                  <span className="text-blue-400 font-bold bg-blue-950/40 px-2 rounded border border-blue-900/50">{ST2D[activeCell.r][activeCell.c + prevL][k-1][k-1]}</span>
+                                  <span className="text-blue-400 font-bold bg-blue-950/40 px-2 rounded border border-blue-900/50">{ST2D[activeCell.r][activeCell.c + prevL][shownK-1][shownK-1]}</span>
                                </div>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-emerald-300"><div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-[0_0_8px_#10b981]"></div> ST[{activeCell.r + prevL}][{activeCell.c}] (ЛН)</span>
-                                  <span className="text-emerald-400 font-bold bg-emerald-950/40 px-2 rounded border border-emerald-900/50">{ST2D[activeCell.r + prevL][activeCell.c][k-1][k-1]}</span>
+                                  <span className="text-emerald-400 font-bold bg-emerald-950/40 px-2 rounded border border-emerald-900/50">{ST2D[activeCell.r + prevL][activeCell.c][shownK-1][shownK-1]}</span>
                                </div>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-amber-300"><div className="w-2 h-2 rounded-sm bg-amber-500 shadow-[0_0_8px_#f59e0b]"></div> ST[{activeCell.r + prevL}][{activeCell.c + prevL}] (ПН)</span>
-                                  <span className="text-amber-400 font-bold bg-amber-950/40 px-2 rounded border border-amber-900/50">{ST2D[activeCell.r + prevL][activeCell.c + prevL][k-1][k-1]}</span>
+                                  <span className="text-amber-400 font-bold bg-amber-950/40 px-2 rounded border border-amber-900/50">{ST2D[activeCell.r + prevL][activeCell.c + prevL][shownK-1][shownK-1]}</span>
                                </div>
                              </>
                            )
@@ -22042,7 +22458,7 @@ const Viz2DBuild: React.FC = () => {
                     </div>
                     
                     <div className="pt-3 mt-3 border-t border-slate-800 text-center text-slate-400 text-sm">
-                       ) = <span className="text-white font-bold text-base bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">{ST2D[activeCell.r][activeCell.c][k][k]}</span>
+                       ) = <span className="text-white font-bold text-base bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">{ST2D[activeCell.r][activeCell.c][shownK][shownK]}</span>
                     </div>
                     <p className="mt-4 text-[12px] font-sans text-indigo-200/70 border-t border-slate-800 pt-3 text-center">👇 Прокрутите список матриц (слева) вниз, чтобы увидеть, из каких под-блоков собираются эти минимумы.</p>
                  </div>
@@ -22064,9 +22480,23 @@ const Viz2DQuery: React.FC = () => {
     const [c1, setC1] = useState(1);
     const [r2, setR2] = useState(5);
     const [c2, setC2] = useState(6);
+    const runtime = useVizRuntime();
 
-    const H = r2 - r1 + 1;
-    const W = c2 - c1 + 1;
+    // Координаты запроса — те же захардкоженные имена, что в Python.
+    useEffect(() => {
+      const vars = runtime?.variables;
+      const nr1 = vizNumber(vars?.r1);
+      const nc1 = vizNumber(vars?.c1);
+      const nr2 = vizNumber(vars?.r2);
+      const nc2 = vizNumber(vars?.c2);
+      if (nr1 !== null) setR1(Math.max(0, Math.min(7, Math.trunc(nr1))));
+      if (nc1 !== null) setC1(Math.max(0, Math.min(7, Math.trunc(nc1))));
+      if (nr2 !== null) setR2(Math.max(0, Math.min(7, Math.trunc(nr2))));
+      if (nc2 !== null) setC2(Math.max(0, Math.min(7, Math.trunc(nc2))));
+    }, [runtime]);
+
+    const H = Math.max(1, r2 - r1 + 1);
+    const W = Math.max(1, c2 - c1 + 1);
     const kx = Math.floor(Math.log2(H));
     const ky = Math.floor(Math.log2(W));
     const Lx = 1 << kx;
@@ -22203,11 +22633,11 @@ const Viz2DQuery: React.FC = () => {
                <div className="mt-auto bg-slate-950 font-mono p-5 rounded-xl border border-indigo-900/60 shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
                   <div className="text-center font-bold text-white text-[13px] sm:text-base overflow-x-auto custom-scrollbar whitespace-nowrap bg-[#0a0f1e] py-3 px-2 rounded-lg border border-slate-800">
                     <span className="text-slate-400 font-normal">min(</span>&nbsp;
-                       <span className="text-rose-400">{ST2D[r1][c1][kx][ky]}</span> <span className="text-slate-600">,</span> 
-                       <span className="text-blue-400 ml-1">{ST2D[r1][c2 - Ly + 1][kx][ky]}</span> <span className="text-slate-600">,</span> 
-                       <span className="text-emerald-400 ml-1">{ST2D[r2 - Lx + 1][c1][kx][ky]}</span> <span className="text-slate-600">,</span> 
+                       <span className="text-rose-400">{ST2D[r1][c1][kx][ky]}</span> <span className="text-slate-600">,</span>
+                       <span className="text-blue-400 ml-1">{ST2D[r1][c2 - Ly + 1][kx][ky]}</span> <span className="text-slate-600">,</span>
+                       <span className="text-emerald-400 ml-1">{ST2D[r2 - Lx + 1][c1][kx][ky]}</span> <span className="text-slate-600">,</span>
                        <span className="text-amber-400 ml-1">{ST2D[r2 - Lx + 1][c2 - Ly + 1][kx][ky]}</span>
-                    &nbsp;<span className="text-slate-400 font-normal">)</span> 
+                    &nbsp;<span className="text-slate-400 font-normal">)</span>
                     <span className="ml-3 text-emerald-400">= {Math.min(ST2D[r1][c1][kx][ky], ST2D[r1][c2 - Ly + 1][kx][ky], ST2D[r2 - Lx + 1][c1][kx][ky], ST2D[r2 - Lx + 1][c2 - Ly + 1][kx][ky])}</span>
                   </div>
                </div>
@@ -24654,5 +25084,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 11.09.2026, 20:51:46
+КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 12.09.2026, 18:30:11
 ==========================================================================================================================================
