@@ -75,7 +75,10 @@ def __snapshot(v, depth=0):
     if isinstance(v, (set, frozenset)):
         return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
     if isinstance(v, dict):
-        return {str(k): __snapshot(x, depth + 1) for k, x in list(v.items())[:limit]}
+        # 8×8 Sparse Table содержит 64+49+25+1 = 139 ключей. Старый
+        # предел 80 незаметно обрезал уровни 4×4 и 8×8 в визуализации.
+        dict_limit = 192 if depth == 0 else limit
+        return {str(k): __snapshot(x, depth + 1) for k, x in list(v.items())[:dict_limit]}
     # deque, heap-подобные и другие итерируемые учебные структуры
     if type(v).__name__ == "deque":
         return [__snapshot(x, depth + 1) for x in list(v)[:limit]]
