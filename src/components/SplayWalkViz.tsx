@@ -1,19 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /**
- * Splay на БОЛЬШОМ дереве — пошагово.
+ * Splay на БОЛЬШОМ дереве — по урокам treap-прохода.
  *
- * Проблема, которую решает: на игрушечных A/B/C-схемах zig-zig неотличим от
- * «двух зигов подряд», а мгновенный splay в большом дереве — просто «было →
- * стало». Здесь каждый ОДИНОЧНЫЙ поворот — атомарный шаг: прицел на ребро →
- * поворот → текст, какие рёбра развернулись и какие поддеревья переехали.
- * Порядок поворотов виден явно: Zig-Zig — ВЕРХНЕЕ ребро первым, Zig-Zag —
- * НИЖНЕЕ первым.
+ * Главный принцип: НИКАКИХ «хоп». Каждый одиночный поворот разложен на кадры:
+ *   aim — прицел на тройку g–p–x, назван случай;
+ *   cut — отстёгиваем среднее поддерево β (пунктир, подпись, куда переедет);
+ *   rot — поворот: зелёным подсвечены рёбра, которых не было на прошлом кадре.
+ * Рядом с логом всегда висит врезка «Механика одного поворота» (α/β/γ, до/после).
+ * На каждом кадре — живая автопроверка in-order (сортировка) и счётчик переехавших рёбер.
  *
- * Раскладка — слоты in-order: ключи не двигаются по горизонтали никогда,
- * поворот меняет только глубину. Поэтому «что переехало» читается сразу.
- *
- * Чистые функции (splaySteps, rotateUp, collectEdges) экспортированы для стенда.
+ * Чистые функции (splaySteps, rotateUp, bstInsert, collectEdges) экспортированы для стенда.
  */
 
 export interface SN {
@@ -82,7 +79,7 @@ export function rotateUp(child: SN): void {
   else g.right = child;
 }
 
-/** Рёбра в направленном виде "p→c": для diff между шагами. */
+/** Рёбра в виде "p→c" — для diff между кадрами. */
 export function collectEdges(t: SN | null): string[] {
   const es: string[] = [];
   const walk = (n: SN | null) => {
@@ -102,7 +99,7 @@ const diffEdges = (before: string[], after: string[]): string => {
   const parts: string[] = [];
   for (const a of ad) {
     const [p, c] = a.split("→");
-    if (rm.includes(`${c}→${p}`)) parts.push(`ребро ${p}⇄${c} развернулось: ${c} теперь папа`);
+    if (rm.includes(`${c}→${p}`)) parts.push(`ребро ${p}⇄${c} развернулось: ${c} теперь сверху`);
     else parts.push(`поддерево ${c} переехало к ${p}`);
   }
   return parts.join("; ");
@@ -113,16 +110,18 @@ export interface SplayStep {
   kind: SplayStepKind;
   root: SN | null;
   aimEdge?: [number, number];
-  /** Шаг "cut": ребро, по которому отстёгивается среднее поддерево, и его метка. */
+  /** Кадр cut: ребро, по которому отстёгивается среднее поддерево, и подпись груза. */
   cutEdge?: [number, number];
   cutLabel?: string;
+  /** Куда β переедет: сторона у верхнего узла. */
+  cutDest?: string;
   pathKeys?: number[];
   caseLabel?: string;
   note: string;
   rotCount: number;
 }
 
-/** Полный пошаговый прогон splay(key): спуск → пары (прицел, поворот) → готово. */
+/** Полный пошаговый прогон splay(key): спуск → (прицел → отстёжка → поворот)* → готово. */
 export function splaySteps(
   rootIn: SN | null,
   key: number,
@@ -130,7 +129,8 @@ export function splaySteps(
 ): { steps: SplayStep[]; found: boolean } {
   let root: SN | null = cloneWithParents(rootIn);
   const steps: SplayStep[] = [];
-  if (!root) return { steps: [{ kind: "done", root, note: "Дерево пустое — нечего поднимать.", rotCount: 0 }], found: false };
+  if (!root)
+    return { steps: [{ kind: "done", root: null, note: "Дерево пустое — нечего поднимать.", rotCount: 0 }], found: false };
 
   // --- спуск ---
   let cur: SN | null = root;
@@ -155,7 +155,7 @@ export function splaySteps(
       ? `Вставили ${key} обычным BST-спуском. Теперь поднимаем его в корень.`
       : found
         ? `Спуск по ключу ${key}: путь ${pathKeys.join(" → ")}. Найден — поднимаем его в корень.`
-        : `Ключа ${key} нет. Спуск упёрся в ${last.key} — поднимаем в корень его (так splay ищет: пусто — но дерево стало лучше).`,
+        : `Ключа ${key} нет. Спуск упёрся в ${last.key} — поднимаем его (так splay ищет: ответа нет, но дерево стало лучше).`,
     rotCount: 0,
   });
 
@@ -165,19 +165,28 @@ export function splaySteps(
   const fixRoot = () => {
     while (root && root.parent) root = root.parent;
   };
-  /** Один поворот = два атомарных кадра: cut (что переедет) и rot (стало). */
-  const emitRotation = (child: SN, label: string) => {
+  /** Один поворот = три кадра: aim → cut → rot. */
+  const emitRotation = (child: SN, label: string, aimEdge: [number, number], aimNote: string) => {
+    steps.push({
+      kind: "aim",
+      root: cloneWithParents(root)!,
+      aimEdge,
+      caseLabel: label,
+      note: aimNote,
+      rotCount,
+    });
     const p = child.parent!;
     const mid = p.left === child ? child.right : child.left;
     steps.push({
       kind: "cut",
       root: cloneWithParents(root)!,
       cutEdge: [child.key, mid ? mid.key : child.key],
-      cutLabel: mid ? `поддерево ${mid.key}` : "пустое место",
+      cutLabel: mid ? `β = поддерево ${mid.key}` : "β пусто",
+      cutDest: mid ? (p.left === child ? "справа у p" : "слева у p") : "",
       caseLabel: label,
       note: mid
-        ? `Отстёгиваем среднее поддерево ${mid.key}: оно зажато между ${child.key} (низ) и ${p.key} (верх) и сейчас переедет на свободную сторону к ${p.key}.`
-        : `Среднего поддерева нет: ${child.key} поднимается над ${p.key} без перевозки грузов.`,
+        ? `Отстёгиваем среднее поддерево β = ${mid.key}: оно зажато между x = ${child.key} (снизу) и p = ${p.key} (сверху), диапазон ключей у них общий — после поворота переедет ${p.left === child ? "справа" : "слева"} к ${p.key}.`
+        : `Среднего поддерева нет (β пусто): ${child.key} поднимается над ${p.key} без перевозки грузов.`,
       rotCount,
     });
     const before = collectEdges(root);
@@ -189,40 +198,33 @@ export function splaySteps(
       kind: "rot",
       root: cloneWithParents(root)!,
       caseLabel: label,
-      note: mid
-        ? `Поворот: ${child.key} встал над ${p.key}. Среднее поддерево ${mid.key} переехало от ${child.key} к ${p.key}. ${diff !== `${child.key} теперь папа` ? diff : ""}`.trim()
-        : `Поворот: ${child.key} встал над ${p.key}.`,
+      note: `Поворот: ${child.key} встал над ${p.key}. ${diff}.`,
       rotCount,
     });
   };
+
   while (target.parent) {
     const p = target.parent;
     const g = p.parent;
     if (!g) {
-      steps.push({
-        kind: "aim",
-        root: cloneWithParents(root)!,
-        aimEdge: [p.key, target.key],
-        caseLabel: "Zig",
-        note: `Zig: у ${target.key} нет деда — хватит одного поворота ребра ${p.key}–${target.key}.`,
-        rotCount,
-      });
-      emitRotation(target, "Zig");
+      emitRotation(
+        target,
+        "Zig",
+        [p.key, target.key],
+        `Zig: у ${target.key} нет деда — хватит одного поворота ребра ${p.key}–${target.key}.`,
+      );
       continue;
     }
     const pIsLeft = g.left === p;
     const xIsLeft = p.left === target;
     if (pIsLeft === xIsLeft) {
       const side = pIsLeft ? "оба слева" : "оба справа";
-      steps.push({
-        kind: "aim",
-        root: cloneWithParents(root)!,
-        aimEdge: [g.key, p.key],
-        caseLabel: "Zig-Zig",
-        note: `Zig-Zig (${side}, линия ${g.key}–${p.key}–${target.key}). Главная хитрость: первым крутим ВЕРХНЕЕ ребро ${g.key}–${p.key}, а ${target.key} пока не трогаем.`,
-        rotCount,
-      });
-      emitRotation(p, "Zig-Zig");
+      emitRotation(
+        p,
+        "Zig-Zig",
+        [g.key, p.key],
+        `Zig-Zig (${side}: линия ${g.key}–${p.key}–${target.key}). Первым крутим ВЕРХНЕЕ ребро ${g.key}–${p.key}: ${p.key} поднимается над ${g.key}, а ${target.key} пока не трогаем.`,
+      );
       steps.push({
         kind: "aim",
         root: cloneWithParents(root)!,
@@ -231,18 +233,20 @@ export function splaySteps(
         note: `Теперь обычный зиг: ребро ${target.parent.key}–${target.key}.`,
         rotCount,
       });
-      emitRotation(target, "Zig-Zig");
+      emitRotation(
+        target,
+        "Zig-Zig",
+        [target.parent.key, target.key],
+        `Доводим: ${target.key} над ${target.parent.key}.`,
+      );
     } else {
       const side = `${g.key} → ${pIsLeft ? "влево" : "вправо"} → ${xIsLeft ? "вправо" : "влево"} → ${target.key}`;
-      steps.push({
-        kind: "aim",
-        root: cloneWithParents(root)!,
-        aimEdge: [p.key, target.key],
-        caseLabel: "Zig-Zag",
-        note: `Zig-Zag (змейка: ${side}). Порядок ОБРАТНЫЙ: первым НИЖНЕЕ ребро ${p.key}–${target.key}, дед ${g.key} стоит на месте.`,
-        rotCount,
-      });
-      emitRotation(target, "Zig-Zag");
+      emitRotation(
+        target,
+        "Zig-Zag",
+        [p.key, target.key],
+        `Zig-Zag (змейка: ${side}). Порядок ОБРАТНЫЙ: первым НИЖНЕЕ ребро ${p.key}–${target.key}, дед ${g.key} стоит на месте.`,
+      );
       steps.push({
         kind: "aim",
         root: cloneWithParents(root)!,
@@ -251,7 +255,12 @@ export function splaySteps(
         note: `Второе ребро: ${target.parent.key}–${target.key} — теперь это обычный зиг.`,
         rotCount,
       });
-      emitRotation(target, "Zig-Zag");
+      emitRotation(
+        target,
+        "Zig-Zag",
+        [target.parent.key, target.key],
+        `Доводим: ${target.key} над ${target.parent.key}.`,
+      );
     }
   }
 
@@ -290,15 +299,99 @@ const buildInitial = (): SN => {
 const CODE_LINES = [
   { line: 1, text: "while x has parent:" },
   { line: 2, text: "    p = parent(x); g = parent(p)" },
-  { line: 3, text: "    if g is None:              # Zig" },
+  { line: 3, text: "    if g is None:               # Zig" },
   { line: 4, text: "        rotate(x over p)" },
-  { line: 5, text: "    elif p,g,x на одной линии:  # Zig-Zig" },
-  { line: 6, text: "        rotate(p over g)       # ВЕРХНЕЕ первым" },
+  { line: 5, text: "    elif p,g,x на одной линии:   # Zig-Zig" },
+  { line: 6, text: "        rotate(p over g)        # ВЕРХНЕЕ ребро первым" },
   { line: 7, text: "        rotate(x over p)" },
-  { line: 8, text: "    else:                      # Zig-Zag" },
-  { line: 9, text: "        rotate(x over p)       # НИЖНЕЕ первым" },
+  { line: 8, text: "    else:                       # Zig-Zag" },
+  { line: 9, text: "        rotate(x over p)        # НИЖНЕЕ ребро первым" },
   { line: 10, text: "        rotate(x over g)" },
 ];
+
+/* ------------------------- врезка «механика одного поворота» ------------------------- */
+
+const MechanismInset: React.FC<{ step: SplayStep | null }> = ({ step }) => {
+  const isCut = step?.kind === "cut";
+  const isRot = step?.kind === "rot";
+  return (
+    <div className="bg-slate-950/80 rounded-lg border border-slate-800 p-3">
+      <h4 className="text-xs font-bold text-slate-300 mb-1">🦴 Механика одного поворота</h4>
+      <p className="text-[10px] text-slate-500 mb-2">
+        Как вправление вывиха: одна кость ходит вокруг другой, среднее поддерево β переезжает по кругу.
+      </p>
+      <svg viewBox="0 0 340 190" className="w-full">
+        <g transform="translate(10,6)">
+          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">до</text>
+          <line x1="55" y1="46" x2="30" y2="86" stroke="#64748b" strokeWidth="2" />
+          <line x1="55" y1="46" x2="80" y2="86" stroke="#64748b" strokeWidth="2" />
+          <line x1="30" y1="86" x2="12" y2="126" stroke="#64748b" strokeWidth="2" />
+          <line
+            x1="30" y1="86" x2="48" y2="126"
+            stroke={isCut ? "#f59e0b" : "#64748b"}
+            strokeWidth={isCut ? 3 : 2}
+            strokeDasharray={isCut ? "5,3" : "none"}
+          />
+          <circle cx="55" cy="46" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
+          <text x="55" y="50" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
+          <circle cx="30" cy="86" r="15" fill="#78350f" stroke="#f59e0b" strokeWidth="2.5" />
+          <text x="30" y="90" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
+          <circle cx="12" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="12" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
+          <circle
+            cx="48" cy="126" r="13"
+            fill={isCut ? "#78350f" : "#0f172a"}
+            stroke={isCut ? "#f59e0b" : "#64748b"}
+            strokeWidth={isCut ? 2.5 : 1.5}
+            strokeDasharray={isCut ? "4,3" : "none"}
+          />
+          <text x="48" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
+          <circle cx="80" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="80" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
+          <text x="98" y="92" fill={isCut ? "#f59e0b" : "#64748b"} fontSize="9" fontFamily="monospace">
+            {isCut ? "⌇ β отстёгнута" : "β при x"}
+          </text>
+          <text x="16" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x — снизу, p — сверху</text>
+        </g>
+        <text x="163" y="96" fill="#10b981" fontSize="20" fontWeight="bold">→</text>
+        <g transform="translate(186,6)">
+          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">после</text>
+          <line x1="70" y1="46" x2="45" y2="86" stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 3 : 2} />
+          <line x1="70" y1="46" x2="95" y2="86" stroke="#64748b" strokeWidth="2" />
+          <line x1="45" y1="86" x2="27" y2="126" stroke="#64748b" strokeWidth="2" />
+          <line
+            x1="45" y1="86" x2="63" y2="126"
+            stroke={isRot ? "#10b981" : "#64748b"}
+            strokeWidth={isRot ? 3 : 2}
+          />
+          <circle cx="70" cy="46" r="15" fill="#059669" stroke="#34d399" strokeWidth="2.5" />
+          <text x="70" y="50" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
+          <circle cx="45" cy="86" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
+          <text x="45" y="90" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
+          <circle cx="27" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="27" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
+          <circle
+            cx="63" cy="126" r="13"
+            fill={isRot ? "#78350f" : "#0f172a"}
+            stroke={isRot ? "#10b981" : "#64748b"}
+            strokeWidth={isRot ? 2.5 : 1.5}
+          />
+          <text x="63" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
+          <circle cx="95" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="95" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
+          <text x="112" y="92" fill={isRot ? "#10b981" : "#64748b"} fontSize="9" fontFamily="monospace">
+            {isRot ? "↓ β теперь при p" : "β при p"}
+          </text>
+          <text x="30" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x сверху, β переехала</text>
+        </g>
+      </svg>
+      <p className="text-[10px] text-slate-500 leading-snug">
+        Обход слева-направо α x β p γ не меняется никогда — поэтому дерево остаётся деревом поиска после любого
+        числа поворотов. Единственный, кто меняет хозяина, — β.
+      </p>
+    </div>
+  );
+};
 
 /* ------------------------- рендер ------------------------- */
 
@@ -318,62 +411,6 @@ const layout = (root: SN | null) => {
   };
   walk(root, 0);
   return pos;
-};
-
-/** Врезка «механика одного поворота»: как вправляют вывих — одна кость ходит вокруг другой. */
-const MechanismInset: React.FC<{ step: SplayStep | null }> = ({ step }) => {
-  const isCut = step?.kind === "cut";
-  const isRot = step?.kind === "rot";
-  return (
-    <div className="bg-slate-950/80 rounded-lg border border-slate-800 p-3">
-      <h4 className="text-xs font-bold text-slate-300 mb-1">🦴 Механика одного поворота</h4>
-      <p className="text-[10px] text-slate-500 mb-2">Как вправление вывиха: одна кость ходит вокруг другой, грузы переезжают по кругу.</p>
-      <svg viewBox="0 0 340 190" className="w-full">
-        <g transform="translate(10,6)">
-          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">до</text>
-          <line x1="55" y1="46" x2="30" y2="86" stroke="#64748b" strokeWidth="2" />
-          <line x1="55" y1="46" x2="80" y2="86" stroke="#64748b" strokeWidth="2" />
-          <line x1="30" y1="86" x2="12" y2="126" stroke="#64748b" strokeWidth="2" />
-          <line x1="30" y1="86" x2="48" y2="126" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4,3" />
-          <circle cx="55" cy="46" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
-          <text x="55" y="50" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
-          <circle cx="30" cy="86" r="15" fill="#78350f" stroke="#f59e0b" strokeWidth="2.5" />
-          <text x="30" y="90" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
-          <circle cx="12" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="12" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
-          <circle cx="48" cy="126" r="13" fill={isCut ? "#78350f" : "#0f172a"} stroke={isCut ? "#f59e0b" : "#64748b"} strokeWidth={isCut ? 2.5 : 1.5} strokeDasharray={isCut ? "4,3" : "none"} />
-          <text x="48" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
-          <circle cx="80" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="80" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
-          <text x="98" y="90" fill={isCut ? "#f59e0b" : "#64748b"} fontSize="9" fontFamily="monospace">{isCut ? "⌇ β отстёгивается" : "β"}</text>
-          <text x="14" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x — низ, p — верх</text>
-        </g>
-        <text x="163" y="96" fill="#10b981" fontSize="20" fontWeight="bold">→</text>
-        <g transform="translate(186,6)">
-          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">после</text>
-          <line x1="70" y1="46" x2="45" y2="86" stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 3 : 2} />
-          <line x1="70" y1="46" x2="95" y2="86" stroke="#64748b" strokeWidth="2" />
-          <line x1="45" y1="86" x2="27" y2="126" stroke="#64748b" strokeWidth="2" />
-          <line x1="45" y1="86" x2="63" y2="126" stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 2.5 : 2} />
-          <circle cx="70" cy="46" r="15" fill="#059669" stroke="#34d399" strokeWidth="2.5" />
-          <text x="70" y="50" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
-          <circle cx="45" cy="86" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
-          <text x="45" y="90" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
-          <circle cx="27" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="27" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
-          <circle cx="63" cy="126" r="13" fill={isRot ? "#78350f" : "#0f172a"} stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 2.5 : 1.5} />
-          <text x="63" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
-          <circle cx="95" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="95" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
-          <text x="112" y="90" fill={isRot ? "#10b981" : "#64748b"} fontSize="9" fontFamily="monospace">{isRot ? "↓ β переехало к p" : "β"}</text>
-          <text x="28" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x выше p, β при p</text>
-        </g>
-      </svg>
-      <p className="text-[10px] text-slate-500 leading-snug">
-        Порядок всегда один: отстегнуть β у x → поднять x над p → пристегнуть β к p с другой стороны. Дерево вокруг тройки не трогается.
-      </p>
-    </div>
-  );
 };
 
 const SplayWalkViz: React.FC = () => {
@@ -397,12 +434,11 @@ const SplayWalkViz: React.FC = () => {
     if (!playing || !steps) return;
     if (idx >= steps.length - 1) {
       setPlaying(false);
-      // фиксируем результат в базовом дереве
       baseRef.current = steps[steps.length - 1].root ?? baseRef.current;
       setTreeVers((v) => v + 1);
       return;
     }
-    timer.current = setTimeout(() => setIdx((v) => v + 1), 1100);
+    timer.current = setTimeout(() => setIdx((v) => v + 1), 1300);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
@@ -428,10 +464,14 @@ const SplayWalkViz: React.FC = () => {
   const autoW = Math.max(VIEW_W, ...nodes.map((n) => n.px + 60));
   const autoH = Math.max(300, ...nodes.map((n) => n.py + 60));
 
-  // Шаг "поворот": подсветить рёбра, которых не было на предыдущем шаге
-  // (развернувшиеся и переехавшие поддеревья — то, что обещает текст главы).
+  const dBefore = useMemo(() => (steps ? depthOf(steps[0].root, steps[steps.length - 1].root?.key ?? NaN) : 0), [steps]);
+  const dNow = steps ? depthOf(viewRoot, steps[steps.length - 1].root?.key ?? NaN) : 0;
+  const hBefore = useMemo(() => (steps ? heightOf(steps[0].root) : 0), [steps]);
+  const hNow = heightOf(viewRoot);
+
+  // переехавшие рёбра: разница с предыдущим кадром
   const prevEdgeSet = useMemo(() => {
-    if (!steps || !step || step.kind !== "rot" || idx <= 0) return null;
+    if (!steps || !step || idx <= 0) return null;
     return new Set(collectEdges(steps[idx - 1].root));
   }, [steps, step, idx]);
   const movedCount = useMemo(() => {
@@ -439,10 +479,9 @@ const SplayWalkViz: React.FC = () => {
     return edges.filter((e) => !prevEdgeSet.has(`${e.a}→${e.b}`)).length;
   }, [prevEdgeSet, edges]);
 
-  const dBefore = useMemo(() => (steps ? depthOf(steps[0].root, steps[steps.length - 1].root?.key ?? NaN) : 0), [steps]);
-  const dNow = steps ? depthOf(viewRoot, steps[steps.length - 1].root?.key ?? NaN) : 0;
-  const hBefore = useMemo(() => (steps ? heightOf(steps[0].root) : 0), [steps]);
-  const hNow = heightOf(viewRoot);
+  const ino0 = useMemo(() => (steps ? inorderKeys(steps[0].root).join(",") : ""), [steps]);
+  const inoNow = inorderKeys(viewRoot).join(",");
+  const checkOk = !steps || ino0 === inoNow;
 
   const doInsert = () => {
     const v = parseInt(input, 10);
@@ -457,13 +496,21 @@ const SplayWalkViz: React.FC = () => {
   const stepColor = (k: number): string => {
     if (!step) return "#0f172a";
     if (step.kind === "search" && step.pathKeys?.includes(k)) return "#78350f";
-    if (step.aimEdge && step.aimEdge.includes(k)) return "#78350f";
+    if ((step.kind === "aim" || step.kind === "cut") && (step.aimEdge || step.cutEdge)) {
+      const e = step.aimEdge ?? step.cutEdge!;
+      if (e[0] === k) return "#1e293b";
+      if (e[1] === k) return "#78350f";
+    }
+    if (step.kind === "rot" && step.pathKeys?.includes(k)) return "#1e293b";
     return "#0f172a";
   };
   const strokeColor = (k: number): string => {
     if (!step) return "#64748b";
-    if (step.kind !== "search" && step.pathKeys?.includes(k) && step.kind === "aim") return "#f59e0b";
-    if (step.aimEdge?.includes(k)) return "#f59e0b";
+    if (step.kind === "search" && step.pathKeys?.includes(k)) return "#f59e0b";
+    if ((step.kind === "aim" || step.kind === "cut") && (step.aimEdge || step.cutEdge)) {
+      const e = step.aimEdge ?? step.cutEdge!;
+      if (e.includes(k)) return "#f59e0b";
+    }
     if (step.pathKeys?.includes(k)) return "#38bdf8";
     return "#64748b";
   };
@@ -478,7 +525,7 @@ const SplayWalkViz: React.FC = () => {
           </div>
           <div>
             <h3 className="text-2xl font-bold text-white">Интерактивное Splay-дерево</h3>
-            <p className="text-sm text-indigo-300">Кликни узел — поднимем его в корень, показывая каждый поворот</p>
+            <p className="text-sm text-indigo-300">Кликни узел — поднимем в корень покадрово: прицел → отстёгиваем β → поворот</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -499,12 +546,20 @@ const SplayWalkViz: React.FC = () => {
             placeholder="ключ + Enter"
             className="w-28 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
           />
-          <button onClick={() => { baseRef.current = buildInitial(); setSteps(null); setIdx(0); setPlaying(false); setTreeVers((v) => v + 1); }} className="px-3 py-2 rounded-lg text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white">
+          <button
+            onClick={() => {
+              baseRef.current = buildInitial();
+              setSteps(null);
+              setIdx(0);
+              setPlaying(false);
+              setTreeVers((v) => v + 1);
+            }}
+            className="px-3 py-2 rounded-lg text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white"
+          >
             🔄 Исходное
           </button>
           <button
             onClick={() => {
-              const t = buildInitial();
               const shuffled = [...INITIAL_KEYS].sort(() => Math.random() - 0.5);
               let r: SN | null = null;
               for (const k of shuffled) r = bstInsert(r, k);
@@ -513,7 +568,6 @@ const SplayWalkViz: React.FC = () => {
               setIdx(0);
               setPlaying(false);
               setTreeVers((v) => v + 1);
-              void t;
             }}
             className="px-3 py-2 rounded-lg text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white"
           >
@@ -552,7 +606,7 @@ const SplayWalkViz: React.FC = () => {
       <div className="bg-indigo-950/20 rounded-xl p-4 border border-indigo-500/40 relative min-h-[340px] flex flex-col items-center">
         {!steps && (
           <div className="absolute top-3 left-3 bg-indigo-900/80 text-xs px-3 py-1 rounded-full text-indigo-200 border border-indigo-500 font-bold">
-            Кликни по любому узлу — splay
+            Кликни по любому узлу — splay покадрово
           </div>
         )}
         <svg viewBox={`0 0 ${autoW} ${autoH}`} className="w-full max-h-[400px] mt-4">
@@ -561,30 +615,29 @@ const SplayWalkViz: React.FC = () => {
             const b = pos.get(e.b);
             if (!a || !b) return null;
             const isAim = step?.aimEdge && step.aimEdge.includes(e.a) && step.aimEdge.includes(e.b);
-            const isCutEdge = step?.kind === "cut" && step.cutEdge && step.cutEdge.includes(e.a) && step.cutEdge.includes(e.b) && step.cutEdge[0] !== step.cutEdge[1];
-            const isMoved = !isAim && prevEdgeSet !== null && !prevEdgeSet.has(`${e.a}→${e.b}`);
+            const isCutEdge =
+              step?.kind === "cut" && step.cutEdge && step.cutEdge.includes(e.a) && step.cutEdge.includes(e.b) && step.cutEdge[0] !== step.cutEdge[1];
+            const isMoved = !isAim && !isCutEdge && prevEdgeSet !== null && !prevEdgeSet.has(`${e.a}→${e.b}`);
             return (
               <g key={`e-${e.a}-${e.b}`}>
                 <line
-                  x1={a.px}
-                  y1={a.py}
-                  x2={b.px}
-                  y2={b.py}
+                  x1={a.px} y1={a.py} x2={b.px} y2={b.py}
                   stroke={isAim ? "#f59e0b" : isCutEdge ? "#f59e0b" : isMoved ? "#10b981" : "#475569"}
                   strokeWidth={isAim ? 4 : isCutEdge ? 4 : isMoved ? 3.5 : 2}
-                  strokeDasharray={isAim || isCutEdge ? "6,4" : "none"}
+                  strokeDasharray={isAim ? "6,4" : isCutEdge ? "4,3" : "none"}
                   className="transition-all duration-500"
                 />
                 {isCutEdge && (
-                  <text x={(a.px + b.px) / 2 + 14} y={(a.py + b.py) / 2} fill="#f59e0b" fontSize="11" fontWeight="bold" fontFamily="monospace" className="transition-all duration-500">
-                    ⌇ {step?.cutLabel} (переедет)
+                  <text x={(a.px + b.px) / 2 + 14} y={(a.py + b.py) / 2 + 4} fill="#f59e0b" fontSize="11" fontWeight="bold" fontFamily="monospace" className="transition-all duration-500">
+                    ⌇ {step?.cutLabel} → {step?.cutDest}
                   </text>
                 )}
               </g>
             );
           })}
           {nodes.map((n) => {
-            const isAimNode = step?.aimEdge?.includes(n.key);
+            const aimE = step?.aimEdge ?? (step?.kind === "cut" ? step.cutEdge : undefined);
+            const isAimNode = aimE?.includes(n.key);
             return (
               <g
                 key={`n-${n.key}-${treeVers}`}
@@ -611,22 +664,34 @@ const SplayWalkViz: React.FC = () => {
           })}
         </svg>
 
-        {/* Лог шага + механика */}
+        {/* Лог + механика */}
         <div className="w-full flex flex-col lg:flex-row gap-4 mt-3 items-stretch">
-        <div className="flex-1 bg-slate-950/80 p-4 rounded-lg border border-indigo-500/30 text-sm text-slate-200">
-          <p className="font-semibold text-amber-400 mb-1">
-            {step?.kind === "aim" ? "🎯 Прицел:" : step?.kind === "cut" ? "✂️ Отстёгиваем груз:" : step?.kind === "rot" ? "🔁 Поворот:" : step?.kind === "search" ? "🔍 Спуск:" : "Статус:"}
-          </p>
-          <p className="min-h-[40px] flex items-center">{step ? step.note : "Кликни по узлу или введи ключ — увидишь каждый поворот по отдельности: прицел на ребро, поворот, переехавшие поддеревья."}</p>
-          {steps && step && step.kind !== "search" && (
-            <p className={`text-xs mt-2 ${inorderKeys(step.root).join(",") === inorderKeys(steps[0].root).join(",") ? "text-emerald-400" : "text-rose-400"}`}>
-              {inorderKeys(step.root).join(",") === inorderKeys(steps[0].root).join(",") ? "✅" : "❌"} проверка шага: обход слева-направо (сортировка) не изменился · узлов {inorderKeys(step.root).length}{movedCount > 0 ? ` · переехало рёбер: ${movedCount}` : ""}
+          <div className="flex-1 bg-slate-950/80 p-4 rounded-lg border border-indigo-500/30 text-sm text-slate-200">
+            <p className="font-semibold text-amber-400 mb-1">
+              {step?.kind === "aim"
+                ? "🎯 Прицел:"
+                : step?.kind === "cut"
+                  ? "✂️ Отстёгиваем среднее поддерево:"
+                  : step?.kind === "rot"
+                    ? "🔁 Поворот:"
+                    : step?.kind === "search"
+                      ? "🔍 Спуск:"
+                      : "Статус:"}
             </p>
-          )}
-        </div>
-        <div className="w-full lg:w-[300px] shrink-0">
-          <MechanismInset step={step} />
-        </div>
+            <p className="min-h-[40px] flex items-center">
+              {step ? step.note : "Кликни по узлу или введи ключ — каждый поворот покажу по кадрам: прицел → отстёжка β → поворот. На врезке справа — механика одного поворота."}
+            </p>
+            {steps && step && step.kind !== "search" && (
+              <p className={`text-xs mt-2 ${checkOk ? "text-emerald-400" : "text-rose-400"}`}>
+                {checkOk ? "✅" : "❌"} проверка кадра: обход слева-направо (сортировка) не изменился · узлов{" "}
+                {inorderKeys(viewRoot).length}
+                {movedCount > 0 ? ` · переехало рёбер: ${movedCount} (зелёные)` : ""}
+              </p>
+            )}
+          </div>
+          <div className="w-full lg:w-[300px] shrink-0">
+            <MechanismInset step={step} />
+          </div>
         </div>
       </div>
 
@@ -652,7 +717,7 @@ const SplayWalkViz: React.FC = () => {
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-slate-400">Запусти splay — здесь появится, как изменилась глубина поднятого ключа и высота дерева.</p>
+            <p className="text-xs text-slate-400">Запусти splay — здесь появится, как изменились глубина ключа и высота дерева.</p>
           )}
           <p className="text-xs text-slate-500 mt-3">Одиночный splay может и увеличить высоту — выгода только амортизированная: серия обращений дешевеет.</p>
         </div>
@@ -660,10 +725,12 @@ const SplayWalkViz: React.FC = () => {
           <h4 className="text-sm font-bold text-slate-200 mb-3">📄 Скелет splay</h4>
           <div className="bg-slate-950/80 rounded-lg p-4 border border-slate-800 font-mono text-xs">
             {CODE_LINES.map((l) => {
-              const active =
-                (step?.caseLabel === "Zig" && (l.line === 3 || l.line === 4)) ||
-                (step?.caseLabel === "Zig-Zig" && step.kind === "aim" && idx > 0 && steps?.[idx - 1]?.caseLabel === "Zig-Zig" ? l.line === 7 : step?.caseLabel === "Zig-Zig" && l.line === 6) ||
-                (step?.caseLabel === "Zig-Zag" && step.kind === "aim" && idx > 0 && steps?.[idx - 1]?.caseLabel === "Zig-Zag" ? l.line === 10 : step?.caseLabel === "Zig-Zag" && l.line === 9);
+              const zig = step?.caseLabel === "Zig" && (l.line === 3 || l.line === 4);
+              const zz1 = step?.caseLabel === "Zig-Zig" && step.kind === "cut" && l.line === 6;
+              const zz2 = step?.caseLabel === "Zig-Zig" && step.kind === "cut" && steps?.[idx - 2]?.kind === "cut" && l.line === 7;
+              const za1 = step?.caseLabel === "Zig-Zag" && step.kind === "cut" && l.line === 9;
+              const za2 = step?.caseLabel === "Zig-Zag" && step.kind === "cut" && steps?.[idx - 2]?.kind === "cut" && l.line === 10;
+              const active = zig || zz1 || zz2 || za1 || za2;
               return (
                 <div key={l.line} className={`py-1 px-2 rounded ${active ? "bg-indigo-900/80 text-amber-300 font-bold border-l-4 border-amber-400" : "text-slate-400"}`}>
                   <span className="text-slate-600 select-none inline-block w-6 text-right mr-3">{l.line}</span>
