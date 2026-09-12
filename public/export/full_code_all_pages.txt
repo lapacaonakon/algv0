@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            12.09.2026, 18:46:33
+Дата генерации:            12.09.2026, 19:01:48
 Файлов исходного кода:     83
-Суммарный объём кода:      1.18 MB
+Суммарный объём кода:      1.17 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -2317,7 +2317,7 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/83: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 994 | РАЗМЕР: 81.6 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 817 | РАЗМЕР: 66.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2484,11 +2484,12 @@ def erase(root, key):              # удалить произвольную т�
         </div>
     </div>
 </section>`,
-  },  {
+  },
+  {
     id: "splay-tree",
     title: "4. Splay-дерево",
     type: "html",
-    description: "Дерево поиска, которое чинит само себя прямо во время запросов.",
+    description: "Самонастраивающееся дерево: поднимаем тронутый ключ в корень.",
     category: "Продвинутые структуры",
     content: `
 <section id="splay-tree" class="mb-12 scroll-mt-10">
@@ -2496,105 +2497,60 @@ def erase(root, key):              # удалить произвольную т�
         <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold">Билет 4</span>
         <h2 class="text-2xl sm:text-3xl font-bold text-white">Splay-дерево</h2>
     </div>
-
     <div class="space-y-8">
-
-        <!-- 0. Определение -->
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-blue-400 mb-4">Одной фразой</h3>
-            <div class="bg-slate-900 p-4 rounded-lg mb-6 border border-blue-500/30">
-                <p class="text-lg text-blue-300 italic mb-2 text-center">Строгое правило / Формула:</p>
-                <p class="text-lg sm:text-xl font-mono text-white text-center leading-relaxed">Splay-дерево — это обычное бинарное дерево поиска <span class="text-slate-500">без</span> балансировочных полей.<br>После каждого обращения к узлу v выполняется Splay(v): серия поворотов, которая поднимает v в корень.</p>
-                <p class="text-sm text-slate-400 text-center mt-3">Никаких высот, цветов и приоритетов не хранится. Единственный инструмент — поворот.</p>
-                <p class="text-slate-300 text-sm mt-3"><b class="text-amber-300">Сложность — явно:</b> одна операция — до <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code>; m операций подряд — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(m·log n)</code> всего, т.е. амортизированное <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> на операцию; память — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n)</code> (ключ + 2 ссылки).</p>
+            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
+                <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
+                <p class="text-xl font-mono text-white">Обычное BST без полей балансировки. После каждого обращения — Splay(x): серия поворотов поднимает x в корень. Единственный инструмент — поворот.</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-6">
                 <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
                     <p class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Одна операция</p>
                     <p class="text-white font-bold">может стоить O(n)</p>
-                    <p class="text-slate-400 text-xs mt-1">гарантии на каждый отдельный запрос нет</p>
+                    <p class="text-slate-400 text-xs mt-1">гарантии на отдельный запрос нет</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-emerald-700/60">
                     <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций</p>
                     <p class="text-emerald-300 font-bold">стоят O(m·log n)</p>
-                    <p class="text-slate-400 text-xs mt-1">то есть амортизированное O(log n) на операцию</p>
+                    <p class="text-slate-400 text-xs mt-1">амортизированное O(log n) на операцию</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
                     <p class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Память</p>
-                    <p class="text-white font-bold">O(n), только ключ и 2 ссылки</p>
-                    <p class="text-slate-400 text-xs mt-1">легче, чем AVL или красно-чёрное</p>
+                    <p class="text-white font-bold">O(n): ключ + 2 ссылки</p>
+                    <p class="text-slate-400 text-xs mt-1">легче AVL и красно-чёрного</p>
                 </div>
             </div>
-        </div>
 
-        <!-- 1. Зачем -->
-        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
-            <h3 class="text-lg font-bold text-white mb-3">Шаг 1. От какой боли это лечит</h3>
-            <p class="text-slate-300 text-sm mb-4">В обычном бинарном дереве поиска всё хорошо, пока оно «кустистое». Но стоит вставить ключи по возрастанию — и дерево вырождается в список, а поиск становится O(n):</p>
-            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-slate-300 border border-slate-800 leading-relaxed">вставили 10, 20, 30, 40, 50 подряд:
+            <p class="text-slate-300 text-sm mb-4">От какой боли лечит: вставь ключи по возрастанию — и BST выродится в список, поиск станет O(n). AVL и красно-чёрные выбирают <b>профилактику</b>: хранят высоту/цвет и чинят дерево сразу. Splay выбирает <b>лечение по факту</b>: ничего не хранит, дереву разрешено временно быть кривым — но каждый пройденный путь заодно распрямляется.</p>
 
-  10
-    \\
-     20
-       \\
-        30            высота = 5, поиск 50 = 5 сравнений
-          \\           это уже не дерево, а односвязный список
-           40
-             \\
-              50</pre>
-            <p class="text-slate-300 text-sm mt-4">Есть два способа с этим бороться:</p>
-            <ul class="list-disc list-inside text-slate-300 text-sm space-y-1 mt-2">
-                <li><span class="text-white font-bold">Профилактика.</span> AVL и красно-чёрные деревья хранят в узлах высоту/цвет и после каждой вставки чинят дерево, чтобы оно <em>никогда</em> не становилось кривым. За это платим памятью и кучей случаев в коде.</li>
-                <li><span class="text-white font-bold">Лечение по факту (это и есть splay).</span> Ничего не храним и позволяем дереву временно быть кривым. Но каждый раз, когда мы по нему <em>проходим</em>, мы этот путь заодно и распрямляем. Чем чаще ходишь — тем ровнее становится.</li>
-            </ul>
-        </div>
-
-        <!-- 2. Аналогии -->
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                    📚 Аналогия 1: стопка бумаг на столе
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
+                        📚 Аналогия 1: Стопка бумаг
+                    </div>
+                    <p class="text-slate-300 text-sm">Стопка документов: понадобился лист — вытаскиваешь и, поработав, кладёшь сверху. Сортировку не ведёшь, но через неделю самое нужное само оказывается в верхних сантиметрах, а забытое утонуло. «Взял → положил наверх».</p>
                 </div>
-                <p class="text-slate-300 text-sm">У тебя на столе стопка документов. Понадобился какой-то лист — ты роешься в стопке, вытаскиваешь его и, поработав, кладёшь <span class="text-white font-bold">сверху</span>. Никакой сортировки ты не ведёшь, но через неделю самые нужные бумаги сами собой оказываются в верхних сантиметрах стопки, а всё забытое утонуло вниз. Splay-дерево делает ровно это: «взял → положил наверх».</p>
-            </div>
-            <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                    🛗 Аналогия 2: тропинка через газон
-                </div>
-                <p class="text-slate-300 text-sm">Ты идёшь длинной кривой дорожкой до подъезда. Splay — это как если бы после каждого прохода дорожка сама укорачивалась вдвое: чем чаще ты ходишь, тем короче путь. Первый проход дорогой (шёл по всей кривой), зато он оплачивает все следующие. Пойдёшь один раз в год — сэкономить не выйдет, и это честная слабость структуры.</p>
-            </div>
-        </div>
-
-        <!-- 3. Поворот -->
-        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
-            <h3 class="text-lg font-bold text-white mb-3">Шаг 2. Единственный кирпичик — поворот</h3>
-            <p class="text-slate-300 text-sm mb-4">Поворот меняет местами узел и его родителя. Это <span class="text-white font-bold">одно движение, три перевешенные ссылки</span> и ничего больше:</p>
-            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-slate-300 border border-slate-800 leading-relaxed">        40                          20
-       /  \\      поворот 20        /  \\
-     20    C     ------------&gt;    A    40
-    /  \\         &lt;------------         /  \\
-   A    B          поворот 40         B    C
-
-обход слева направо ДО:     A 20 B 40 C
-обход слева направо ПОСЛЕ:  A 20 B 40 C     ← тот же самый!</pre>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div class="bg-slate-900 rounded-lg p-4 border border-emerald-700/50">
-                    <p class="text-emerald-400 font-bold text-sm mb-1">Что сохраняется</p>
-                    <p class="text-slate-300 text-xs">Порядок ключей слева направо. Поэтому дерево остаётся деревом поиска после любого числа поворотов — сломать его поворотами невозможно.</p>
-                </div>
-                <div class="bg-slate-900 rounded-lg p-4 border border-amber-700/50">
-                    <p class="text-amber-400 font-bold text-sm mb-1">Куда девается «средний» подвес</p>
-                    <p class="text-slate-300 text-xs">Поддерево B висело справа от 20 и слева от 40 — то есть его ключи между 20 и 40. Это одно и то же место, поэтому B просто перевешивается с одного на другое. Только оно и меняет хозяина. Как вправление вывиха: одна кость (x) ходит вокруг другой (p), а «суставной груз» B перетекает с низа на верх — потому между A и B и «ничего не видно» на мгновенных схемах: движение происходит в одной точке, всё остальное стоит.</p>
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
+                        🥾 Аналогия 2: Тропинка через газон
+                    </div>
+                    <p class="text-slate-300 text-sm">Идёшь длинной кривой дорожкой — и после каждого прохода она сама укорачивается примерно вдвое. Первый проход дорогой, зато оплачивает следующие. Раз в год не ходишь — экономии нет; это честная слабость структуры.</p>
                 </div>
             </div>
-        </div>
 
-        <!-- 4. Три случая -->
-        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
-            <h3 class="text-lg font-bold text-white mb-3">Шаг 3. Splay(x) = крутим, пока x не станет корнем</h3>
-            <p class="text-slate-300 text-sm mb-4">Обозначения на всю оставшуюся главу: <span class="font-mono text-indigo-300">x</span> — узел, который поднимаем, <span class="font-mono text-sky-300">p</span> — его родитель, <span class="font-mono text-amber-300">g</span> — дед (родитель родителя). Смотрим на эту тройку и выбираем один из трёх случаев:</p>
+            <h4 class="text-lg font-bold text-white mt-8 mb-3">Единственный кирпичик — поворот</h4>
+            <p class="text-slate-300 text-sm mb-3">Поворот меняет местами узел x и его родителя p. Одно движение, три перевешенные ссылки. Среднее поддерево β (между x и p) — единственный «груз», который меняет хозяина: его диапазон ключей одинаково влезает и под x, и под p.</p>
+            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-slate-300 border border-slate-800 leading-relaxed">        p                    x
+       /  \\      x выше     /  \\
+      x    γ    -------->  α    p
+     / \\     p выше            / \\
+    α    β    <--------       β    γ</pre>
+            <p class="text-slate-300 text-sm mt-3">Обход слева-направо ДО: α, x, β, p, γ. ПОСЛЕ: α, x, β, p, γ — <b>тот же</b>. Поэтому сломать дерево поиска поворотами невозможно в принципе. В симуляторе ниже каждый поворот разложен на кадры, β подсвечивается в момент «отстёжки», а врезка «Механика одного поворота» держит эту схему перед глазами.</p>
 
+            <h4 class="text-lg font-bold text-white mt-8 mb-3">Splay(x): крутим, пока x не станет корнем</h4>
+            <p class="text-slate-300 text-sm mb-3">Смотрим на тройку x (поднимаем), p (родитель), g (дед) и выбираем случай:</p>
             <div class="overflow-x-auto -mx-2 px-2">
                 <table class="w-full text-xs sm:text-sm border-collapse min-w-[520px]">
                     <thead>
@@ -2610,227 +2566,94 @@ def erase(root, key):              # удалить произвольную т�
                             <td class="py-3 pr-3 font-bold text-indigo-300">Zig</td>
                             <td class="py-3 pr-3">деда нет, p — корень</td>
                             <td class="py-3 pr-3">сам x (один поворот)</td>
-                            <td class="py-3">x стал корнем, конец</td>
+                            <td class="py-3">x — корень, конец</td>
                         </tr>
                         <tr class="border-b border-slate-700/60">
                             <td class="py-3 pr-3 font-bold text-indigo-300">Zig-Zig</td>
-                            <td class="py-3 pr-3">x и p — дети с <span class="text-white font-bold">одной</span> стороны (лево-лево или право-право)</td>
-                            <td class="py-3 pr-3"><span class="text-amber-300 font-bold">родителя p</span> вокруг деда, потом x</td>
-                            <td class="py-3">x поднялся на 2 уровня, ветка укоротилась вдвое</td>
+                            <td class="py-3 pr-3">x и p с <span class="text-white font-bold">одной</span> стороны (линия)</td>
+                            <td class="py-3 pr-3"><span class="text-amber-300 font-bold">p вокруг g</span>, потом x</td>
+                            <td class="py-3">ветка укоротилась вдвое</td>
                         </tr>
                         <tr>
                             <td class="py-3 pr-3 font-bold text-indigo-300">Zig-Zag</td>
-                            <td class="py-3 pr-3">x и p — дети с <span class="text-white font-bold">разных</span> сторон («змейка»)</td>
-                            <td class="py-3 pr-3"><span class="text-amber-300 font-bold">сам x</span> вокруг p, потом x вокруг g</td>
+                            <td class="py-3 pr-3">x и p с <span class="text-white font-bold">разных</span> сторон (змейка)</td>
+                            <td class="py-3 pr-3"><span class="text-amber-300 font-bold">x вокруг p</span>, потом x вокруг g</td>
                             <td class="py-3">p и g стали двумя детьми x</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            <p class="text-slate-300 text-sm mt-3">И по кругу: определили случай → 1–2 поворота → x ближе к корню → снова смотрим на тройку. Zig случается только последним.</p>
 
-            <p class="text-slate-300 text-sm mt-4">И так по кругу: определили случай → сделали 1–2 поворота → x поднялся ближе к корню → снова смотрим на тройку. Zig может случиться только один раз — самым последним, если до корня остался ровно один шаг.
+            <div class="bg-rose-950/30 rounded-xl border border-rose-800/60 p-4 mt-6">
+                <p class="text-rose-300 font-bold text-sm mb-2">⚠️ Любимый вопрос на экзамене: Zig-Zig — это НЕ «два раза Zig»</p>
+                <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 leading-relaxed">наивно (x, потом x):   60→40→20 стало 20→40→60 — бамбук просто перевернулся, глубина та же
+Zig-Zig (p, потом x):  60→40→20 стало кустом 20(40(60),…)? нет: 20 сверху, ветка укоротилась ВДВОЕ</pre>
+                <p class="text-slate-300 text-sm mt-3">Мнемоника: <b>линия — крути СВЕРХУ вниз, змейка — СНИЗУ вверх</b>. Вся разница в коде: <code class="bg-slate-950 px-2 py-0.5 rounded font-mono text-xs text-white">rotate(p); rotate(x);</code> против <code class="bg-slate-950 px-2 py-0.5 rounded font-mono text-xs text-white">rotate(x); rotate(x);</code> — одна строчка, а без неё амортизации не будет.</p>
+            </div>
 
-            <div class="text-center my-5 bg-slate-950/70 rounded-xl border border-indigo-500/40 px-4 py-4">
-                <p class="text-xl sm:text-2xl font-bold text-white">ЛИНИЯ → крути <span class="text-amber-300">СВЕРХУ</span> &nbsp;·&nbsp; ЗМЕЙКА → крути <span class="text-amber-300">СНИЗУ</span></p>
-                <p class="text-slate-400 text-xs mt-2">Zig-Zig — линия (лево-лево или право-право). Zig-Zag — змейка. Порядок — всё: он и отличает splay от «просто поворотов».</p>
-            </div></p>
-            <p class="text-slate-400 text-xs mt-3">👇 Ниже на этой странице интерактив на большом дереве (14 узлов): кликни узел — и его подъём в корень разложится на атомарные кадры: <b>прицел на ребро</b> → <b>отстёгиваем среднее поддерево</b> (пунктиром показано, какой груз переедет) → <b>поворот</b> (зелёным горят переехавшие рёбра). Рядом с логом — врезка «Механика одного поворота» (схема p↔x с α/β/γ), а под демо — песочница: подними узел сам по одному повороту за клик, и проверка сверит твой порядок со splay.</p>
+            <p class="text-slate-300 text-sm mt-6">Полный прогон: бамбук 40 → 30 → 20 → 10, ищем 10. Спуск 4 узла, затем Zig-Zig(Zig-Zig) — и дерево из линии высоты 4 стало кустом высоты 3, а 10 — корнем: следующий запрос к ней — ноль сравнений. Мы не только достали ключ, но и <b>починили дерево по пути</b>: все, мимо кого проходили, подтянулись к корню примерно вдвое. Отсюда амортизация: дорогой запрос нельзя пройти много раз подряд — путь кончается, и удешевляется (строго — методом потенциала: сумма log-размеров поддеревьев падает ровно на столько, сколько поворотов заплатили; отсюда же теорема о статической оптимальности — splay не хуже идеального статического дерева под твою последовательность запросов).</p>
+
+            <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-4">
+                <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
+                <p class="text-slate-400 text-sm mb-1">· Zig-Zig ≠ Zig+Zig: порядок (верхнее ребро первым) сплющивает линию вдвое, «два зига» — просто переворот.</p>
+                <p class="text-slate-400 text-sm mb-1">· «При повороте между A и B ничего нет» — есть: среднее поддерево β переезжает от низа к верху; в симуляторе оно подсвечивается в кадре «отстёжка».</p>
+                <p class="text-slate-400 text-sm">· «Splay всегда балансирует» — одиночная операция может УВЕЛИЧИТЬ высоту; гарантия только амортизированная.</p>
+            </div>
+
+            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск/вставка/удаление — амортизированное <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code>; одиночная операция — до <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code>; n вставок подряд — амортизированное <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code>.</p>
+
+            <p class="text-slate-300 text-sm mt-4">Все операции — через один splay: <b>find</b> — спуск + splay найденного (нет ключа — splay последнего на пути); <b>insert</b> — BST-вставка + splay нового; <b>erase</b> — splay удаляемого, корень выкинули, у максимума левой половины не будет правого сына — туда вешаем правую. Сильные стороны: простейший код, минимум памяти, самоподстройка под «горячие» ключи, дешёвые split/merge. Слабые: нет гарантии на отдельную операцию, не годится для реального времени, дерево меняется даже при чтении (плохо для многопоточности).</p>
+
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🔍 Код: rotate + splay + find (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
+# узел: { key, left, right, parent }
+
+def rotate_up(x):                    # x встаёт на место родителя
+    p = x.parent
+    g = p.parent
+    if p.left is x:                  # правый поворот
+        p.left = x.right
+        if x.right: x.right.parent = p
+        x.right = p
+    else:                            # левый (зеркально)
+        p.right = x.left
+        if x.left: x.left.parent = p
+        x.left = p
+    p.parent = x
+    x.parent = g
+    if g:
+        if g.left is p: g.left = x
+        else: g.right = x
+
+def splay(x):                        # поднять x в корень
+    while x.parent:
+        p, g = x.parent, x.parent.parent
+        if g is None:                # ZIG
+            rotate_up(x)
+        elif (g.left is p) == (p.left is x):   # ZIG-ZIG: ВЕРХНЯЯ пара первой
+            rotate_up(p)
+            rotate_up(x)
+        else:                        # ZIG-ZAG: НИЖНЯЯ пара первой
+            rotate_up(x)
+            rotate_up(x)
+    return x
+
+def find(root, key):                 # поиск: спуск + splay ВСЕГДА
+    cur, last = root, None
+    while cur:
+        last = cur
+        if key == cur.key: break
+        cur = cur.left if key &lt; cur.key else cur.right
+    return splay(last) if last else None</pre>
+                    <p class="text-xs text-slate-400">Вся разница между случаями — «rotate(p); rotate(x);» против «rotate(x); rotate(x);». Одна строчка — и вся амортизация.</p>
+                </div>
+            </details>
         </div>
-
-        <!-- 5. Главная ловушка -->
-        <div class="bg-rose-950/30 p-6 rounded-xl border border-rose-800/60">
-            <h3 class="text-lg font-bold text-rose-300 mb-3">⚠️ Шаг 4. Почему Zig-Zig — это НЕ «два раза Zig»</h3>
-            <p class="text-slate-300 text-sm mb-4">Это любимый вопрос на экзамене. Возьмём бамбук 60 → 40 → 20 и поднимем 20 двумя способами.</p>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="bg-slate-950 rounded-lg p-4 border border-rose-800/60">
-                    <p class="text-rose-400 font-bold text-xs uppercase tracking-wider mb-2">❌ Наивно: два раза поднимаем x</p>
-                    <pre class="overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 leading-relaxed">    60          60             20
-    /           /              \\
-  40    →     20        →       60
-  /             \\              /
-20              40           40
-
-было: бамбук влево
-стало: бамбук вправо
-глубина никого не сократилась!</pre>
-                    <p class="text-slate-400 text-xs mt-2">Дерево просто «перевернулось». Следующий запрос снова пройдёт O(n), и никакой амортизации не получится.</p>
-                </div>
-                <div class="bg-slate-950 rounded-lg p-4 border border-emerald-800/60">
-                    <p class="text-emerald-400 font-bold text-xs uppercase tracking-wider mb-2">✅ Zig-Zig: сначала верхняя пара</p>
-                    <pre class="overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 leading-relaxed">    60          40             20
-    /           /  \\           /  \\
-  40    →     20    60   →   A     40
-  /           /                      \\
-20          A                         60
-
-было: линия из 3 узлов
-стало: кустик высоты 2
-глубина ветки упала вдвое!</pre>
-                    <p class="text-slate-400 text-xs mt-2">Тот самый эффект «дорожка укоротилась вдвое». Именно он и даёт O(log n) в среднем.</p>
-                </div>
-            </div>
-            <p class="text-slate-300 text-sm mt-4"><span class="text-white font-bold">Мнемоника:</span> линия (zig-zig) — крути СВЕРХУ вниз, змейка (zig-zag) — крути СНИЗУ вверх.</p>
-        </div>
-
-        <!-- 6. Полный пример -->
-        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
-            <h3 class="text-lg font-bold text-white mb-3">Шаг 5. Полный прогон: ищем 10 в бамбуке</h3>
-            <p class="text-slate-300 text-sm mb-4">Дерево 40 → 30 → 20 → 10 (каждый следующий — левый сын). Ищем 10: спускаемся до него за 3 шага, а потом делаем Splay(10).</p>
-            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 border border-slate-800 leading-relaxed">старт           после Zig-Zig(10)     после Zig-Zig(10)
-                глубина 3 → 1          10 в корне
-
-   40                 30                   10
-   /                 /  \\                   \\
- 30               10     40                  30
- /                  \\                       /  \\
-20                   20                   20    40
-/
-10
-
-итог: было 4 узла в линию (высота 4) → стало высота 3,
-      а сама десятка теперь в корне: следующий запрос к ней = 0 сравнений</pre>
-            <p class="text-slate-300 text-sm mt-4">Обрати внимание: мы не только достали ключ, но и <span class="text-white font-bold">починили дерево по пути</span>. Все узлы, мимо которых мы проходили, тоже стали ближе к корню — примерно вдвое.</p>
-        </div>
-
-        <!-- 7. Амортизация -->
-        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
-            <h3 class="text-lg font-bold text-white mb-3">Шаг 6. Откуда берётся амортизированное O(log n)</h3>
-            <p class="text-slate-300 text-sm mb-3">Строгое доказательство — через метод потенциала: потенциалом считают сумму log(размер поддерева) по всем узлам, и Zig-Zig/Zig-Zag устроены так, что заплаченные повороты компенсируются падением потенциала. На пальцах идея такая:</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                    <p class="text-white font-bold mb-1">Дорогой запрос</p>
-                    <p class="text-slate-400 text-xs">спустились на глубину d — заплатили d</p>
-                </div>
-                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                    <p class="text-white font-bold mb-1">…сам себя чинит</p>
-                    <p class="text-slate-400 text-xs">но заодно укоротил весь этот путь примерно вдвое</p>
-                </div>
-                <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                    <p class="text-white font-bold mb-1">Дважды не разоришься</p>
-                    <p class="text-slate-400 text-xs">длинный путь нельзя пройти много раз подряд — он кончается</p>
-                </div>
-            </div>
-            <p class="text-slate-400 text-xs mt-4">Отсюда же «теорема о статической оптимальности»: на любой фиксированной последовательности запросов splay-дерево не хуже (с точностью до константы), чем идеально подобранное под эту последовательность статическое дерево. Оно как бы само подстраивается под то, что у тебя спрашивают.</p>
-        </div>
-
-        <!-- 8. Операции -->
-        <div class="bg-slate-800/60 p-6 rounded-xl border border-slate-700">
-            <h3 class="text-lg font-bold text-white mb-3">Шаг 7. Все операции — через один Splay</h3>
-            <p class="text-slate-300 text-sm mb-4">Красота структуры в том, что отдельной логики почти нет: сделал Splay — и дальше всё делается в корне.</p>
-            <div class="space-y-2 text-sm">
-                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">find(k)</span> <span class="text-slate-400">— спустились как в обычном дереве поиска, затем Splay(найденного). Если ключа нет — поднимаем последний узел на пути (соседний по значению).</span></div>
-                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">split(k)</span> <span class="text-slate-400">— Splay(k), после чего k в корне: левое поддерево = всё меньше k, правое = всё больше. Просто отрезаем ссылки.</span></div>
-                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">insert(k)</span> <span class="text-slate-400">— split по k, новый узел делаем корнем, а две половинки подвешиваем ему детьми.</span></div>
-                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700"><span class="font-mono text-indigo-300 font-bold">erase(k)</span> <span class="text-slate-400">— Splay(k), выкидываем корень, остаются два дерева L и R. Делаем Splay максимума в L: у него не будет правого сына — туда и вешаем R.</span></div>
-            </div>
-        </div>
-
-        <!-- 9. Код -->
-        <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group">
-            <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors cursor-pointer group-open:border-b border-slate-700/50">
-                💻 Код: rotate + splay + find (нажми, чтобы раскрыть)
-            </summary>
-            <div class="p-5 text-sm text-slate-300 space-y-4">
-                <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800 leading-relaxed">// узел: { key, left, right, parent }
-
-// один поворот: x встаёт на место своего родителя
-function rotate(x) {
-  const p = x.parent, g = p.parent;
-
-  if (p.left === x) {          // правый поворот
-    p.left = x.right;
-    if (x.right) x.right.parent = p;
-    x.right = p;
-  } else {                     // левый поворот (зеркально)
-    p.right = x.left;
-    if (x.left) x.left.parent = p;
-    x.left = p;
-  }
-
-  p.parent = x;                // родитель уехал вниз
-  x.parent = g;                // x занял его место
-  if (g) { if (g.left === p) g.left = x; else g.right = x; }
-}
-
-// поднимаем x в корень
-function splay(x) {
-  while (x.parent) {
-    const p = x.parent, g = p.parent;
-
-    if (!g) {                            // ZIG: деда нет
-      rotate(x);
-    } else if ((g.left === p) === (p.left === x)) {
-      rotate(p);                         // ZIG-ZIG: сначала ВЕРХНЯЯ пара!
-      rotate(x);
-    } else {
-      rotate(x);                         // ZIG-ZAG: сначала НИЖНЯЯ пара
-      rotate(x);
-    }
-  }
-  return x;                              // теперь x — корень
-}
-
-// поиск: спустились и подняли найденное наверх
-function find(root, key) {
-  let cur = root, last = null;
-  while (cur) {
-    last = cur;
-    if (key === cur.key) break;
-    cur = key &lt; cur.key ? cur.left : cur.right;
-  }
-  return last ? splay(last) : null;      // splay делаем ВСЕГДА
-}</pre>
-                <p class="text-xs text-slate-400">Вся разница между тремя случаями — это <span class="font-mono text-white">rotate(p); rotate(x);</span> против <span class="font-mono text-white">rotate(x); rotate(x);</span>. Одна строчка, а без неё структура теряет свою оценку.</p>
-            </div>
-        </details>
-
-        <!-- 10. Плюсы/минусы -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-emerald-950/30 rounded-xl p-5 border border-emerald-800/50">
-                <p class="text-emerald-300 font-bold mb-2">Сильные стороны</p>
-                <ul class="list-disc list-inside text-slate-300 text-sm space-y-1">
-                    <li>Простой код: нет высот, цветов, балансировочных случаев</li>
-                    <li>Меньше памяти, чем у AVL и красно-чёрного</li>
-                    <li>Сам подстраивается под «горячие» ключи (кеш-эффект)</li>
-                    <li>split / merge получаются почти бесплатно</li>
-                </ul>
-            </div>
-            <div class="bg-rose-950/30 rounded-xl p-5 border border-rose-800/50">
-                <p class="text-rose-300 font-bold mb-2">Слабые стороны</p>
-                <ul class="list-disc list-inside text-slate-300 text-sm space-y-1">
-                    <li>Нет гарантии на <em>отдельную</em> операцию — она может стоить O(n)</li>
-                    <li>Не годится для реального времени (медицина, авионика)</li>
-                    <li>Дерево меняется даже при чтении → плохо для многопоточности</li>
-                    <li>Постоянные записи в память при чисто читающей нагрузке</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- 11. Вопросы -->
-        <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group">
-            <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors cursor-pointer group-open:border-b border-slate-700/50">
-                🎓 Вопросы, которые задают на экзамене (сначала ответь сам)
-            </summary>
-            <div class="p-5 text-sm text-slate-300 space-y-4">
-                <div>
-                    <strong class="text-white block mb-1">1. Ищем ключ, которого в дереве нет. Что окажется в корне?</strong>
-                    <p class="text-slate-400">Последний узел, до которого дошёл спуск, — то есть ближайший сосед искомого ключа (предшественник или преемник). Splay делают всегда, даже при неудачном поиске: иначе неудачные поиски по длинной ветке ничего не чинили бы, и амортизация сломалась бы.</p>
-                </div>
-                <div>
-                    <strong class="text-white block mb-1">2. Почему в Zig-Zig первым крутят родителя, а не x?</strong>
-                    <p class="text-slate-400">Потому что только такой порядок укорачивает всю ветку вдвое. Два подъёма самого x просто переворачивают бамбук в другую сторону (см. блок выше) и оценка O(log n) перестаёт работать.</p>
-                </div>
-                <div>
-                    <strong class="text-white block mb-1">3. Какая последовательность запросов «убивает» splay-дерево?</strong>
-                    <p class="text-slate-400">Чередование двух ключей с противоположных концов — минимума и максимума. Каждый Splay вытягивает один из них в корень, превращая дерево в бамбук для другого. Но даже это остаётся O(log n) амортизированно; катастрофа наступает только для <em>одной</em> конкретной операции, которая может обойтись в O(n).</p>
-                </div>
-                <div>
-                    <strong class="text-white block mb-1">4. Чем splay отличается от Treap?</strong>
-                    <p class="text-slate-400">Treap держит баланс случайным приоритетом (в среднем по монетке) и не меняется при чтении. Splay не хранит вообще ничего и держит баланс детерминированно — за счёт того, что перестраивает дерево при каждом обращении.</p>
-                </div>
-            </div>
-        </details>
-
     </div>
 </section>`,
   },
@@ -16590,25 +16413,22 @@ export const SplayRotationsViz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 64/83: src/components/SplayWalkViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 682 | РАЗМЕР: 31.5 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 749 | РАЗМЕР: 32.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /**
- * Splay на БОЛЬШОМ дереве — пошагово.
+ * Splay на БОЛЬШОМ дереве — по урокам treap-прохода.
  *
- * Проблема, которую решает: на игрушечных A/B/C-схемах zig-zig неотличим от
- * «двух зигов подряд», а мгновенный splay в большом дереве — просто «было →
- * стало». Здесь каждый ОДИНОЧНЫЙ поворот — атомарный шаг: прицел на ребро →
- * поворот → текст, какие рёбра развернулись и какие поддеревья переехали.
- * Порядок поворотов виден явно: Zig-Zig — ВЕРХНЕЕ ребро первым, Zig-Zag —
- * НИЖНЕЕ первым.
+ * Главный принцип: НИКАКИХ «хоп». Каждый одиночный поворот разложен на кадры:
+ *   aim — прицел на тройку g–p–x, назван случай;
+ *   cut — отстёгиваем среднее поддерево β (пунктир, подпись, куда переедет);
+ *   rot — поворот: зелёным подсвечены рёбра, которых не было на прошлом кадре.
+ * Рядом с логом всегда висит врезка «Механика одного поворота» (α/β/γ, до/после).
+ * На каждом кадре — живая автопроверка in-order (сортировка) и счётчик переехавших рёбер.
  *
- * Раскладка — слоты in-order: ключи не двигаются по горизонтали никогда,
- * поворот меняет только глубину. Поэтому «что переехало» читается сразу.
- *
- * Чистые функции (splaySteps, rotateUp, collectEdges) экспортированы для стенда.
+ * Чистые функции (splaySteps, rotateUp, bstInsert, collectEdges) экспортированы для стенда.
  */
 
 export interface SN {
@@ -16677,7 +16497,7 @@ export function rotateUp(child: SN): void {
   else g.right = child;
 }
 
-/** Рёбра в направленном виде "p→c": для diff между шагами. */
+/** Рёбра в виде "p→c" — для diff между кадрами. */
 export function collectEdges(t: SN | null): string[] {
   const es: string[] = [];
   const walk = (n: SN | null) => {
@@ -16697,7 +16517,7 @@ const diffEdges = (before: string[], after: string[]): string => {
   const parts: string[] = [];
   for (const a of ad) {
     const [p, c] = a.split("→");
-    if (rm.includes(`${c}→${p}`)) parts.push(`ребро ${p}⇄${c} развернулось: ${c} теперь папа`);
+    if (rm.includes(`${c}→${p}`)) parts.push(`ребро ${p}⇄${c} развернулось: ${c} теперь сверху`);
     else parts.push(`поддерево ${c} переехало к ${p}`);
   }
   return parts.join("; ");
@@ -16708,16 +16528,18 @@ export interface SplayStep {
   kind: SplayStepKind;
   root: SN | null;
   aimEdge?: [number, number];
-  /** Шаг "cut": ребро, по которому отстёгивается среднее поддерево, и его метка. */
+  /** Кадр cut: ребро, по которому отстёгивается среднее поддерево, и подпись груза. */
   cutEdge?: [number, number];
   cutLabel?: string;
+  /** Куда β переедет: сторона у верхнего узла. */
+  cutDest?: string;
   pathKeys?: number[];
   caseLabel?: string;
   note: string;
   rotCount: number;
 }
 
-/** Полный пошаговый прогон splay(key): спуск → пары (прицел, поворот) → готово. */
+/** Полный пошаговый прогон splay(key): спуск → (прицел → отстёжка → поворот)* → готово. */
 export function splaySteps(
   rootIn: SN | null,
   key: number,
@@ -16725,7 +16547,8 @@ export function splaySteps(
 ): { steps: SplayStep[]; found: boolean } {
   let root: SN | null = cloneWithParents(rootIn);
   const steps: SplayStep[] = [];
-  if (!root) return { steps: [{ kind: "done", root, note: "Дерево пустое — нечего поднимать.", rotCount: 0 }], found: false };
+  if (!root)
+    return { steps: [{ kind: "done", root: null, note: "Дерево пустое — нечего поднимать.", rotCount: 0 }], found: false };
 
   // --- спуск ---
   let cur: SN | null = root;
@@ -16750,7 +16573,7 @@ export function splaySteps(
       ? `Вставили ${key} обычным BST-спуском. Теперь поднимаем его в корень.`
       : found
         ? `Спуск по ключу ${key}: путь ${pathKeys.join(" → ")}. Найден — поднимаем его в корень.`
-        : `Ключа ${key} нет. Спуск упёрся в ${last.key} — поднимаем в корень его (так splay ищет: пусто — но дерево стало лучше).`,
+        : `Ключа ${key} нет. Спуск упёрся в ${last.key} — поднимаем его (так splay ищет: ответа нет, но дерево стало лучше).`,
     rotCount: 0,
   });
 
@@ -16760,19 +16583,28 @@ export function splaySteps(
   const fixRoot = () => {
     while (root && root.parent) root = root.parent;
   };
-  /** Один поворот = два атомарных кадра: cut (что переедет) и rot (стало). */
-  const emitRotation = (child: SN, label: string) => {
+  /** Один поворот = три кадра: aim → cut → rot. */
+  const emitRotation = (child: SN, label: string, aimEdge: [number, number], aimNote: string) => {
+    steps.push({
+      kind: "aim",
+      root: cloneWithParents(root)!,
+      aimEdge,
+      caseLabel: label,
+      note: aimNote,
+      rotCount,
+    });
     const p = child.parent!;
     const mid = p.left === child ? child.right : child.left;
     steps.push({
       kind: "cut",
       root: cloneWithParents(root)!,
       cutEdge: [child.key, mid ? mid.key : child.key],
-      cutLabel: mid ? `поддерево ${mid.key}` : "пустое место",
+      cutLabel: mid ? `β = поддерево ${mid.key}` : "β пусто",
+      cutDest: mid ? (p.left === child ? "справа у p" : "слева у p") : "",
       caseLabel: label,
       note: mid
-        ? `Отстёгиваем среднее поддерево ${mid.key}: оно зажато между ${child.key} (низ) и ${p.key} (верх) и сейчас переедет на свободную сторону к ${p.key}.`
-        : `Среднего поддерева нет: ${child.key} поднимается над ${p.key} без перевозки грузов.`,
+        ? `Отстёгиваем среднее поддерево β = ${mid.key}: оно зажато между x = ${child.key} (снизу) и p = ${p.key} (сверху), диапазон ключей у них общий — после поворота переедет ${p.left === child ? "справа" : "слева"} к ${p.key}.`
+        : `Среднего поддерева нет (β пусто): ${child.key} поднимается над ${p.key} без перевозки грузов.`,
       rotCount,
     });
     const before = collectEdges(root);
@@ -16784,40 +16616,33 @@ export function splaySteps(
       kind: "rot",
       root: cloneWithParents(root)!,
       caseLabel: label,
-      note: mid
-        ? `Поворот: ${child.key} встал над ${p.key}. Среднее поддерево ${mid.key} переехало от ${child.key} к ${p.key}. ${diff !== `${child.key} теперь папа` ? diff : ""}`.trim()
-        : `Поворот: ${child.key} встал над ${p.key}.`,
+      note: `Поворот: ${child.key} встал над ${p.key}. ${diff}.`,
       rotCount,
     });
   };
+
   while (target.parent) {
     const p = target.parent;
     const g = p.parent;
     if (!g) {
-      steps.push({
-        kind: "aim",
-        root: cloneWithParents(root)!,
-        aimEdge: [p.key, target.key],
-        caseLabel: "Zig",
-        note: `Zig: у ${target.key} нет деда — хватит одного поворота ребра ${p.key}–${target.key}.`,
-        rotCount,
-      });
-      emitRotation(target, "Zig");
+      emitRotation(
+        target,
+        "Zig",
+        [p.key, target.key],
+        `Zig: у ${target.key} нет деда — хватит одного поворота ребра ${p.key}–${target.key}.`,
+      );
       continue;
     }
     const pIsLeft = g.left === p;
     const xIsLeft = p.left === target;
     if (pIsLeft === xIsLeft) {
       const side = pIsLeft ? "оба слева" : "оба справа";
-      steps.push({
-        kind: "aim",
-        root: cloneWithParents(root)!,
-        aimEdge: [g.key, p.key],
-        caseLabel: "Zig-Zig",
-        note: `Zig-Zig (${side}, линия ${g.key}–${p.key}–${target.key}). Главная хитрость: первым крутим ВЕРХНЕЕ ребро ${g.key}–${p.key}, а ${target.key} пока не трогаем.`,
-        rotCount,
-      });
-      emitRotation(p, "Zig-Zig");
+      emitRotation(
+        p,
+        "Zig-Zig",
+        [g.key, p.key],
+        `Zig-Zig (${side}: линия ${g.key}–${p.key}–${target.key}). Первым крутим ВЕРХНЕЕ ребро ${g.key}–${p.key}: ${p.key} поднимается над ${g.key}, а ${target.key} пока не трогаем.`,
+      );
       steps.push({
         kind: "aim",
         root: cloneWithParents(root)!,
@@ -16826,18 +16651,20 @@ export function splaySteps(
         note: `Теперь обычный зиг: ребро ${target.parent.key}–${target.key}.`,
         rotCount,
       });
-      emitRotation(target, "Zig-Zig");
+      emitRotation(
+        target,
+        "Zig-Zig",
+        [target.parent.key, target.key],
+        `Доводим: ${target.key} над ${target.parent.key}.`,
+      );
     } else {
       const side = `${g.key} → ${pIsLeft ? "влево" : "вправо"} → ${xIsLeft ? "вправо" : "влево"} → ${target.key}`;
-      steps.push({
-        kind: "aim",
-        root: cloneWithParents(root)!,
-        aimEdge: [p.key, target.key],
-        caseLabel: "Zig-Zag",
-        note: `Zig-Zag (змейка: ${side}). Порядок ОБРАТНЫЙ: первым НИЖНЕЕ ребро ${p.key}–${target.key}, дед ${g.key} стоит на месте.`,
-        rotCount,
-      });
-      emitRotation(target, "Zig-Zag");
+      emitRotation(
+        target,
+        "Zig-Zag",
+        [p.key, target.key],
+        `Zig-Zag (змейка: ${side}). Порядок ОБРАТНЫЙ: первым НИЖНЕЕ ребро ${p.key}–${target.key}, дед ${g.key} стоит на месте.`,
+      );
       steps.push({
         kind: "aim",
         root: cloneWithParents(root)!,
@@ -16846,7 +16673,12 @@ export function splaySteps(
         note: `Второе ребро: ${target.parent.key}–${target.key} — теперь это обычный зиг.`,
         rotCount,
       });
-      emitRotation(target, "Zig-Zag");
+      emitRotation(
+        target,
+        "Zig-Zag",
+        [target.parent.key, target.key],
+        `Доводим: ${target.key} над ${target.parent.key}.`,
+      );
     }
   }
 
@@ -16885,15 +16717,99 @@ const buildInitial = (): SN => {
 const CODE_LINES = [
   { line: 1, text: "while x has parent:" },
   { line: 2, text: "    p = parent(x); g = parent(p)" },
-  { line: 3, text: "    if g is None:              # Zig" },
+  { line: 3, text: "    if g is None:               # Zig" },
   { line: 4, text: "        rotate(x over p)" },
-  { line: 5, text: "    elif p,g,x на одной линии:  # Zig-Zig" },
-  { line: 6, text: "        rotate(p over g)       # ВЕРХНЕЕ первым" },
+  { line: 5, text: "    elif p,g,x на одной линии:   # Zig-Zig" },
+  { line: 6, text: "        rotate(p over g)        # ВЕРХНЕЕ ребро первым" },
   { line: 7, text: "        rotate(x over p)" },
-  { line: 8, text: "    else:                      # Zig-Zag" },
-  { line: 9, text: "        rotate(x over p)       # НИЖНЕЕ первым" },
+  { line: 8, text: "    else:                       # Zig-Zag" },
+  { line: 9, text: "        rotate(x over p)        # НИЖНЕЕ ребро первым" },
   { line: 10, text: "        rotate(x over g)" },
 ];
+
+/* ------------------------- врезка «механика одного поворота» ------------------------- */
+
+const MechanismInset: React.FC<{ step: SplayStep | null }> = ({ step }) => {
+  const isCut = step?.kind === "cut";
+  const isRot = step?.kind === "rot";
+  return (
+    <div className="bg-slate-950/80 rounded-lg border border-slate-800 p-3">
+      <h4 className="text-xs font-bold text-slate-300 mb-1">🦴 Механика одного поворота</h4>
+      <p className="text-[10px] text-slate-500 mb-2">
+        Как вправление вывиха: одна кость ходит вокруг другой, среднее поддерево β переезжает по кругу.
+      </p>
+      <svg viewBox="0 0 340 190" className="w-full">
+        <g transform="translate(10,6)">
+          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">до</text>
+          <line x1="55" y1="46" x2="30" y2="86" stroke="#64748b" strokeWidth="2" />
+          <line x1="55" y1="46" x2="80" y2="86" stroke="#64748b" strokeWidth="2" />
+          <line x1="30" y1="86" x2="12" y2="126" stroke="#64748b" strokeWidth="2" />
+          <line
+            x1="30" y1="86" x2="48" y2="126"
+            stroke={isCut ? "#f59e0b" : "#64748b"}
+            strokeWidth={isCut ? 3 : 2}
+            strokeDasharray={isCut ? "5,3" : "none"}
+          />
+          <circle cx="55" cy="46" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
+          <text x="55" y="50" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
+          <circle cx="30" cy="86" r="15" fill="#78350f" stroke="#f59e0b" strokeWidth="2.5" />
+          <text x="30" y="90" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
+          <circle cx="12" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="12" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
+          <circle
+            cx="48" cy="126" r="13"
+            fill={isCut ? "#78350f" : "#0f172a"}
+            stroke={isCut ? "#f59e0b" : "#64748b"}
+            strokeWidth={isCut ? 2.5 : 1.5}
+            strokeDasharray={isCut ? "4,3" : "none"}
+          />
+          <text x="48" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
+          <circle cx="80" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="80" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
+          <text x="98" y="92" fill={isCut ? "#f59e0b" : "#64748b"} fontSize="9" fontFamily="monospace">
+            {isCut ? "⌇ β отстёгнута" : "β при x"}
+          </text>
+          <text x="16" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x — снизу, p — сверху</text>
+        </g>
+        <text x="163" y="96" fill="#10b981" fontSize="20" fontWeight="bold">→</text>
+        <g transform="translate(186,6)">
+          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">после</text>
+          <line x1="70" y1="46" x2="45" y2="86" stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 3 : 2} />
+          <line x1="70" y1="46" x2="95" y2="86" stroke="#64748b" strokeWidth="2" />
+          <line x1="45" y1="86" x2="27" y2="126" stroke="#64748b" strokeWidth="2" />
+          <line
+            x1="45" y1="86" x2="63" y2="126"
+            stroke={isRot ? "#10b981" : "#64748b"}
+            strokeWidth={isRot ? 3 : 2}
+          />
+          <circle cx="70" cy="46" r="15" fill="#059669" stroke="#34d399" strokeWidth="2.5" />
+          <text x="70" y="50" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
+          <circle cx="45" cy="86" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
+          <text x="45" y="90" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
+          <circle cx="27" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="27" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
+          <circle
+            cx="63" cy="126" r="13"
+            fill={isRot ? "#78350f" : "#0f172a"}
+            stroke={isRot ? "#10b981" : "#64748b"}
+            strokeWidth={isRot ? 2.5 : 1.5}
+          />
+          <text x="63" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
+          <circle cx="95" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+          <text x="95" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
+          <text x="112" y="92" fill={isRot ? "#10b981" : "#64748b"} fontSize="9" fontFamily="monospace">
+            {isRot ? "↓ β теперь при p" : "β при p"}
+          </text>
+          <text x="30" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x сверху, β переехала</text>
+        </g>
+      </svg>
+      <p className="text-[10px] text-slate-500 leading-snug">
+        Обход слева-направо α x β p γ не меняется никогда — поэтому дерево остаётся деревом поиска после любого
+        числа поворотов. Единственный, кто меняет хозяина, — β.
+      </p>
+    </div>
+  );
+};
 
 /* ------------------------- рендер ------------------------- */
 
@@ -16913,62 +16829,6 @@ const layout = (root: SN | null) => {
   };
   walk(root, 0);
   return pos;
-};
-
-/** Врезка «механика одного поворота»: как вправляют вывих — одна кость ходит вокруг другой. */
-const MechanismInset: React.FC<{ step: SplayStep | null }> = ({ step }) => {
-  const isCut = step?.kind === "cut";
-  const isRot = step?.kind === "rot";
-  return (
-    <div className="bg-slate-950/80 rounded-lg border border-slate-800 p-3">
-      <h4 className="text-xs font-bold text-slate-300 mb-1">🦴 Механика одного поворота</h4>
-      <p className="text-[10px] text-slate-500 mb-2">Как вправление вывиха: одна кость ходит вокруг другой, грузы переезжают по кругу.</p>
-      <svg viewBox="0 0 340 190" className="w-full">
-        <g transform="translate(10,6)">
-          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">до</text>
-          <line x1="55" y1="46" x2="30" y2="86" stroke="#64748b" strokeWidth="2" />
-          <line x1="55" y1="46" x2="80" y2="86" stroke="#64748b" strokeWidth="2" />
-          <line x1="30" y1="86" x2="12" y2="126" stroke="#64748b" strokeWidth="2" />
-          <line x1="30" y1="86" x2="48" y2="126" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4,3" />
-          <circle cx="55" cy="46" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
-          <text x="55" y="50" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
-          <circle cx="30" cy="86" r="15" fill="#78350f" stroke="#f59e0b" strokeWidth="2.5" />
-          <text x="30" y="90" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
-          <circle cx="12" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="12" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
-          <circle cx="48" cy="126" r="13" fill={isCut ? "#78350f" : "#0f172a"} stroke={isCut ? "#f59e0b" : "#64748b"} strokeWidth={isCut ? 2.5 : 1.5} strokeDasharray={isCut ? "4,3" : "none"} />
-          <text x="48" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
-          <circle cx="80" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="80" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
-          <text x="98" y="90" fill={isCut ? "#f59e0b" : "#64748b"} fontSize="9" fontFamily="monospace">{isCut ? "⌇ β отстёгивается" : "β"}</text>
-          <text x="14" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x — низ, p — верх</text>
-        </g>
-        <text x="163" y="96" fill="#10b981" fontSize="20" fontWeight="bold">→</text>
-        <g transform="translate(186,6)">
-          <text y="10" fill="#94a3b8" fontSize="11" fontFamily="monospace">после</text>
-          <line x1="70" y1="46" x2="45" y2="86" stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 3 : 2} />
-          <line x1="70" y1="46" x2="95" y2="86" stroke="#64748b" strokeWidth="2" />
-          <line x1="45" y1="86" x2="27" y2="126" stroke="#64748b" strokeWidth="2" />
-          <line x1="45" y1="86" x2="63" y2="126" stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 2.5 : 2} />
-          <circle cx="70" cy="46" r="15" fill="#059669" stroke="#34d399" strokeWidth="2.5" />
-          <text x="70" y="50" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold" fontFamily="monospace">x</text>
-          <circle cx="45" cy="86" r="15" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
-          <text x="45" y="90" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="bold" fontFamily="monospace">p</text>
-          <circle cx="27" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="27" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">α</text>
-          <circle cx="63" cy="126" r="13" fill={isRot ? "#78350f" : "#0f172a"} stroke={isRot ? "#10b981" : "#64748b"} strokeWidth={isRot ? 2.5 : 1.5} />
-          <text x="63" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">β</text>
-          <circle cx="95" cy="126" r="13" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
-          <text x="95" y="130" textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="monospace">γ</text>
-          <text x="112" y="90" fill={isRot ? "#10b981" : "#64748b"} fontSize="9" fontFamily="monospace">{isRot ? "↓ β переехало к p" : "β"}</text>
-          <text x="28" y="160" fill="#64748b" fontSize="9" fontFamily="monospace">x выше p, β при p</text>
-        </g>
-      </svg>
-      <p className="text-[10px] text-slate-500 leading-snug">
-        Порядок всегда один: отстегнуть β у x → поднять x над p → пристегнуть β к p с другой стороны. Дерево вокруг тройки не трогается.
-      </p>
-    </div>
-  );
 };
 
 const SplayWalkViz: React.FC = () => {
@@ -16992,12 +16852,11 @@ const SplayWalkViz: React.FC = () => {
     if (!playing || !steps) return;
     if (idx >= steps.length - 1) {
       setPlaying(false);
-      // фиксируем результат в базовом дереве
       baseRef.current = steps[steps.length - 1].root ?? baseRef.current;
       setTreeVers((v) => v + 1);
       return;
     }
-    timer.current = setTimeout(() => setIdx((v) => v + 1), 1100);
+    timer.current = setTimeout(() => setIdx((v) => v + 1), 1300);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
@@ -17023,10 +16882,14 @@ const SplayWalkViz: React.FC = () => {
   const autoW = Math.max(VIEW_W, ...nodes.map((n) => n.px + 60));
   const autoH = Math.max(300, ...nodes.map((n) => n.py + 60));
 
-  // Шаг "поворот": подсветить рёбра, которых не было на предыдущем шаге
-  // (развернувшиеся и переехавшие поддеревья — то, что обещает текст главы).
+  const dBefore = useMemo(() => (steps ? depthOf(steps[0].root, steps[steps.length - 1].root?.key ?? NaN) : 0), [steps]);
+  const dNow = steps ? depthOf(viewRoot, steps[steps.length - 1].root?.key ?? NaN) : 0;
+  const hBefore = useMemo(() => (steps ? heightOf(steps[0].root) : 0), [steps]);
+  const hNow = heightOf(viewRoot);
+
+  // переехавшие рёбра: разница с предыдущим кадром
   const prevEdgeSet = useMemo(() => {
-    if (!steps || !step || step.kind !== "rot" || idx <= 0) return null;
+    if (!steps || !step || idx <= 0) return null;
     return new Set(collectEdges(steps[idx - 1].root));
   }, [steps, step, idx]);
   const movedCount = useMemo(() => {
@@ -17034,10 +16897,9 @@ const SplayWalkViz: React.FC = () => {
     return edges.filter((e) => !prevEdgeSet.has(`${e.a}→${e.b}`)).length;
   }, [prevEdgeSet, edges]);
 
-  const dBefore = useMemo(() => (steps ? depthOf(steps[0].root, steps[steps.length - 1].root?.key ?? NaN) : 0), [steps]);
-  const dNow = steps ? depthOf(viewRoot, steps[steps.length - 1].root?.key ?? NaN) : 0;
-  const hBefore = useMemo(() => (steps ? heightOf(steps[0].root) : 0), [steps]);
-  const hNow = heightOf(viewRoot);
+  const ino0 = useMemo(() => (steps ? inorderKeys(steps[0].root).join(",") : ""), [steps]);
+  const inoNow = inorderKeys(viewRoot).join(",");
+  const checkOk = !steps || ino0 === inoNow;
 
   const doInsert = () => {
     const v = parseInt(input, 10);
@@ -17052,13 +16914,21 @@ const SplayWalkViz: React.FC = () => {
   const stepColor = (k: number): string => {
     if (!step) return "#0f172a";
     if (step.kind === "search" && step.pathKeys?.includes(k)) return "#78350f";
-    if (step.aimEdge && step.aimEdge.includes(k)) return "#78350f";
+    if ((step.kind === "aim" || step.kind === "cut") && (step.aimEdge || step.cutEdge)) {
+      const e = step.aimEdge ?? step.cutEdge!;
+      if (e[0] === k) return "#1e293b";
+      if (e[1] === k) return "#78350f";
+    }
+    if (step.kind === "rot" && step.pathKeys?.includes(k)) return "#1e293b";
     return "#0f172a";
   };
   const strokeColor = (k: number): string => {
     if (!step) return "#64748b";
-    if (step.kind !== "search" && step.pathKeys?.includes(k) && step.kind === "aim") return "#f59e0b";
-    if (step.aimEdge?.includes(k)) return "#f59e0b";
+    if (step.kind === "search" && step.pathKeys?.includes(k)) return "#f59e0b";
+    if ((step.kind === "aim" || step.kind === "cut") && (step.aimEdge || step.cutEdge)) {
+      const e = step.aimEdge ?? step.cutEdge!;
+      if (e.includes(k)) return "#f59e0b";
+    }
     if (step.pathKeys?.includes(k)) return "#38bdf8";
     return "#64748b";
   };
@@ -17073,7 +16943,7 @@ const SplayWalkViz: React.FC = () => {
           </div>
           <div>
             <h3 className="text-2xl font-bold text-white">Интерактивное Splay-дерево</h3>
-            <p className="text-sm text-indigo-300">Кликни узел — поднимем его в корень, показывая каждый поворот</p>
+            <p className="text-sm text-indigo-300">Кликни узел — поднимем в корень покадрово: прицел → отстёгиваем β → поворот</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -17094,12 +16964,20 @@ const SplayWalkViz: React.FC = () => {
             placeholder="ключ + Enter"
             className="w-28 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
           />
-          <button onClick={() => { baseRef.current = buildInitial(); setSteps(null); setIdx(0); setPlaying(false); setTreeVers((v) => v + 1); }} className="px-3 py-2 rounded-lg text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white">
+          <button
+            onClick={() => {
+              baseRef.current = buildInitial();
+              setSteps(null);
+              setIdx(0);
+              setPlaying(false);
+              setTreeVers((v) => v + 1);
+            }}
+            className="px-3 py-2 rounded-lg text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white"
+          >
             🔄 Исходное
           </button>
           <button
             onClick={() => {
-              const t = buildInitial();
               const shuffled = [...INITIAL_KEYS].sort(() => Math.random() - 0.5);
               let r: SN | null = null;
               for (const k of shuffled) r = bstInsert(r, k);
@@ -17108,7 +16986,6 @@ const SplayWalkViz: React.FC = () => {
               setIdx(0);
               setPlaying(false);
               setTreeVers((v) => v + 1);
-              void t;
             }}
             className="px-3 py-2 rounded-lg text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white"
           >
@@ -17147,7 +17024,7 @@ const SplayWalkViz: React.FC = () => {
       <div className="bg-indigo-950/20 rounded-xl p-4 border border-indigo-500/40 relative min-h-[340px] flex flex-col items-center">
         {!steps && (
           <div className="absolute top-3 left-3 bg-indigo-900/80 text-xs px-3 py-1 rounded-full text-indigo-200 border border-indigo-500 font-bold">
-            Кликни по любому узлу — splay
+            Кликни по любому узлу — splay покадрово
           </div>
         )}
         <svg viewBox={`0 0 ${autoW} ${autoH}`} className="w-full max-h-[400px] mt-4">
@@ -17156,30 +17033,29 @@ const SplayWalkViz: React.FC = () => {
             const b = pos.get(e.b);
             if (!a || !b) return null;
             const isAim = step?.aimEdge && step.aimEdge.includes(e.a) && step.aimEdge.includes(e.b);
-            const isCutEdge = step?.kind === "cut" && step.cutEdge && step.cutEdge.includes(e.a) && step.cutEdge.includes(e.b) && step.cutEdge[0] !== step.cutEdge[1];
-            const isMoved = !isAim && prevEdgeSet !== null && !prevEdgeSet.has(`${e.a}→${e.b}`);
+            const isCutEdge =
+              step?.kind === "cut" && step.cutEdge && step.cutEdge.includes(e.a) && step.cutEdge.includes(e.b) && step.cutEdge[0] !== step.cutEdge[1];
+            const isMoved = !isAim && !isCutEdge && prevEdgeSet !== null && !prevEdgeSet.has(`${e.a}→${e.b}`);
             return (
               <g key={`e-${e.a}-${e.b}`}>
                 <line
-                  x1={a.px}
-                  y1={a.py}
-                  x2={b.px}
-                  y2={b.py}
+                  x1={a.px} y1={a.py} x2={b.px} y2={b.py}
                   stroke={isAim ? "#f59e0b" : isCutEdge ? "#f59e0b" : isMoved ? "#10b981" : "#475569"}
                   strokeWidth={isAim ? 4 : isCutEdge ? 4 : isMoved ? 3.5 : 2}
-                  strokeDasharray={isAim || isCutEdge ? "6,4" : "none"}
+                  strokeDasharray={isAim ? "6,4" : isCutEdge ? "4,3" : "none"}
                   className="transition-all duration-500"
                 />
                 {isCutEdge && (
-                  <text x={(a.px + b.px) / 2 + 14} y={(a.py + b.py) / 2} fill="#f59e0b" fontSize="11" fontWeight="bold" fontFamily="monospace" className="transition-all duration-500">
-                    ⌇ {step?.cutLabel} (переедет)
+                  <text x={(a.px + b.px) / 2 + 14} y={(a.py + b.py) / 2 + 4} fill="#f59e0b" fontSize="11" fontWeight="bold" fontFamily="monospace" className="transition-all duration-500">
+                    ⌇ {step?.cutLabel} → {step?.cutDest}
                   </text>
                 )}
               </g>
             );
           })}
           {nodes.map((n) => {
-            const isAimNode = step?.aimEdge?.includes(n.key);
+            const aimE = step?.aimEdge ?? (step?.kind === "cut" ? step.cutEdge : undefined);
+            const isAimNode = aimE?.includes(n.key);
             return (
               <g
                 key={`n-${n.key}-${treeVers}`}
@@ -17206,22 +17082,34 @@ const SplayWalkViz: React.FC = () => {
           })}
         </svg>
 
-        {/* Лог шага + механика */}
+        {/* Лог + механика */}
         <div className="w-full flex flex-col lg:flex-row gap-4 mt-3 items-stretch">
-        <div className="flex-1 bg-slate-950/80 p-4 rounded-lg border border-indigo-500/30 text-sm text-slate-200">
-          <p className="font-semibold text-amber-400 mb-1">
-            {step?.kind === "aim" ? "🎯 Прицел:" : step?.kind === "cut" ? "✂️ Отстёгиваем груз:" : step?.kind === "rot" ? "🔁 Поворот:" : step?.kind === "search" ? "🔍 Спуск:" : "Статус:"}
-          </p>
-          <p className="min-h-[40px] flex items-center">{step ? step.note : "Кликни по узлу или введи ключ — увидишь каждый поворот по отдельности: прицел на ребро, поворот, переехавшие поддеревья."}</p>
-          {steps && step && step.kind !== "search" && (
-            <p className={`text-xs mt-2 ${inorderKeys(step.root).join(",") === inorderKeys(steps[0].root).join(",") ? "text-emerald-400" : "text-rose-400"}`}>
-              {inorderKeys(step.root).join(",") === inorderKeys(steps[0].root).join(",") ? "✅" : "❌"} проверка шага: обход слева-направо (сортировка) не изменился · узлов {inorderKeys(step.root).length}{movedCount > 0 ? ` · переехало рёбер: ${movedCount}` : ""}
+          <div className="flex-1 bg-slate-950/80 p-4 rounded-lg border border-indigo-500/30 text-sm text-slate-200">
+            <p className="font-semibold text-amber-400 mb-1">
+              {step?.kind === "aim"
+                ? "🎯 Прицел:"
+                : step?.kind === "cut"
+                  ? "✂️ Отстёгиваем среднее поддерево:"
+                  : step?.kind === "rot"
+                    ? "🔁 Поворот:"
+                    : step?.kind === "search"
+                      ? "🔍 Спуск:"
+                      : "Статус:"}
             </p>
-          )}
-        </div>
-        <div className="w-full lg:w-[300px] shrink-0">
-          <MechanismInset step={step} />
-        </div>
+            <p className="min-h-[40px] flex items-center">
+              {step ? step.note : "Кликни по узлу или введи ключ — каждый поворот покажу по кадрам: прицел → отстёжка β → поворот. На врезке справа — механика одного поворота."}
+            </p>
+            {steps && step && step.kind !== "search" && (
+              <p className={`text-xs mt-2 ${checkOk ? "text-emerald-400" : "text-rose-400"}`}>
+                {checkOk ? "✅" : "❌"} проверка кадра: обход слева-направо (сортировка) не изменился · узлов{" "}
+                {inorderKeys(viewRoot).length}
+                {movedCount > 0 ? ` · переехало рёбер: ${movedCount} (зелёные)` : ""}
+              </p>
+            )}
+          </div>
+          <div className="w-full lg:w-[300px] shrink-0">
+            <MechanismInset step={step} />
+          </div>
         </div>
       </div>
 
@@ -17247,7 +17135,7 @@ const SplayWalkViz: React.FC = () => {
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-slate-400">Запусти splay — здесь появится, как изменилась глубина поднятого ключа и высота дерева.</p>
+            <p className="text-xs text-slate-400">Запусти splay — здесь появится, как изменились глубина ключа и высота дерева.</p>
           )}
           <p className="text-xs text-slate-500 mt-3">Одиночный splay может и увеличить высоту — выгода только амортизированная: серия обращений дешевеет.</p>
         </div>
@@ -17255,10 +17143,12 @@ const SplayWalkViz: React.FC = () => {
           <h4 className="text-sm font-bold text-slate-200 mb-3">📄 Скелет splay</h4>
           <div className="bg-slate-950/80 rounded-lg p-4 border border-slate-800 font-mono text-xs">
             {CODE_LINES.map((l) => {
-              const active =
-                (step?.caseLabel === "Zig" && (l.line === 3 || l.line === 4)) ||
-                (step?.caseLabel === "Zig-Zig" && step.kind === "aim" && idx > 0 && steps?.[idx - 1]?.caseLabel === "Zig-Zig" ? l.line === 7 : step?.caseLabel === "Zig-Zig" && l.line === 6) ||
-                (step?.caseLabel === "Zig-Zag" && step.kind === "aim" && idx > 0 && steps?.[idx - 1]?.caseLabel === "Zig-Zag" ? l.line === 10 : step?.caseLabel === "Zig-Zag" && l.line === 9);
+              const zig = step?.caseLabel === "Zig" && (l.line === 3 || l.line === 4);
+              const zz1 = step?.caseLabel === "Zig-Zig" && step.kind === "cut" && l.line === 6;
+              const zz2 = step?.caseLabel === "Zig-Zig" && step.kind === "cut" && steps?.[idx - 2]?.kind === "cut" && l.line === 7;
+              const za1 = step?.caseLabel === "Zig-Zag" && step.kind === "cut" && l.line === 9;
+              const za2 = step?.caseLabel === "Zig-Zag" && step.kind === "cut" && steps?.[idx - 2]?.kind === "cut" && l.line === 10;
+              const active = zig || zz1 || zz2 || za1 || za2;
               return (
                 <div key={l.line} className={`py-1 px-2 rounded ${active ? "bg-indigo-900/80 text-amber-300 font-bold border-l-4 border-amber-400" : "text-slate-400"}`}>
                   <span className="text-slate-600 select-none inline-block w-6 text-right mr-3">{l.line}</span>
@@ -24013,5 +23903,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 83 файлов • сгенерировано 12.09.2026, 18:46:33
+КОНЕЦ ДОКУМЕНТА • 83 файлов • сгенерировано 12.09.2026, 19:01:48
 ==========================================================================================================================================
