@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            12.09.2026, 11:20:02
+Дата генерации:            12.09.2026, 11:28:14
 Файлов исходного кода:     82
-Суммарный объём кода:      1.16 MB
+Суммарный объём кода:      1.17 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -2316,7 +2316,7 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/82: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 989 | РАЗМЕР: 78.7 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 989 | РАЗМЕР: 78.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2391,7 +2391,7 @@ int minimum = min(ans1, ans2);</pre>
                 <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Пара — точка на декартовой плоскости, отсюда и название. Два базовых метода: Split и Merge.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mb-4">Построение видно глазами: точки приходят <b>как попало</b> → сортировка по y (quicksort платит ≈ n·log n сравнений, counting по маленьким целым y — O(n) без сравнений: разница есть, дерево получится одно) → каждая точка вставляется спуском от корня: x ≤ узла — влево, иначе вправо. Порядок рисования линий не важен: точки прибиты, дерево единственно. Весь процесс — в симуляторе под текстом: <b>Собрать</b> (сортировка на выбор, свои точки, чек-лист ✅), <b>Split / Merge / Erase</b> по шагам, разборы граблей <b>«Миф 2k/2k+1»</b> и <b>«Поиск ≠ сортировка»</b>.</p>
+            <p class="text-slate-300 text-sm mb-4">Построение видно глазами: точки приходят <b>как попало</b> → сортировка по y (quicksort платит ≈ n·log n сравнений, counting по маленьким целым y — O(n) без сравнений: разница есть, дерево получится одно) → каждая точка вставляется спуском от корня: x ≤ узла — влево, иначе вправо. Порядок рисования линий не важен: точки прибиты, дерево единственно. Весь процесс — в симуляторе под текстом: <b>Собрать</b> (сортировка на выбор, свои точки, чек-лист ✅), <b>Split / Merge / Erase</b> по шагам, разборы граблей <b>«Миф 2k/2k+1»</b> и <b>«Поиск ≠ сортировка»</b>. Или включи <b>Игру 🖱️</b>: соедини точки сам, а судья-инварианты объяснит каждый запрещённый ход.</p>
 
             <div class="text-center my-6">
                 <p class="text-slate-400 text-xs uppercase tracking-[0.3em]">малый x — огромный y</p>
@@ -18040,7 +18040,7 @@ export const TopologicalSortViz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 67/82: src/components/TreapBuildViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1201 | РАЗМЕР: 61.8 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1380 | РАЗМЕР: 72.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -18231,10 +18231,8 @@ const treeEdges = (root: TNode | null): { from: NodeId; to: NodeId }[] => {
   const es: { from: NodeId; to: NodeId }[] = [];
   const walk = (n: TNode | null) => {
     if (!n) return;
-    if (n.left) es.push({ from: n.id, to: n.left.id });
-    if (n.right) es.push({ from: n.id, to: n.right.id });
-    walk(n.left);
-    walk(n.right);
+    if (n.left) { es.push({ from: n.id, to: n.left.id }); walk(n.left); }
+    if (n.right) { es.push({ from: n.id, to: n.right.id }); walk(n.right); }
   };
   walk(root);
   return es;
@@ -18388,6 +18386,85 @@ const Plane: React.FC<PlaneProps> = ({ points, drawnEdges, pending, interactive,
   );
 };
 
+
+/* ================= ИГРА: соединение мышкой ================= */
+
+export type GEdge = { a: Pair; b: Pair }; // a — родитель (больший y)
+
+export const CANON_GAME: GEdge[] = (() => {
+  const es: GEdge[] = [];
+  const walk = (n: TNode | null) => {
+    if (!n) return;
+    if (n.left) { es.push({ a: { key: n.key, grade: n.grade }, b: { key: n.left.key, grade: n.left.grade } }); walk(n.left); }
+    if (n.right) { es.push({ a: { key: n.key, grade: n.grade }, b: { key: n.right.key, grade: n.right.grade } }); walk(n.right); }
+  };
+  walk(buildTree(POINTS));
+  return es;
+})();
+
+const sameP = (p: Pair, q: Pair) => p.key === q.key && p.grade === q.grade;
+const gpid = (p: Pair) => `${p.key}:${p.grade}`;
+
+/** Цепочка родителей от точки вверх. */
+const parentOf = (edges: GEdge[], id: string): GEdge | undefined =>
+  edges.find((e) => gpid(e.b) === id);
+const reaches = (edges: GEdge[], from: Pair, target: Pair): boolean => {
+  let cur: Pair | undefined = from;
+  const seen = new Set<string>();
+  while (cur) {
+    if (sameP(cur, target)) return true;
+    if (seen.has(gpid(cur))) return false;
+    seen.add(gpid(cur));
+    cur = parentOf(edges, gpid(cur))?.a;
+  }
+  return false;
+};
+
+/** Проверка BST леса: у узла ≤1 ребёнка слева и ≤1 справа, ключи в границах. */
+export function forestIsBst(edges: GEdge[], all: Pair[]): boolean {
+  const kids = new Map<string, Pair[]>();
+  for (const e of edges) kids.set(gpid(e.a), [...(kids.get(gpid(e.a)) ?? []), e.b]);
+  const hasParent = new Set(edges.map((e) => gpid(e.b)));
+  const roots = all.filter((p) => !hasParent.has(gpid(p)));
+  const ok = (n: Pair | undefined, lo: number, hi: number): boolean => {
+    if (!n) return true;
+    if (n.key <= lo || n.key > hi) return false;
+    const ch = (kids.get(gpid(n)) ?? []).slice().sort((x, y) => x.key - y.key);
+    const left = ch.filter((c) => c.key < n.key);
+    const right = ch.filter((c) => c.key > n.key);
+    if (left.length > 1 || right.length > 1) return false;
+    return ok(left[0], lo, n.key) && ok(right[0], n.key, hi);
+  };
+  return roots.every((r) => ok(r, -Infinity, Infinity));
+}
+
+/** Полный вердикт по текущим линиям. */
+export function gameVerdict(edges: GEdge[], all: Pair[]) {
+  const heap = edges.every((e) => e.a.grade > e.b.grade);
+  const oneParent = new Set(edges.map((e) => gpid(e.b))).size === edges.length;
+  const acyclic = !edges.some((e) => reaches(edges, e.a, e.b));
+  const bst = forestIsBst(edges, all);
+  const roots = all.filter((p) => !edges.some((e) => gpid(e.b) === gpid(p)));
+  const complete = edges.length === all.length - 1 && roots.length === 1;
+  return { heap, oneParent, acyclic, bst, complete, win: heap && oneParent && bst && complete };
+}
+
+/** Попытка хода: почему нельзя — или ОК. */
+export function tryConnect(edges: GEdge[], a: Pair, b: Pair): { ok: true } | { ok: false; reason: string } {
+  if (sameP(a, b)) return { ok: false, reason: "Это одна и та же точка." };
+  if (a.grade === b.grade)
+    return { ok: false, reason: "«!» равны — «кто выше?» не определён. В демо все y различны; по уставу выше тот, кто раньше в списке." };
+  const parent = a.grade > b.grade ? a : b;
+  const child = a.grade > b.grade ? b : a;
+  if (parentOf(edges, gpid(child)))
+    return { ok: false, reason: `У точки (${child.key}; ${child.grade}) уже есть родитель — второй «!» сверху запрещён. Сначала «Отменить линию».` };
+  if (reaches(edges, parent, child))
+    return { ok: false, reason: "Цикл: линия замкнёт сама на себя — дереву нужен корень без родителя." };
+  const next = [...edges, { a: parent, b: child }];
+  if (!forestIsBst(next, POINTS))
+    return { ok: false, reason: "Линия вниз по y допустима, но алфавит ломается: обход слева-направо перестал быть сортировкой по x." };
+  return { ok: true };
+}
 
 /* ================= РЕЖИМ BUILD ================= */
 
@@ -18578,6 +18655,7 @@ const BuildMode: React.FC = () => {
   const [sortIdx, setSortIdx] = useState(0);
   const [connIdx, setConnIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [sortCost, setSortCost] = useState<string | null>(null);
 
   const parsed = useMemo(() => parsePairs(raw), [raw]);
   const userPairs = parsed.errors.length ? [] : parsed.pairs;
@@ -18589,10 +18667,8 @@ const BuildMode: React.FC = () => {
     const es: { a: Pair; b: Pair }[] = [];
     const walk = (node: TNode | null) => {
       if (!node) return;
-      if (node.left) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.left.key, grade: node.left.grade } }); }
-      if (node.right) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.right.key, grade: node.right.grade } }); }
-      walk(node.left);
-      walk(node.right);
+      if (node.left) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.left.key, grade: node.left.grade } }); walk(node.left); }
+      if (node.right) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.right.key, grade: node.right.grade } }); walk(node.right); }
     };
     walk(userTree);
     return es;
@@ -18743,7 +18819,7 @@ const BuildMode: React.FC = () => {
                 {(["quicksort", "counting"] as const).map((a) => (
                   <button
                     key={a}
-                    onClick={() => { setAlgo(a); setSortIdx(0); setPlaying(true); }}
+                    onClick={() => { setAlgo(a); setSortIdx(0); setPlaying(true); setSortCost(a === "quicksort" ? `quicksort: ≈ ${n > 1 ? Math.round(n * Math.log2(n)) : 0} сравнений` : "counting: 0 сравнений (n + k операций)"); }}
                     disabled={n < 2}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-40 ${algo === a ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
                   >
@@ -18800,7 +18876,7 @@ const BuildMode: React.FC = () => {
                 <>🧺 counting: точки в корзины по значению y — <b className="text-emerald-300">0 сравнений</b>, ≈ n + k операций. Работает, потому что y — маленькие целые.</>
               )
             ) : (
-              <>Отсортировано по y. Смета сортировки: quicksort ≈ <b>{n > 1 ? Math.round(n * Math.log2(n)) : 0}</b> сравнений, counting — <b>0</b> (n+k операций). Дерево в обоих случаях одно и то же. Теперь соединяй →</>
+              <>Отсортировано ({sortCost ?? "способ не выбран"}). Дерево в любом случае одно и то же. Теперь соединяй линии → или сыграй в <b>Игру 🖱️</b></>
             )
           ) : phase === "game" ? (
             gameWon ? (
@@ -19192,9 +19268,110 @@ const SearchMode: React.FC = () => {
   );
 };
 
+/* ================= РЕЖИМ GAME ================= */
+
+const GameMode: React.FC = () => {
+  const [edges, setEdges] = useState<GEdge[]>([]);
+  const [sel, setSel] = useState<Pair | null>(null);
+  const [hover, setHover] = useState<Pair | null>(null);
+  const [msg, setMsg] = useState<string>("Кликни точку-родитель (громче по «!»), затем точку-ребёнка. Линия сама встанет сверху вниз по y.");
+
+  const v = gameVerdict(edges, POINTS);
+
+  const click = (p: Pair) => {
+    if (!sel) {
+      setSel(p);
+      setMsg(`Выбрана (${p.key}; ${p.grade}). Теперь кликни ребёнка — линия ложно вниз по y.`);
+      return;
+    }
+    if (sameP(sel, p)) {
+      setSel(null);
+      return;
+    }
+    const res = tryConnect(edges, sel, p);
+    if (res.ok) {
+      const parent = sel.grade > p.grade ? sel : p;
+      const child = sel.grade > p.grade ? p : sel;
+      setEdges([...edges, { a: parent, b: child }]);
+      setMsg(`🔗 Линия (${parent.key}; ${parent.grade}) → (${child.key}; ${child.grade}).`);
+      setSel(null);
+    } else {
+      setMsg("✗ " + res.reason);
+      setSel(null);
+    }
+  };
+
+  const win = v.win;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <button onClick={() => { setEdges(edges.slice(0, -1)); setMsg("Линию сняли."); }} disabled={!edges.length} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">↩ Отменить линию</button>
+        <button onClick={() => { setEdges([]); setSel(null); setMsg("Чистая доска. Соединяй!"); }} disabled={!edges.length} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">🔄 Сброс</button>
+        <button onClick={() => { setEdges(CANON_GAME.map((e) => ({ ...e }))); setSel(null); setMsg("Ответ показан. Сравни со своим ходом."); }} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">👁 Показать ответ</button>
+        <span className="text-xs text-slate-400">линий: {edges.length} из {POINTS.length - 1}</span>
+      </div>
+
+      <div className="bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/40">
+        <svg viewBox={`0 0 ${PL_W} ${PL_H + 20}`} className="w-full">
+          <defs>
+            <pattern id="gm-grid" width="14" height="14" patternUnits="userSpaceOnUse">
+              <path d="M 14 0 L 0 0 0 14" fill="none" stroke="#1e293b" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect x="34" y="16" width={PL_W - 46} height={PL_H - 12} fill="url(#gm-grid)" opacity="0.5" />
+          <line x1="34" y1={PY(0)} x2={PL_W - 12} y2={PY(0)} stroke="#475569" strokeWidth="1.5" />
+          <line x1={PX(1) - 8} y1="16" x2={PX(1) - 8} y2={PL_H + 4} stroke="#475569" strokeWidth="1.5" />
+
+          {edges.map((e, i) => (
+            <line
+              key={`ge-${i}`}
+              x1={PX(e.a.key)} y1={PY(e.a.grade)}
+              x2={PX(e.b.key)} y2={PY(e.b.grade)}
+              stroke={i === edges.length - 1 ? "#34d399" : "#64748b"}
+              strokeWidth={i === edges.length - 1 ? 3.5 : 2.5}
+              className="transition-all duration-300"
+            />
+          ))}
+
+          {POINTS.map((p) => {
+            const isSel = sel && sameP(sel, p);
+            const isHover = hover && sameP(hover, p) && !isSel;
+            return (
+              <g key={`gp-${p.key}:${p.grade}`} onClick={() => click(p)} onMouseEnter={() => setHover(p)} onMouseLeave={() => setHover(null)} className="cursor-pointer">
+                <circle cx={PX(p.key)} cy={PY(p.grade)} r={16} fill="transparent" />
+                <circle cx={PX(p.key)} cy={PY(p.grade)} r={isSel || isHover ? 11 : 9} fill={isSel ? "#4f46e5" : "#0f172a"} stroke={isSel ? "#a5b4fc" : isHover ? "#94a3b8" : "#38bdf8"} strokeWidth={isSel ? 3 : 2} strokeDasharray={isSel ? "4,3" : "none"} className="transition-all duration-200" />
+                <text x={PX(p.key)} y={PY(p.grade) + 3.5} fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="monospace">{p.key}</text>
+                <text x={PX(p.key)} y={PY(p.grade) + 24} fill="#64748b" fontSize="9" textAnchor="middle" fontFamily="monospace">!={p.grade}</text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Судья — условия, как у Ахо—Корасика */}
+      <div className={`rounded-xl p-4 border transition-colors ${win ? "border-emerald-500/60 bg-emerald-950/20" : "border-slate-700 bg-slate-900/40"}`}>
+        <h4 className="text-sm font-bold text-slate-300 mb-2">🧑‍⚖️ Судья (проверяет после каждого хода)</h4>
+        <ul className="space-y-1.5 text-sm">
+          <li>{v.heap ? "✅" : "⏳"} каждое ребро — вниз по y (родитель громче)</li>
+          <li>{v.oneParent ? "✅" : "⏳"} у каждой точки не более одного родителя</li>
+          <li>{v.acyclic ? "✅" : "⏳"} циклов нет</li>
+          <li>{v.bst ? "✅" : "⏳"} обход слева-направо — сортировка по x (BST)</li>
+          <li>{v.complete ? "✅" : "⏳"} линий n−1 = {POINTS.length - 1}, все точки в одном дереве</li>
+        </ul>
+        {win && (
+          <p className="mt-3 text-sm font-bold text-emerald-300">🎉 Дерево собрано! Инварианты определяют его единственно — другого соединения просто не существует.</p>
+        )}
+      </div>
+
+      <div className="text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">{msg}</div>
+    </div>
+  );
+};
+
 /* ================= КОРПУС ================= */
 
-type Tab = "build" | "split" | "merge" | "erase" | "layers" | "search";
+type Tab = "build" | "split" | "merge" | "erase" | "layers" | "search" | "game";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "build", label: "Собрать" },
@@ -19203,6 +19380,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "erase", label: "Erase 🕳️" },
   { id: "layers", label: "Миф: 2k/2k+1" },
   { id: "search", label: "Поиск ≠ сортировка" },
+  { id: "game", label: "Игра 🖱️" },
 ];
 
 export const TreapBuildViz = () => {
@@ -19240,6 +19418,7 @@ export const TreapBuildViz = () => {
       {tab === "erase" && <EraseMode />}
       {tab === "layers" && <LayersMode />}
       {tab === "search" && <SearchMode />}
+      {tab === "game" && <GameMode />}
     </div>
   );
 };
@@ -19247,7 +19426,7 @@ export const TreapBuildViz = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 68/82: src/components/vizRegistry.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 188 | РАЗМЕР: 8.5 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 188 | РАЗМЕР: 8.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React from "react";
@@ -19349,7 +19528,7 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
   },
   treap: {
     title: "Treap: плоскость → дерево → Split/Merge/Erase",
-    hint: "6 вкладок: Собрать (сортировка + соединение в любом порядке + автопроверка инвариантов), Split, Merge, Erase произвольной точки, миф про 2k/2k+1, поиск ≠ сортировка.",
+    hint: "7 вкладок: Собрать (сортировка + соединение + автопроверка), Split, Merge, Erase, миф 2k/2k+1, поиск ≠ сортировка, Игра 🖱️ — собери дерево мышкой, судья-инварианты объясняет каждый запрещённый ход.",
     Component: TreapBuildViz,
   },
   "prefix-sums-2d": {
@@ -23609,5 +23788,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 12.09.2026, 11:20:02
+КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 12.09.2026, 11:28:14
 ==========================================================================================================================================
