@@ -124,6 +124,7 @@ export const vizRecord = (value: DebugValue | undefined): Record<string, DebugVa
 /* ── Выбор демонстрации внутри страницы (вкладки 1D / 2D build / 2D query) ─ */
 
 const DEMO_CHANNEL = "algo:viz-demo";
+const latestDemoByChapter = new Map<string, string>();
 
 export interface VizDemoEventDetail {
   chapterId: string;
@@ -134,12 +135,19 @@ export interface VizDemoEventDetail {
 /** Демонстрация сообщает, какая её вкладка сейчас открыта (код компилятора следует за ней). */
 export function emitVizDemo(chapterId: string, demoId: string) {
   if (typeof window === "undefined") return;
+  latestDemoByChapter.set(chapterId, demoId);
   window.dispatchEvent(new window.CustomEvent<VizDemoEventDetail>(DEMO_CHANNEL, { detail: { chapterId, demoId } }));
 }
 
-/** Подписка: панель компилятора следует за активной вкладкой демонстрации страницы. */
+/**
+ * Подписка: панель компилятора следует за активной вкладкой демонстрации.
+ * Сразу отдаём последнее значение: компилятор часто открывают уже ПОСЛЕ того,
+ * как пользователь переключился с 1D на 2D.
+ */
 export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
   if (typeof window === "undefined") return () => {};
+  const latest = latestDemoByChapter.get(chapterId);
+  if (latest !== undefined) cb(latest);
   const handler = (e: Event) => {
     const detail = (e as CustomEvent<VizDemoEventDetail>).detail;
     if (detail && detail.chapterId === chapterId) cb(detail.demoId);

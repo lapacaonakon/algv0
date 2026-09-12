@@ -280,7 +280,9 @@ const Viz1D: React.FC = () => {
                     }
                   }
 
-                  const shownValue = compilerLinked && hasLiveTable ? liveValue : st1D[i][j];
+                  // Как только пришёл runtime, не подмешиваем готовую таблицу демо:
+                  // до строки `st = ...` виден пустой каркас, а не внезапно готовые числа.
+                  const shownValue = compilerLinked ? liveValue : st1D[i][j];
                   const displayValue =
                     shownValue === undefined || shownValue === null
                       ? "·"
@@ -415,6 +417,7 @@ const Viz2DBuild: React.FC = () => {
   const liveTable = vizRecord(vars?.st2);
   const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
   const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
+  const compilerLinked = codeCell !== null || liveK !== null || hasLiveTable;
   const shownK = liveK !== null ? Math.max(0, Math.min(3, Math.trunc(liveK))) : k;
 
   // Уровень и клетка берутся прямо из k/r/c; номер строки трассы не нужен.
@@ -469,7 +472,7 @@ const Viz2DBuild: React.FC = () => {
                         const c = idx % stepSize;
                         
                         const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
-                        const shownValue = hasLiveTable ? liveValue : ST2D[r][c][step][step];
+                        const shownValue = compilerLinked ? liveValue : ST2D[r][c][step][step];
                         const isBlank = shownValue === undefined || shownValue === null;
                         let highlightClass = isBlank
                           ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'

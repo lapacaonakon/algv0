@@ -37,6 +37,8 @@ import { Tooltip } from "./Tooltip";
 const PYODIDE_VERSION = "0.27.7";
 const PYODIDE_MODULE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`;
 const PYODIDE_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+const PLAYBACK_SPEED_KEY = "pythonCompilerPlaybackSpeed";
+const PLAYBACK_SPEEDS = [0.25, 0.5, 1, 1.5, 2, 4] as const;
 
 interface PythonCompilerProps {
   /** Страница, с которой синхронизируется редактор. */
@@ -232,7 +234,16 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
   const [editHold, setEditHold] = useState<string | null>(null);
   /** Автопроход включается пользователем; первый шаг показывается сразу после автозапуска. */
   const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const saved = Number(window.localStorage.getItem(PLAYBACK_SPEED_KEY));
+    return PLAYBACK_SPEEDS.includes(saved as (typeof PLAYBACK_SPEEDS)[number]) ? saved : 1;
+  });
   const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.localStorage.setItem(PLAYBACK_SPEED_KEY, String(playbackSpeed));
+  }, [playbackSpeed]);
 
   useEffect(() => {
     savedEditor = { code, template: initTemplate, chapterId };
@@ -377,19 +388,16 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
     clearVizState(chapterId);
   }, [chapterId, code]);
 
-  /** Интервал автопрохода шагов (мс). */
-  const AUTOPLAY_MS = 650;
-
-  // Автопроход: пока включен, шагает stepBy каждые AUTOPLAY_MS; в конце трассы стоп.
+  // Базовый интервал 650 мс; множитель скорости хранится в localStorage.
   useEffect(() => {
     if (!playing || !debug) return;
     if (debug.idx >= debug.result.steps.length - 1) {
       setPlaying(false);
       return;
     }
-    const t = window.setTimeout(() => stepBy(1), AUTOPLAY_MS);
+    const t = window.setTimeout(() => stepBy(1), 650 / playbackSpeed);
     return () => window.clearTimeout(t);
-  }, [playing, debug, stepBy]);
+  }, [playing, debug, stepBy, playbackSpeed]);
 
   const debugRun = useCallback(async () => {
     if (running) return;
@@ -607,10 +615,23 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
               <Eye className="w-4 h-4" />
             </button>
           </Tooltip>
-          <span className="ml-1 inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-800 text-[10px] font-bold text-slate-400">
+          <label
+            className="ml-1 inline-flex items-center gap-1 rounded-lg bg-slate-800 pl-2 pr-1 py-1 text-[10px] font-bold text-slate-400 border border-slate-700 hover:border-emerald-500/60"
+            title="Скорость автоматического проигрывания шагов — сохраняется между открытиями"
+          >
             {running ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" /> : <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-            {running ? "авто…" : "автозапуск"}
-          </span>
+            <span>{running ? "авто…" : "авто"}</span>
+            <select
+              aria-label="Скорость автопрохода"
+              value={playbackSpeed}
+              onChange={(event) => setPlaybackSpeed(Number(event.target.value))}
+              className="cursor-pointer rounded bg-slate-950 px-1 py-0.5 text-[10px] font-bold text-emerald-300 outline-none"
+            >
+              {PLAYBACK_SPEEDS.map((speed) => (
+                <option key={speed} value={speed}>{speed}×</option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -756,7 +777,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
           <div className="flex-1 min-h-[80px] flex flex-col">
             {/* панель управления шагами */}
             <div className="shrink-0 flex items-center gap-0.5 px-2 py-1 border-b border-slate-800 bg-slate-900">
-              <Tooltip content={playing ? "Пауза автопрохода (пробел)" : debug.idx >= debug.result.steps.length - 1 ? "Проиграть трассу заново (пробел)" : "Продолжить автопроход (пробел)"}>
+              <Tooltip content={playing ? `Пауза автопрохода ${playbackSpeed}× (пробел)` : debug.idx >= debug.result.steps.length - 1 ? `Проиграть трассу заново со скоростью ${playbackSpeed}× (пробел)` : `Продолжить автопроход со скоростью ${playbackSpeed}× (пробел)`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -767,10 +788,11 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
                       setPlaying(true);
                     }
                   }}
-                  className={`mx-0.5 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
-                  aria-label={playing ? "Пауза автопрохода" : "Пуск автопрохода"}
+                  className={`mx-0.5 inline-flex items-center gap-1 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
+                  aria-label={playing ? `Пауза автопрохода ${playbackSpeed}×` : `Пуск автопрохода ${playbackSpeed}×`}
                 >
                   {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <span className="text-[9px] font-bold">{playbackSpeed}×</span>
                 </button>
               </Tooltip>
               <Tooltip content="В начало трассы">
