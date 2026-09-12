@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            12.09.2026, 11:11:58
+Дата генерации:            12.09.2026, 11:20:02
 Файлов исходного кода:     82
-Суммарный объём кода:      1.14 MB
+Суммарный объём кода:      1.16 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -18040,7 +18040,7 @@ export const TopologicalSortViz: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 67/82: src/components/TreapBuildViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 896 | РАЗМЕР: 47.7 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1201 | РАЗМЕР: 61.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -18312,11 +18312,23 @@ interface PlaneProps {
   points: Pair[];
   drawnEdges: { a: Pair; b: Pair }[];
   pending: Pair | null;
+  interactive?: boolean;
+  selected?: Pair | null;
+  cursor?: { x: number; y: number } | null;
+  badEdge?: { a: Pair; b: Pair } | null;
+  onPointDown?: (p: Pair) => void;
+  onPointUp?: (p: Pair) => void;
+  onMove?: (e: React.PointerEvent<SVGSVGElement>) => void;
 }
-const Plane: React.FC<PlaneProps> = ({ points, drawnEdges, pending }) => {
+const Plane: React.FC<PlaneProps> = ({ points, drawnEdges, pending, interactive, selected, cursor, badEdge, onPointDown, onPointUp, onMove }) => {
   const byPair = (p: Pair) => ({ x: PX(p.key), y: PY(p.grade) });
   return (
-    <svg viewBox={`0 0 ${PL_W} ${PL_H}`} className="w-full">
+    <svg
+      viewBox={`0 0 ${PL_W} ${PL_H}`}
+      className={`w-full ${interactive ? "touch-none select-none" : ""}`}
+      onPointerMove={onMove}
+      style={interactive ? { cursor: "crosshair" } : undefined}
+    >
       <defs>
         <pattern id="pl-grid" width="14" height="14" patternUnits="userSpaceOnUse">
           <path d="M 14 0 L 0 0 0 14" fill="none" stroke="#1e293b" strokeWidth="1" />
@@ -18337,14 +18349,30 @@ const Plane: React.FC<PlaneProps> = ({ points, drawnEdges, pending }) => {
       {drawnEdges.map((e, i) => {
         const a = byPair(e.a);
         const b = byPair(e.b);
-        return <line key={`pe-${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#64748b" strokeWidth={2} className="transition-opacity duration-500" />;
+        const isBad = badEdge && ((badEdge.a.key === e.a.key && badEdge.a.grade === e.a.grade && badEdge.b.key === e.b.key && badEdge.b.grade === e.b.grade) || (badEdge.a.key === e.b.key && badEdge.a.grade === e.b.grade && badEdge.b.key === e.a.key && badEdge.b.grade === e.a.grade));
+        return <line key={`pe-${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={isBad ? "#f43f5e" : "#64748b"} strokeWidth={isBad ? 3.5 : 2} strokeDasharray={isBad ? "4,3" : "none"} className="transition-opacity duration-500" />;
       })}
+
+      {/* временная линия игры */}
+      {interactive && selected && cursor && (
+        <line
+          x1={PX(selected.key)} y1={PY(selected.grade)} x2={cursor.x} y2={cursor.y}
+          stroke="#818cf8" strokeWidth={2.5} strokeDasharray="5,4" opacity={0.9}
+        />
+      )}
 
       {points.map((p) => {
         const done = drawnEdges.some((e) => (e.a.key === p.key && e.a.grade === p.grade) || (e.b.key === p.key && e.b.grade === p.grade));
+        const isSel = selected && selected.key === p.key && selected.grade === p.grade;
         return (
-          <g key={`pp-${p.key}:${p.grade}`} className="transition-all duration-500">
-            <circle cx={PX(p.key)} cy={PY(p.grade)} r={done ? 7 : 6} fill={done ? "#0f172a" : "#334155"} stroke={done ? "#38bdf8" : "#94a3b8"} strokeWidth={1.6} />
+          <g
+            key={`pp-${p.key}:${p.grade}`}
+            className="transition-all duration-500"
+            onPointerDown={interactive && onPointDown ? () => onPointDown(p) : undefined}
+            onPointerUp={interactive && onPointUp ? () => onPointUp(p) : undefined}
+            style={interactive ? { cursor: "pointer" } : undefined}
+          >
+            <circle cx={PX(p.key)} cy={PY(p.grade)} r={isSel ? 9 : done ? 7 : 6} fill={isSel ? "#4f46e5" : done ? "#0f172a" : "#334155"} stroke={isSel ? "#a5b4fc" : done ? "#38bdf8" : "#94a3b8"} strokeWidth={isSel ? 2.6 : 1.6} />
             <text x={PX(p.key)} y={PY(p.grade) + 3.5} fill="#fff" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">{p.key}</text>
           </g>
         );
@@ -18363,7 +18391,7 @@ const Plane: React.FC<PlaneProps> = ({ points, drawnEdges, pending }) => {
 
 /* ================= РЕЖИМ BUILD ================= */
 
-type BuildPhase = "sort" | "connect";
+type BuildPhase = "sort" | "connect" | "game";
 type SortAlgo = "none" | "quicksort" | "counting";
 type ConnectOrder = "y-desc" | "left-right";
 
@@ -18392,6 +18420,155 @@ const parsePairs = (raw: string): { pairs: Pair[]; errors: string[]; equalX: boo
 };
 
 const DEMO_RAW = "45 8, 3 6, 6 5, 2 4, 9 3, 7 2, 12 0, 1 -4";
+
+/* ---------------- игра «соедини мышкой»: чистая логика (экспорт для стенда) ---------------- */
+
+/** Ребро игры: a = родитель (выше по y), b = ребёнок. */
+export interface GameEdge {
+  a: Pair;
+  b: Pair;
+}
+const pid = (p: Pair) => `${p.key}:${p.grade}`;
+
+export function canConnect(
+  edges: GameEdge[],
+  x: Pair,
+  y: Pair,
+): { ok: boolean; edge?: GameEdge; reason?: string } {
+  if (x.key === y.key && x.grade === y.grade) return { ok: false, reason: "это одна и та же точка" };
+  for (const e of edges) {
+    if ((pid(e.a) === pid(x) && pid(e.b) === pid(y)) || (pid(e.a) === pid(y) && pid(e.b) === pid(x)))
+      return { ok: false, reason: "такая линия уже проведена" };
+  }
+  if (x.grade === y.grade) return { ok: false, reason: "равные «!» — линия не определена: кто из двух выше, решает устав (раньше в списке)" };
+  const [parent, child] = x.grade > y.grade ? [x, y] : [y, x];
+  if (edges.some((e) => pid(e.b) === pid(child)))
+    return { ok: false, reason: `у точки (${child.key}; ${child.grade}) уже есть родитель — у узла он один` };
+  // цикл: родитель уже сидит в компоненте ребёнка (ребёнок — корень своей компоненты)
+  const childComp = new Set<string>([pid(child)]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const e of edges) {
+      if (childComp.has(pid(e.b)) && !childComp.has(pid(e.a))) {
+        childComp.add(pid(e.a));
+        grew = true;
+      }
+    }
+  }
+  if (childComp.has(pid(parent))) return { ok: false, reason: "получился бы цикл — в дереве его не бывает" };
+  return {
+    ok: true,
+    edge: { a: parent, b: child },
+    reason:
+      x.grade > y.grade ? undefined : "линия в treap всегда идёт вниз по y — развернул: родитель — точка с большим «!»",
+  };
+}
+
+export function checkGameState(
+  points: Pair[],
+  edges: GameEdge[],
+): { heapOk: boolean; singleParent: boolean; connected: boolean; countOk: boolean; bstOk: boolean; won: boolean } {
+  const n = points.length;
+  if (n < 2) return { heapOk: true, singleParent: true, connected: false, countOk: false, bstOk: true, won: false };
+  const heapOk = edges.every((e) => e.a.grade > e.b.grade);
+  const parentCount = new Map<string, number>();
+  for (const e of edges) parentCount.set(pid(e.b), (parentCount.get(pid(e.b)) ?? 0) + 1);
+  const singleParent = [...parentCount.values()].every((v) => v <= 1);
+  // связность: компоненты через union-find
+  const comp = new Map<string, string>(points.map((p) => [pid(p), pid(p)]));
+  const find = (x: string): string => {
+    while (comp.get(x) !== x) {
+      comp.set(x, comp.get(x)!);
+      x = comp.get(x)!;
+    }
+    return x;
+  };
+  for (const e of edges) {
+    const ra = find(pid(e.a));
+    const rb = find(pid(e.b));
+    if (ra !== rb) comp.set(ra, rb);
+  }
+  const comps = new Set(points.map((p) => find(pid(p))));
+  const connected = comps.size === 1;
+  const countOk = edges.length === n - 1;
+  // BST: дети по x, inorder не убывает; корень один; защита от циклов
+  const children = new Map<string, Pair[]>();
+  for (const e of edges) children.set(pid(e.a), [...(children.get(pid(e.a)) ?? []), e.b]);
+  const roots = points.filter((p) => !parentCount.has(pid(p)));
+  let bstOk = roots.length === 1;
+  if (bstOk) {
+    const seen = new Set<string>();
+    const inorder: number[] = [];
+    const walk = (p: Pair): void => {
+      if (seen.has(pid(p))) {
+        bstOk = false; // цикл
+        return;
+      }
+      seen.add(pid(p));
+      const kids = children.get(pid(p)) ?? [];
+      if (kids.length > 2) {
+        bstOk = false;
+        return;
+      }
+      const sorted = [...kids].sort((u, v) => u.key - v.key);
+      let left: Pair | null = null;
+      let right: Pair | null = null;
+      if (sorted.length === 2) {
+        if (sorted[0].key === sorted[1].key || sorted[0].key > p.key || sorted[1].key <= p.key) {
+          bstOk = false; // двое детей с равным x или стоящие не по сторонам
+          return;
+        }
+        left = sorted[0];
+        right = sorted[1];
+      } else if (sorted.length === 1) {
+        // одиночный ребёнок: сторона важна — определяем по x (равный — влево по уставу)
+        if (sorted[0].key <= p.key) left = sorted[0];
+        else right = sorted[0];
+      }
+      if (left) walk(left);
+      inorder.push(p.key);
+      if (right) walk(right);
+    };
+    walk(roots[0]);
+    if (seen.size !== n) bstOk = false;
+    for (let i = 1; i < inorder.length; i++)
+      if (inorder[i] < inorder[i - 1]) bstOk = false;
+  }
+  return { heapOk, singleParent, connected, countOk, bstOk, won: heapOk && singleParent && connected && countOk && bstOk };
+}
+
+/** Дерево из проведённых линий — для показа результата игры. */
+export function edgesToTree(edges: GameEdge[]): TNode | null {
+  const parentOf = new Map<string, GameEdge>();
+  for (const e of edges) parentOf.set(pid(e.b), e);
+  const roots = edges.filter((e) => !parentOf.has(pid(e.a)));
+  if (!roots.length && edges.length) return null;
+  const nodes = new Map<string, TNode>();
+  const make = (p: Pair): TNode => ({
+    id: pid(p),
+    key: p.key,
+    grade: p.grade,
+    left: null,
+    right: null,
+  });
+  const rootPair = roots.length ? roots[0].a : edges.length ? null : null;
+  if (!rootPair) return null;
+  const build = (p: Pair): TNode => {
+    const node = make(p);
+    nodes.set(pid(p), node);
+    const kids = edges.filter((e) => pid(e.a) === pid(p)).map((e) => e.b);
+    if (kids.length > 2) return node; // невалидно — поймает чек-лист
+    kids.sort((u, v) => u.key - v.key);
+    const left = kids.filter((k) => k.key <= p.key); // равный x — влево по уставу
+    const right = kids.filter((k) => k.key > p.key);
+    if (left.length > 1 || right.length > 1) return node;
+    if (left[0]) node.left = build(left[0]);
+    if (right[0]) node.right = build(right[0]);
+    return node;
+  };
+  return build(rootPair);
+}
 
 const BuildMode: React.FC = () => {
   const [raw, setRaw] = useState(DEMO_RAW);
@@ -18423,7 +18600,7 @@ const BuildMode: React.FC = () => {
   const leftRightEdges = useMemo(() => [...canonEdges].sort((e1, e2) => e1.a.key - e2.a.key || e1.b.key - e2.b.key), [canonEdges]);
 
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || phase === "game") return;
     const t = setTimeout(() => {
       if (phase === "sort") {
         if (algo === "none") { setPlaying(false); return; }
@@ -18450,6 +18627,81 @@ const BuildMode: React.FC = () => {
   const connEdges = connEdgesAll.slice(0, connIdx);
   const connDone = phase === "connect" && n >= 1 && connIdx >= connEdgesAll.length;
 
+  // --- игра «соедини сам» ---
+  const [gameEdges, setGameEdges] = useState<GameEdge[]>([]);
+  const [sel, setSel] = useState<Pair | null>(null);
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  const [gameMsg, setGameMsg] = useState<string | null>(null);
+  const [badEdge, setBadEdge] = useState<GameEdge | null>(null);
+  const [hintUsed, setHintUsed] = useState(false);
+
+  const resetGame = () => {
+    setGameEdges([]);
+    setSel(null);
+    setCursor(null);
+    setGameMsg(null);
+    setBadEdge(null);
+    setHintUsed(false);
+  };
+  const startGame = () => {
+    resetGame();
+    setPhase("game");
+    setPlaying(false);
+  };
+
+  const verdict = useMemo(() => checkGameState(userPairs, gameEdges), [userPairs, gameEdges]);
+  const gameWon = phase === "game" && verdict.won;
+  const gameTree = useMemo(() => (gameWon ? edgesToTree(gameEdges) : null), [gameWon, gameEdges]);
+
+  const attemptConnect = (x: Pair, y: Pair) => {
+    const r = canConnect(gameEdges, x, y);
+    if (r.ok && r.edge) {
+      setGameEdges((prev) => [...prev, r.edge!]);
+      setGameMsg(r.reason ?? null);
+      setBadEdge(null);
+    } else {
+      setGameMsg(r.reason ?? "так нельзя");
+      setBadEdge({ a: x, b: y });
+      window.setTimeout(() => setBadEdge(null), 900);
+    }
+  };
+  const pointDown = (p: Pair) => {
+    if (phase !== "game") return;
+    if (!sel) {
+      setSel(p);
+      setGameMsg(`Выбрана (${p.key}; ${p.grade}) — теперь кликни ребёнка (точку ниже по y) или протяни линию.`);
+    } else if (sel.key === p.key && sel.grade === p.grade) {
+      setSel(null);
+      setGameMsg(null);
+    } else {
+      attemptConnect(sel, p);
+      setSel(null);
+    }
+  };
+  const pointUp = (p: Pair) => {
+    if (phase !== "game" || !sel) return;
+    if (sel.key === p.key && sel.grade === p.grade) return;
+    attemptConnect(sel, p);
+    setSel(null);
+    setCursor(null);
+  };
+  const planeMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!sel) return;
+    const rect = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+    setCursor({ x: ((e.clientX - rect.left) / rect.width) * PL_W, y: ((e.clientY - rect.top) / rect.height) * PL_H });
+  };
+
+  const undoEdge = () => {
+    setGameEdges((prev) => prev.slice(0, -1));
+    setGameMsg(null);
+  };
+  const showSolution = () => {
+    setGameEdges(canonEdges.map((e) => ({ a: e.a, b: e.b })));
+    setHintUsed(true);
+    setGameMsg("Решение показано — собери сам в следующий раз 🙂");
+  };
+
+
   return (
     <div className="space-y-5">
       {/* Произвольный список */}
@@ -18462,7 +18714,7 @@ const BuildMode: React.FC = () => {
         </div>
         <textarea
           value={raw}
-          onChange={(e) => { setRaw(e.target.value); setPhase("sort"); setSortIdx(0); setConnIdx(0); setPlaying(false); }}
+          onChange={(e) => { setRaw(e.target.value); setPhase("sort"); setSortIdx(0); setConnIdx(0); setPlaying(false); resetGame(); }}
           rows={2}
           className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
           placeholder="3 5, 45 8, 1 -4 …"
@@ -18483,7 +18735,7 @@ const BuildMode: React.FC = () => {
       {/* Координатная плоскость — НАВЕРХУ */}
       <div className="bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/40">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-          <h4 className="text-base font-bold text-emerald-300">🗺️ Декартова плоскость: малый X — огромный Х!П (Y)</h4>
+          <h4 className="text-base font-bold text-emerald-300">🗺️ Декартова плоскость: малый x — огромный y (Х!Й)</h4>
           <div className="flex items-center gap-2">
             {phase === "sort" ? (
               <>
@@ -18510,15 +18762,33 @@ const BuildMode: React.FC = () => {
                 </button>
                 <button
                   onClick={() => startConnect("left-right")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${order === "left-right" ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${order === "left-right" && phase === "connect" ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
                 >
                   слева направо
+                </button>
+                <button
+                  onClick={startGame}
+                  disabled={n < 2}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-40 ${phase === "game" ? "bg-indigo-600 text-white" : "bg-indigo-500/80 text-white hover:bg-indigo-500"}`}
+                >
+                  🎮 соединить сам
                 </button>
               </>
             )}
           </div>
         </div>
-        <Plane points={userPairs} drawnEdges={phase === "connect" ? connEdges : []} pending={null} />
+        <Plane
+          points={userPairs}
+          drawnEdges={phase === "game" ? gameEdges : phase === "connect" ? connEdges : []}
+          pending={null}
+          interactive={phase === "game"}
+          selected={sel}
+          cursor={cursor}
+          badEdge={badEdge}
+          onPointDown={pointDown}
+          onPointUp={pointUp}
+          onMove={planeMove}
+        />
         <div className="mt-2 text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">
           {phase === "sort" ? (
             algo === "none" ? (
@@ -18530,10 +18800,18 @@ const BuildMode: React.FC = () => {
                 <>🧺 counting: точки в корзины по значению y — <b className="text-emerald-300">0 сравнений</b>, ≈ n + k операций. Работает, потому что y — маленькие целые.</>
               )
             ) : (
-              <>Отсортировано. quicksort ≈ <b>{comparisons}</b> сравнений против <b>0</b> у counting — но дерево получится одно и то же. Теперь соединяй →</>
+              <>Отсортировано по y. Смета сортировки: quicksort ≈ <b>{n > 1 ? Math.round(n * Math.log2(n)) : 0}</b> сравнений, counting — <b>0</b> (n+k операций). Дерево в обоих случаях одно и то же. Теперь соединяй →</>
+            )
+          ) : phase === "game" ? (
+            gameWon ? (
+              <>🏆 Готово! {hintUsed ? "Решение подсказано — попробуй собрать сам с чистого листа." : "Ты собрал единственно возможное дерево: линии вниз по y, обход по x отсортирован."}</>
+            ) : gameMsg ? (
+              <>⚠️ {gameMsg}</>
+            ) : (
+              <>Кликни точку-родителя (выше по «!»), затем ребёнка — или зажми и протяни линию. Линий: {gameEdges.length} из {n - 1}.</>
             )
           ) : connDone ? (
-            <>🏁 Проведено {connEdges.length} линий в порядке «{order === "y-desc" ? "по y ↓" : "слева направо"}». Результат <b>одинаковый</b>: точки прибиты, дерево одно.</>
+            <>🏁 Проведено {connEdges.length} линий в порядке «{order === "y-desc" ? "по y ↓" : "слева направо"}». Результат <b>одинаковый</b>: точки прибиты, дерево одно. А теперь <b>сам</b>: кнопка «🎮 соединить сам».</>
           ) : (
             <>Линий проведено: {connIdx} из {connEdgesAll.length} (порядок «{order === "y-desc" ? "по y ↓" : "слева направо"}»).</>
           )}
@@ -18541,14 +18819,41 @@ const BuildMode: React.FC = () => {
       </div>
 
       {/* Чек-лист инвариантов */}
-      <div className={`rounded-xl p-4 border transition-colors ${connDone ? "border-emerald-500/60 bg-emerald-950/20" : "border-slate-700 bg-slate-900/40"}`}>
+      <div className={`rounded-xl p-4 border transition-colors ${(connDone || gameWon) ? "border-emerald-500/60 bg-emerald-950/20" : "border-slate-700 bg-slate-900/40"}`}>
         <h4 className="text-sm font-bold text-slate-300 mb-2">✅ Проверка (авто, на текущем состоянии)</h4>
         <ul className="space-y-1.5 text-sm">
-          <li>{connDone ? "✅" : "⏳"} каждое ребро ведёт <b>вниз по y</b> — родитель громче ребёнка (куча)</li>
-          <li>{connDone ? "✅" : "⏳"} обход слева-направо даёт <b>сортировку по x</b> (BST)</li>
-          <li>{connDone ? "✅" : "⏳"} линий ровно <b>n − 1</b>, все точки в одном дереве</li>
+          {phase === "game" ? (
+            <>
+              <li>{verdict.heapOk ? "✅" : "❌"} каждое ребро ведёт <b>вниз по y</b> — родитель громче ребёнка (куча)</li>
+              <li>{verdict.singleParent ? "✅" : "❌"} у каждой точки <b>не больше одного родителя</b></li>
+              <li>{verdict.connected ? "✅" : "⏳"} все точки <b>в одном дереве</b>, без циклов</li>
+              <li>{verdict.countOk ? "✅" : "⏳"} линий ровно <b>n − 1</b> ({gameEdges.length} из {Math.max(0, n - 1)})</li>
+              <li>{verdict.bstOk ? "✅" : "❌"} обход слева-направо даёт <b>сортировку по x</b> (BST)</li>
+            </>
+          ) : (
+            <>
+              <li>{connDone ? "✅" : "⏳"} каждое ребро ведёт <b>вниз по y</b> — родитель громче ребёнка (куча)</li>
+              <li>{connDone ? "✅" : "⏳"} обход слева-направо даёт <b>сортировку по x</b> (BST)</li>
+              <li>{connDone ? "✅" : "⏳"} линий ровно <b>n − 1</b>, все точки в одном дереве</li>
+            </>
+          )}
         </ul>
+        {phase === "game" && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            <button onClick={undoEdge} disabled={!gameEdges.length} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">↩ Убрать линию</button>
+            <button onClick={resetGame} disabled={!gameEdges.length && !gameMsg} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">🔄 С чистого листа</button>
+            <button onClick={showSolution} disabled={gameWon} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600/80 text-white disabled:opacity-30">💡 Показать решение</button>
+          </div>
+        )}
       </div>
+
+      {/* Победное дерево в игре */}
+      {phase === "game" && gameTree && (
+        <div className="bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/60">
+          <h4 className="text-sm font-bold text-emerald-300 mb-2">🌳 Твоё дерево (то же самое, что дал бы алгоритм)</h4>
+          <TreeView root={gameTree} subtitle="Слева-направо — сортировка по x; сверху-вниз по y — куча. Другого дерева из этих точек не существует." />
+        </div>
+      )}
 
       {/* Дерево */}
       {order === "y-desc" && userTree && (
@@ -23304,5 +23609,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 12.09.2026, 11:11:58
+КОНЕЦ ДОКУМЕНТА • 82 файлов • сгенерировано 12.09.2026, 11:20:02
 ==========================================================================================================================================
