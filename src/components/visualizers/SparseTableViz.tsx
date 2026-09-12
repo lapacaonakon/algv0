@@ -131,9 +131,16 @@ const Viz1D: React.FC = () => {
   const runtimeVars = runtime?.variables;
   const liveI = vizNumber(runtimeVars?.i);
   const liveJ = vizNumber(runtimeVars?.j);
+  const liveSource = vizArray(runtimeVars?.a);
   const liveRows = vizArray(runtimeVars?.st);
+  const hasLiveSource = !!runtimeVars && Object.prototype.hasOwnProperty.call(runtimeVars, "a");
   const hasLiveTable = !!runtimeVars && Object.prototype.hasOwnProperty.call(runtimeVars, "st");
-  const compilerLinked = liveI !== null || liveJ !== null || hasLiveTable;
+  const compilerLinked = liveI !== null || liveJ !== null || hasLiveSource || hasLiveTable;
+  const shownSource = hasLiveSource
+    ? liveSource?.length
+      ? liveSource
+      : Array.from({ length: N }, () => null)
+    : arr1D;
   const liveTarget =
     liveI !== null && liveJ !== null && Number.isInteger(liveI) && Number.isInteger(liveJ)
       ? { i: liveI, j: liveJ }
@@ -191,8 +198,13 @@ const Viz1D: React.FC = () => {
       <div className="bg-slate-900 rounded-xl border border-slate-800 p-3 sm:p-4">
         <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">Исходный массив</div>
         <div className="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1">
-          {arr1D.map((v, idx) => {
+          {shownSource.map((v, idx) => {
             const inCover = !!covered && idx >= covered.from && idx <= covered.to;
+            const display = v === undefined || v === null
+              ? "·"
+              : typeof v === "object"
+                ? JSON.stringify(v)
+                : String(v);
             return (
               <div key={idx} className="flex flex-col items-center shrink-0">
                 <div
@@ -200,7 +212,7 @@ const Viz1D: React.FC = () => {
                     inCover ? "bg-indigo-500 text-white ring-2 ring-indigo-300" : "bg-slate-800 text-slate-300"
                   }`}
                 >
-                  {v}
+                  {display}
                 </div>
                 <span className="text-[9px] text-slate-600 mt-0.5 font-mono">{idx}</span>
               </div>
@@ -260,11 +272,15 @@ const Viz1D: React.FC = () => {
                   const isValid = i + (1 << j) <= N;
                   const liveRow = vizArray(liveRows?.[i]);
                   const liveValue = liveRow?.[j];
-                  const liveHasValue = liveValue !== undefined && liveValue !== null;
+                  // Уровень j=0 — это исходный a[i], он не является частью
+                  // очищаемого рабочего массива и не должен исчезать при st = [].
+                  const sourceValue = j === 0 ? liveSource?.[i] : undefined;
+                  const runtimeValue = liveValue ?? sourceValue;
+                  const runtimeHasValue = runtimeValue !== undefined && runtimeValue !== null;
                   const manualVisible =
                     isValid &&
                     (j === 0 || computeSteps.findIndex((s) => s.i === i && s.j === j) < step);
-                  const isVisible = compilerLinked ? liveHasValue : manualVisible;
+                  const isVisible = compilerLinked ? runtimeHasValue : manualVisible;
 
                   let isActive = !!liveTarget && liveTarget.i === i && liveTarget.j === j;
                   let isSrc1 = false;
@@ -282,9 +298,9 @@ const Viz1D: React.FC = () => {
                     }
                   }
 
-                  // Как только пришёл runtime, не подмешиваем готовую таблицу демо:
-                  // до строки `st = ...` виден пустой каркас, а не внезапно готовые числа.
-                  const shownValue = compilerLinked ? liveValue : st1D[i][j];
+                  // Готовые вычисленные уровни демо не подмешиваем, но базовый
+                  // уровень j=0 всегда берём из уже существующего массива a.
+                  const shownValue = compilerLinked ? runtimeValue : st1D[i][j];
                   const displayValue =
                     shownValue === undefined || shownValue === null
                       ? "·"
@@ -366,7 +382,7 @@ const Viz1D: React.FC = () => {
             <span className="text-emerald-400 font-bold">Компилятор → визуализация:</span>{" "}
             <span className="font-mono text-white">i = {liveTarget.i}, j = {liveTarget.j}</span>{" "}
             — активна ячейка <span className="font-mono text-indigo-300">st[{liveTarget.i}][{liveTarget.j}]</span>
-            {hasLiveTable && <> = <span className="font-mono text-amber-300">{String(vizArray(liveRows?.[liveTarget.i])?.[liveTarget.j] ?? "пусто")}</span></>}.
+            {(hasLiveTable || hasLiveSource) && <> = <span className="font-mono text-amber-300">{String(vizArray(liveRows?.[liveTarget.i])?.[liveTarget.j] ?? (liveTarget.j === 0 ? liveSource?.[liveTarget.i] : undefined) ?? "пусто")}</span></>}.
           </p>
         ) : step > 0 && step <= maxStep ? (
           (() => {
@@ -416,11 +432,17 @@ const Viz2DBuild: React.FC = () => {
   const liveK = vizNumber(vars?.k);
   const liveR = vizNumber(vars?.r);
   const liveC = vizNumber(vars?.c);
+  const liveSource = vizArray(vars?.A);
   const liveTable = vizRecord(vars?.st2);
+  const hasLiveSource = !!vars && Object.prototype.hasOwnProperty.call(vars, "A");
   const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
   const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
-  const compilerLinked = codeCell !== null || liveK !== null || hasLiveTable;
-  const shownK = liveK !== null ? Math.max(0, Math.min(3, Math.trunc(liveK))) : k;
+  const compilerLinked = codeCell !== null || liveK !== null || hasLiveSource || hasLiveTable;
+  const shownK = liveK !== null
+    ? Math.max(0, Math.min(3, Math.trunc(liveK)))
+    : hasLiveSource
+      ? 0
+      : k;
 
   // Уровень и клетка берутся прямо из k/r/c; номер строки трассы не нужен.
   useEffect(() => {
@@ -474,7 +496,11 @@ const Viz2DBuild: React.FC = () => {
                         const c = idx % stepSize;
                         
                         const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
-                        const shownValue = compilerLinked ? liveValue : ST2D[r][c][step][step];
+                        const sourceRow = vizArray(liveSource?.[r]);
+                        const sourceValue = step === 0 ? sourceRow?.[c] : undefined;
+                        // A — неизменяемый базовый слой 1×1; очистка st2 скрывает
+                        // только вычисляемые уровни, но не исходную матрицу.
+                        const shownValue = compilerLinked ? (liveValue ?? sourceValue) : ST2D[r][c][step][step];
                         const isBlank = shownValue === undefined || shownValue === null;
                         let highlightClass = isBlank
                           ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'
