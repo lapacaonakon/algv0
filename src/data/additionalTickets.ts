@@ -14,14 +14,63 @@ export const additionalTickets: Chapter[] = [
         <h2 class="text-2xl sm:text-3xl font-bold text-white">Двумерная разреженная таблица</h2>
     </div>
     <div class="space-y-8">
-        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-emerald-400 mb-4">Tree + Heap = Treap</h3>
-            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-emerald-500/30">
-                <p class="text-lg text-emerald-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Два базовых метода: Split и Merge.</p>
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-blue-400 mb-4">RMQ за O(1)</h3>
+            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
+                <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
+                <p class="text-xl font-mono text-white">ST[i][j] = min(ST[i][j-1], ST[i + 2^(j-1)][j-1]). Ответ берется как пересечение двух отрезков: min(ST[L][k], ST[R - 2^k + 1][k]).</p>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
+                        📏 Аналогия 1: Школьные линейки
+                    </div>
+                    <p class="text-slate-300 text-sm mb-4">Для идемпотентных операций (когда x O x = x, например, минимум). Тебе дают отрезок длины 7. Ты берешь две заготовленные заранее линейки длины 4 (степень двойки) и накладываешь их так, чтобы они покрыли весь отрезок длины 7 (перекрывая друг друга посередине). Минимум из этих двух линеек и будет минимумом на всём отрезке! Не нужно ничего складывать, просто пересекаем куски.</p>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
+                        🧱 Аналогия 2: Ступени
+                    </div>
+                    <p class="text-slate-300 text-sm mb-4">Предварительно мы считаем ответы для всех отрезков длин 1, 2, 4, 8... И когда нужно покрыть отрезок, мы берем две самые большие ступени, которые в него влезают.</p>
+                </div>
+            </div>
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🔍 Код (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
+int kx = log2(R2 - R1 + 1);
+int ky = log2(C2 - C1 + 1);
+int ans1 = min(st[R1][C1][kx][ky], st[R1][C2 - (1 << ky) + 1][kx][ky]);
+int ans2 = min(st[R2 - (1 << kx) + 1][C1][kx][ky], st[R2 - (1 << kx) + 1][C2 - (1 << ky) + 1][kx][ky]);
+int minimum = min(ans1, ans2);</pre>
+                </div>
+            </details>
+        </div>
+    </div>
+</section>`,
+  },  {
+    id: "treap",
+    title: "3. Декартово дерево (Treap)",
+    type: "html",
+    description: "Дерево поиска по ключу и Куча по приоритету.",
+    category: "Продвинутые структуры",
+    content: `
+<section id="treap" class="mb-12 scroll-mt-10">
+    <div class="flex items-center mb-6 flex-wrap gap-3">
+        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold">Билет 3</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">Декартово дерево (Treap)</h2>
+    </div>
+    <div class="space-y-8">
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-blue-400 mb-4">Tree + Heap = Treap</h3>
+            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
+                <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
+                <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Пара — точка на декартовой плоскости, отсюда и название. Два базовых метода: Split и Merge.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mb-4">Пара (x; y) — точка на декартовой плоскости, отсюда и название структуры. Точки не двигаются: сортировка по y решает, кто наверху, x — кто левее, кто правее. Отсюда вся мнемоника страницы:</p>
+            <p class="text-slate-300 text-sm mb-4">Построение видно глазами: точки приходят <b>как попало</b> → сортировка по y (quicksort платит ≈ n·log n сравнений, counting по маленьким целым y — O(n) без сравнений: разница есть, дерево получится одно) → каждая точка вставляется спуском от корня: x ≤ узла — влево, иначе вправо. Порядок рисования линий не важен: точки прибиты, дерево единственно. Весь процесс — в симуляторе под текстом: <b>Собрать</b> (сортировка на выбор, свои точки, чек-лист ✅), <b>Split / Merge / Erase</b> по шагам, разборы граблей <b>«Миф 2k/2k+1»</b> и <b>«Поиск ≠ сортировка»</b>.</p>
 
             <div class="text-center my-6">
                 <p class="text-slate-400 text-xs uppercase tracking-[0.3em]">малый x — огромный y</p>
@@ -32,7 +81,6 @@ export const additionalTickets: Chapter[] = [
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <!-- Аналогия 1 -->
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         🗡️ Аналогия 1: Split — таможня
@@ -40,16 +88,13 @@ export const additionalTickets: Chapter[] = [
                     <p class="text-slate-300 text-sm">Split(t, x₀) — таможня с двумя коридорами: зелёный «все x ≤ x₀», красный «все x &gt; x₀». Спуск от корня: узел, который вместе со своим поддеревом целиком проходит по одному коридору, отправляется туда <b>без вскрытия</b> — досматривается только одна ветка. Поэтому split — O(h), а не O(n).</p>
                 </div>
 
-                <!-- Аналогия 2 -->
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🧲 Аналогия 2: Merge — стыковка
+                        🧲 Аналогия 2: Merge — стыковка колонн
                     </div>
-                    <p class="text-slate-300 text-sm">Merge(a, b) склеивает два дерева при условии «все x в a меньше всех x в b». Каждый шаг — одно сравнение: чей y у корня больше, тот и принимает колонну, а стыковка продолжается в одном его поддереве (том, что сохраняет порядок x). Итого O(h) сравнений y — без поворотов.</p>
+                    <p class="text-slate-300 text-sm">Merge(a, b) склеивает два дерева при условии «все x в a меньше всех x в b». Каждый шаг — одно сравнение: чей y у корня больше, тот и принимает колонну, а «стыковка» продолжается в одном его поддереве (том, что сохраняет порядок x). Итого O(h) сравнений y — без перестроек и поворотов.</p>
                 </div>
             </div>
-
-            <p class="text-slate-300 text-sm mt-6">Как построить: точки приходят <b>как попало</b> — сначала сортировка по y (quicksort платит ≈ n·log n сравнений, counting по маленьким целым y — O(n) без сравнений: разница есть, дерево получится одно) — затем вставка каждой точки спуском от корня: x ≤ узла — влево, иначе вправо. Порядок рисования линий не важен: точки прибиты, дерево единственно. Весь процесс — в симуляторе под текстом: вкладки <b>Собрать</b> (своя сортировка, свои точки, чек-лист ✅), <b>Split / Merge / Erase</b> по шагам и разборы граблей <b>«Миф 2k/2k+1»</b> и <b>«Поиск ≠ сортировка»</b>.</p>
 
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-4">
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
@@ -58,7 +103,7 @@ export const additionalTickets: Chapter[] = [
                 <p class="text-slate-400 text-sm">· «Убрать можно только самый верхний»: произвольная точка тоже вырезается — её дети сшиваются merge за O(h).</p>
             </div>
 
-            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code>. Худший случай — приоритеты вытянулись в цепочку: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
+            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code> (сортировка + n спусков). Худший случай — приоритеты вытянулись в цепочку: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
 
             <p class="text-slate-500 text-xs mt-3 leading-relaxed">Расшифровка Х!Й: «!» — это y: маленький знак держит всё слово — убери, и останется набор букв, как treap без y останется деревом поиска-палкой. Х — это x: место по алфавиту. Все стоят по алфавиту, но кричат по «!»: корень самый громкий, родитель всегда громче детей. Равные «!» — выше тот, кто раньше заявил заявку в списке; равные x — идут влево по уставу.</p>
 
@@ -115,140 +160,8 @@ def erase(root, key):              # удалить произвольную т�
                 </div>
             </details>
         </div>
-    </div</section>`,
-  },
-  {
-    id: "treap",
-    title: "3. Декартово дерево (Treap)",
-    type: "html",
-    description: "Дерево поиска по ключу и Куча по приоритету.",
-    category: "Продвинутые структуры",
-    content: `
-<section id="treap" class="mb-12 scroll-mt-10">
-    <div class="flex items-center mb-6 flex-wrap gap-3">
-        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold">Билет 3</span>
-        <h2 class="text-2xl sm:text-3xl font-bold text-white">Декартово дерево (Treap)</h2>
     </div>
-    <div class="space-y-8">
-        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-blue-400 mb-4">Tree + Heap = Treap</h3>
-            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
-                <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Бинарное дерево поиска по ключу (X) и бинарная куча по приоритету (Y). Два базовых метода: Split и Merge.</p>
-            </div>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🗡️ Аналогия 1: Split — таможня
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">Split(t, x) — таможня с двумя коридорами: зелёный «все x ≤ x₀», красный «все x &gt; x₀». Спуск от корня: узел, который вместе со своим поддеревом целиком проходит по одному коридору, отправляется туда <b>без вскрытия</b> — дальше досматривается только одна ветка. Поэтому split стоит O(h), а не O(n).</p>
-                </div>
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🧲 Аналогия 2: Merge — стыковка колонн
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">Merge(a, b) склеивает два дерева при условии «все x в a меньше всех x в b». Каждый шаг — одно сравнение: чей y у корня больше, тот и принимает колонну, а «стыковка» продолжается в одном его поддереве (том, что сохраняет порядок x). Итого O(h) сравнений y — без перестроек и поворотов.</p>
-                </div>
-            </div>
-            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
-                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Код (Скрыто)
-                </summary>
-                <div class="p-5 text-sm text-slate-300 space-y-4">
-                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-pair&lt;Node*, Node*&gt; split(Node* t, int x) {
-    if (!t) return {nullptr, nullptr};
-    if (t->val &lt;= x) {
-        auto [L, R] = split(t->right, x);
-        t->right = L;
-        return {t, R};
-    } else {
-        auto [L, R] = split(t->left, x);
-        t->left = R;
-        return {L, t};
-    }
-}</pre>
-                </div>
-            </details>
-        </div>
-
-        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-emerald-400 mb-4">Как построить: точки и линии</h3>
-            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-emerald-500/30">
-                <p class="text-lg text-emerald-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Treap хранит пары (x; y): для ключа x — бинарное дерево поиска, для приоритета y — двоичная куча. Пара (x; y) — точка на декартовой плоскости, отсюда и название.</p>
-            </div>
-
-            <p class="text-center mb-6 py-4 bg-slate-900/60 rounded-lg border border-rose-500/40">
-                <span class="text-sm text-slate-400 align-middle">малый </span><span class="text-xl font-bold text-sky-300 align-middle">x</span>
-                <span class="text-slate-500 align-middle"> — </span>
-                <span class="text-sm text-slate-400 align-middle">огромный </span>
-                <span class="relative inline-block align-middle mx-1">
-                    <span class="text-6xl font-black text-white leading-none">и</span>
-                    <span class="absolute -top-2 left-1/2 -translate-x-1/2 text-4xl font-black text-rose-400 leading-none">!</span>
-                </span>
-                <span class="block mt-1 font-mono text-slate-300">! = y = приоритет = вершина кучи</span>
-            </p>
-
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🗺️ Аналогия 1: Точки на клетчатой бумаге
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        Каждая пара — точка на бумаге в клетку: x по горизонтали, y по вертикали. Точки не двигаются никогда. Построить дерево = правильно соединить: линия всегда падает вниз по y («!» у родителя громче), а левее/правее подсказывает x — сравнением на каждом шаге спуска от корня.<br><br>
-                        «!» держит всё слово: убери его из Х!Й — рассыплется набор букв; убери y из пары — рассыплется куча, останется дерево поиска, которое на неудачном вводе вырождается в палку. Равные «!» — выше тот, кто раньше заявил заявку в списке; равные x — идут влево по уставу. В демо-наборе все x и все y различны — потому дерево ровно одно.
-                    </p>
-                </div>
-
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        💀 Ты путаешь
-                    </div>
-                    <p class="text-slate-300 text-sm mb-2">· «Отсортирую бинарным поиском»: поиск не сортирует; сравнительная сортировка — не быстрее n·log n.</p>
-                    <p class="text-slate-300 text-sm mb-2">· Дети «в массиве по 2k/2k+1» — только у полных деревьев; treap растёт кривым.</p>
-                    <p class="text-slate-300 text-sm">· «Убрать можно только самый верхний»: произвольная точка тоже вырезается — её дети сшиваются merge за O(h).</p>
-                </div>
-            </div>
-
-            <p class="text-slate-400 text-sm mt-6">Симулятор под билетом: <b>Собрать</b> (приходят как попало → видимая сортировка по y: quicksort против counting → линии в любом порядке, чек-лист ✅ сам проверяет инварианты), <b>Split / Merge / Erase</b> по шагам, <b>Миф 2k/2k+1</b> и <b>Поиск ≠ сортировка</b> — обе грабли вживую.</p>
-
-            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> поиск, вставка, удаление — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(log n)</code> в среднем; построение — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(n log n)</code> (сортировка + n спусков; counting по целым y — O(n)). Худший случай — цепочка приоритетов: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n)</code> на операцию, <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">O(n²)</code> на построение.</p>
-
-            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
-                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Код: вставка и удаление (Скрыто)
-                </summary>
-                <div class="p-5 text-sm text-slate-300 space-y-4">
-                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def insert(root, key, pri):
-    if root is None:
-        return Node(key, pri)
-    if key &lt;= root.key:                # равные x — влево
-        root.left = insert(root.left, key, pri)
-    else:
-        root.right = insert(root.right, key, pri)
-    return root
-
-for key, pri in pairs_sorted_by_pri_desc:   # порядок задаёт y
-    root = insert(root, key, pri)</pre>
-                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def merge(a, b):                   # все x в a &lt; всех x в b
-    if not a or not b: return a or b
-    if a.pri &gt; b.pri:
-        a.right = merge(a.right, b); return a
-    b.left = merge(a, b.left); return b
-
-def erase(root, key):              # удалить произвольную точку
-    if key &lt; root.key:  root.left  = erase(root.left, key)
-    elif key &gt; root.key: root.right = erase(root.right, key)
-    else: root = merge(root.left, root.right)
-    return root</pre>
-                </div>
-            </details>
-        </div>
-    </div>
-</section>`
+</section>`,
   },
   {
     id: "splay-tree",
