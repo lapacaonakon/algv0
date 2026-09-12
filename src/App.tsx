@@ -24,6 +24,14 @@ export default function App() {
   useEffect(() => {
     window.localStorage.setItem("compilerWidth", String(compilerWidth));
   }, [compilerWidth]);
+  /** Высота терминала: null оставляет адаптивную высоту по умолчанию. */
+  const [compilerHeight, setCompilerHeight] = useState<number | null>(() => {
+    const cached = typeof window !== "undefined" ? Number(window.localStorage.getItem("compilerHeight")) : NaN;
+    return Number.isFinite(cached) && cached >= 260 ? cached : null;
+  });
+  useEffect(() => {
+    if (compilerHeight !== null) window.localStorage.setItem("compilerHeight", String(compilerHeight));
+  }, [compilerHeight]);
   /** Содержание свернуто (по умолчанию сворачиваем само, если места мало). */
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     const cached = typeof window !== "undefined" ? window.localStorage.getItem("sidebarCollapsed") : null;
@@ -187,7 +195,9 @@ export default function App() {
           chapterId={activeChapter.id}
           chapterTitle={activeChapter.title}
           width={compilerWidth}
+          height={compilerHeight}
           onWidthChange={setCompilerWidth}
+          onHeightChange={setCompilerHeight}
           onOpenGuide={() => setActiveTab("guide")}
           onClose={() => setCompilerOpen(false)}
         />

@@ -44,9 +44,11 @@ interface PythonCompilerProps {
   /** Страница, с которой синхронизируется редактор. */
   chapterId: string;
   chapterTitle: string;
-  /** Ширина панели на десктопе (px) — управляется родителем, растягивается ручкой слева. */
+  /** Размер панели (px) управляется родителем и сохраняется между открытиями. */
   width?: number;
+  height?: number | null;
   onWidthChange?: (w: number) => void;
+  onHeightChange?: (h: number) => void;
   /** Перейти к странице пособия (посмотреть визуализацию). */
   onOpenGuide: () => void;
   /** Скрыть панель. */
@@ -177,7 +179,7 @@ const SNIPPETS: { group: string; items: Snippet[] }[] = [
 /** Переживает скрытие панели: код пользователя не теряется. */
 let savedEditor: { code: string; template: string; chapterId: string } | null = null;
 
-export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, onOpenGuide, onClose }: PythonCompilerProps) {
+export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidthChange, onHeightChange, onOpenGuide, onClose }: PythonCompilerProps) {
   /** Активная вкладка демонстрации страницы (у sparse-table: 1d / 2d-build / 2d-query). */
   const [demoId, setDemoId] = useState<string | null>(null);
   const sync = useMemo(() => getPageSync(chapterId, demoId), [chapterId, demoId]);
@@ -526,10 +528,46 @@ export function PythonCompiler({ chapterId, chapterTitle, width, onWidthChange, 
   return (
     <aside
       aria-label="Python-компилятор"
-      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-16 lg:bottom-0 lg:h-auto lg:w-[560px] xl:w-[620px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
-      style={width && typeof window !== "undefined" && window.innerWidth >= 1024 ? { width } : undefined}
+      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-auto lg:h-[calc(100dvh-4rem)] lg:w-[560px] xl:w-[620px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
+      style={typeof window !== "undefined" ? {
+        ...(width && window.innerWidth >= 1024 ? { width } : {}),
+        ...(height ? { height: Math.min(height, window.innerHeight - (window.innerWidth >= 1024 ? 64 : 0)) } : {}),
+      } : undefined}
     >
-      {/* Ручка растягивания панели за левый край (только десктоп) */}
+      {/* Верхний край меняет высоту на телефоне и десктопе; панель закреплена снизу. */}
+      {onHeightChange && (
+        <div
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Потяните, чтобы изменить высоту терминала"
+          title="Потяните, чтобы изменить высоту терминала"
+          className="absolute -top-1.5 left-0 right-0 h-3 cursor-row-resize z-[51] group touch-none"
+          onPointerDown={(event) => {
+            const el = event.currentTarget;
+            el.setPointerCapture(event.pointerId);
+            const startY = event.clientY;
+            const startH = el.parentElement?.getBoundingClientRect().height ?? window.innerHeight * 0.58;
+            const onMove = (moveEvent: PointerEvent) => {
+              const maxHeight = window.innerHeight - (window.innerWidth >= 1024 ? 64 : 0);
+              const minHeight = Math.min(260, maxHeight);
+              const next = Math.round(startH + startY - moveEvent.clientY);
+              onHeightChange(Math.max(minHeight, Math.min(next, maxHeight)));
+            };
+            const onUp = () => {
+              el.removeEventListener("pointermove", onMove as EventListener);
+              el.removeEventListener("pointerup", onUp as EventListener);
+              el.removeEventListener("pointercancel", onUp as EventListener);
+            };
+            el.addEventListener("pointermove", onMove as EventListener);
+            el.addEventListener("pointerup", onUp as EventListener);
+            el.addEventListener("pointercancel", onUp as EventListener);
+          }}
+        >
+          <div className="absolute left-1/2 top-1/2 h-1 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-600 group-hover:bg-indigo-400 transition-colors" />
+        </div>
+      )}
+
+      {/* Левый край меняет ширину на десктопе. */}
       {onWidthChange && (
         <div
           role="separator"

@@ -78,7 +78,9 @@ for (let kx = 0; kx <= 3; kx++) {
 }
 
 export const SparseTableViz: React.FC = () => {
-  const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("1d");
+  // Эта страница посвящена именно двумерной таблице: 1D остаётся вводной
+  // вкладкой, но больше не подменяет 2D-визуализацию и её Python-референс.
+  const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("2d_build");
   const chapterId = useContext(VizChapterContext);
 
   // Каждая вкладка = своё демо с собственным скелетом: компилятор переключает код вслед за вкладкой.
