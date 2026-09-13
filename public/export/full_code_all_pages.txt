@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            12.09.2026, 18:52:37
+Дата генерации:            13.09.2026, 14:14:42
 Файлов исходного кода:     87
 Суммарный объём кода:      1.23 MB
 Глав/билетов в пособии:    30
@@ -14604,7 +14604,7 @@ export function PlanarityDemo() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 58/87: src/components/PythonCompiler.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1019 | РАЗМЕР: 50.6 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1048 | РАЗМЕР: 52.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -15010,7 +15010,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
     return () => window.clearTimeout(t);
   }, [playing, debug, stepBy, playbackSpeed]);
 
-  const debugRun = useCallback(async () => {
+  const debugRun = useCallback(async (autoPlay = false) => {
     if (running) return;
 
     const source = code;
@@ -15039,6 +15039,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: source, input, request });
+      setPlaying(autoPlay && result.steps.length > 1);
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела — трасса и переменные всё равно доступны.");
       setRuntimeMessage(
@@ -15116,6 +15117,22 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
   }, [debug, curDebug, snapshotAt]);
   const debugChanged = curDebug?.step ? changedVars(curDebug.step.locals, shownLocals) : {};
   const debugOrdered = curDebug?.step ? orderVars(shownLocals, syncVarBases) : [];
+
+  /** Одна и та же кнопка запуска всегда видна: из редактора строит трассу и
+   * проигрывает её, в отладчике переключает play/pause. */
+  const runOrTogglePlayback = useCallback(() => {
+    if (running) return;
+    if (!debug || debug.result.steps.length === 0) {
+      void debugRun(true);
+      return;
+    }
+    if (playing) {
+      setPlaying(false);
+      return;
+    }
+    if (debug.idx >= debug.result.steps.length - 1) stepTo(0);
+    setPlaying(true);
+  }, [debug, debugRun, playing, running, stepTo]);
 
   /** Вставка сниппета из шпаргалки в позицию курсора. */
   const insertSnippet = useCallback((snippet: string) => {
@@ -15212,6 +15229,25 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
         <span className="hidden sm:inline text-[10px] text-slate-500">Pyodide</span>
 
         <div className="ml-auto flex items-center gap-1">
+          <Tooltip
+            side="bottom"
+            content={running ? "Python выполняется…" : playing ? "Пауза автопрохода" : debug ? "Продолжить автопроход" : "Выполнить код и запустить автопроход"}
+          >
+            <button
+              type="button"
+              onClick={runOrTogglePlayback}
+              disabled={running}
+              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-bold transition-colors disabled:opacity-60 ${
+                playing
+                  ? "bg-amber-500/15 text-amber-300 hover:bg-amber-500/25"
+                  : "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
+              }`}
+              aria-label={running ? "Python выполняется" : playing ? "Пауза" : "Запустить код"}
+            >
+              {running ? <Loader2 className="h-4 w-4 animate-spin" /> : playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              <span>{playbackSpeed}×</span>
+            </button>
+          </Tooltip>
           <Tooltip side="bottom" content="Скопировать код из редактора.">
             <button
               type="button"
@@ -15427,14 +15463,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
               <Tooltip content={playing ? `Пауза автопрохода ${playbackSpeed}× (пробел)` : debug.idx >= debug.result.steps.length - 1 ? `Проиграть трассу заново со скоростью ${playbackSpeed}× (пробел)` : `Продолжить автопроход со скоростью ${playbackSpeed}× (пробел)`}>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!curDebug?.step) return;
-                    if (playing) setPlaying(false);
-                    else {
-                      if (debug.idx >= debug.result.steps.length - 1) stepTo(0);
-                      setPlaying(true);
-                    }
-                  }}
+                  onClick={runOrTogglePlayback}
                   className={`mx-0.5 inline-flex items-center gap-1 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
                   aria-label={playing ? `Пауза автопрохода ${playbackSpeed}×` : `Пуск автопрохода ${playbackSpeed}×`}
                 >
@@ -21857,7 +21886,7 @@ const Prefix2D: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 75/87: src/components/visualizers/SparseTableViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 817 | РАЗМЕР: 50.6 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 830 | РАЗМЕР: 51.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useContext, useEffect, useState } from "react";
@@ -22294,10 +22323,10 @@ const Viz2DBuild: React.FC = () => {
   const liveK = vizNumber(vars?.k);
   const liveR = vizNumber(vars?.r);
   const liveC = vizNumber(vars?.c);
-  const liveSource = vizArray(vars?.A);
   const liveTable = vizRecord(vars?.st2);
   const hasLiveSource = !!vars && Object.prototype.hasOwnProperty.call(vars, "A");
   const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
+  const liveTableEmpty = hasLiveTable && Object.keys(liveTable ?? {}).length === 0;
   const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
   const compilerLinked = codeCell !== null || liveK !== null || hasLiveSource || hasLiveTable;
   const shownK = liveK !== null
@@ -22358,11 +22387,10 @@ const Viz2DBuild: React.FC = () => {
                         const c = idx % stepSize;
                         
                         const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
-                        const sourceRow = vizArray(liveSource?.[r]);
-                        const sourceValue = step === 0 ? sourceRow?.[c] : undefined;
-                        // A — неизменяемый базовый слой 1×1; очистка st2 скрывает
-                        // только вычисляемые уровни, но не исходную матрицу.
-                        const shownValue = compilerLinked ? (liveValue ?? sourceValue) : ST2D[r][c][step][step];
+                        // A и st2 — разные объекты: пока st2 пуст, его базовый
+                        // слой тоже пуст. Значения A появятся здесь только после
+                        // явной инициализации st2[(r,c,0,0)] в Python-коде.
+                        const shownValue = compilerLinked ? liveValue : ST2D[r][c][step][step];
                         const isBlank = shownValue === undefined || shownValue === null;
                         let highlightClass = isBlank
                           ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'
@@ -22427,14 +22455,28 @@ const Viz2DBuild: React.FC = () => {
           <h3 className="text-lg font-bold text-slate-300 mb-6 flex items-center gap-2">Код построения и формула</h3>
           {shownK === 0 ? (
              <div className="text-slate-400 text-sm leading-relaxed font-sans mt-4">
-               <p className="mb-4">При <span className="font-mono text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">k = 0</span> квадраты имеют размер <span className="font-bold text-white">1×1</span>.</p>
-               <div className="bg-[#0a0f1e] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner">
-                 <span className="text-slate-500">// Базовый случай: квадрат размера 1x1 это сама ячейка</span><br/>
-                 <span className="text-indigo-400">ST</span>[r][c][0][0] = matrix[r][c];
-               </div>
-               <p className="mt-6 italic text-indigo-400 flex items-center gap-2">
-                 <Play size={14} className="fill-indigo-400" /> Выберите шаг 1, чтобы увидеть как собираются квадраты бóльшего размера.
-               </p>
+               {liveTableEmpty ? (
+                 <div className="rounded-xl border border-dashed border-amber-500/50 bg-amber-500/5 p-4">
+                   <p className="font-bold text-amber-300">st2 = {'{}'} — рабочая таблица действительно пуста</p>
+                   <p className="mt-2 text-xs text-slate-400">
+                     Матрица <span className="font-mono text-slate-200">A</span> существует отдельно. Ячейки появятся только после явной записи базового слоя:
+                   </p>
+                   <div className="mt-3 rounded-lg bg-[#0a0f1e] p-3 font-mono text-xs text-slate-300">
+                     <span className="text-indigo-400">st2</span>[(r, c, 0, 0)] = <span className="text-emerald-300">A</span>[r][c]
+                   </div>
+                 </div>
+               ) : (
+                 <>
+                   <p className="mb-4">При <span className="font-mono text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">k = 0</span> квадраты имеют размер <span className="font-bold text-white">1×1</span>.</p>
+                   <div className="bg-[#0a0f1e] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner">
+                     <span className="text-slate-500">// Базовый случай: квадрат размера 1×1 — сама ячейка</span><br/>
+                     <span className="text-indigo-400">st2</span>[(r, c, 0, 0)] = <span className="text-emerald-300">A</span>[r][c]
+                   </div>
+                   <p className="mt-6 italic text-indigo-400 flex items-center gap-2">
+                     <Play size={14} className="fill-indigo-400" /> Выберите шаг 1, чтобы увидеть, как собираются квадраты бóльшего размера.
+                   </p>
+                 </>
+               )}
              </div>
           ) : (
              <div className="flex flex-col gap-4 animate-in fade-in duration-300">
@@ -25114,5 +25156,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 12.09.2026, 18:52:37
+КОНЕЦ ДОКУМЕНТА • 87 файлов • сгенерировано 13.09.2026, 14:14:42
 ==========================================================================================================================================
