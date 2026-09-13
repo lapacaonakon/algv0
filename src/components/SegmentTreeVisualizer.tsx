@@ -17,7 +17,7 @@ interface Step {
 }
 
 // ===== PURE LOGIC: build tree =====
-function buildTreeFull(arr: number[]): Record<number, number> {
+export function buildTreeFull(arr: number[]): Record<number, number> {
   const n = arr.length;
   const tree: Record<number, number> = {};
   function go(v: number, l: number, r: number) {

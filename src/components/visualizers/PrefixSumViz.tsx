@@ -275,11 +275,15 @@ const Prefix2D: React.FC = () => {
     const r2 = vizNumber(vars?.r2);
     const c2 = vizNumber(vars?.c2);
     if (r1 === null || c1 === null || r2 === null || c2 === null) return;
+    // Python-шаблон (и глава) используют 1-индексные клетки таблицы S:
+    // клетка (1, 1) — левый верхний элемент матрицы. Внутри визы клетки
+    // 0-индексные, поэтому переводим: (1,1) → (0,0).
+    const to0 = (v: number, hi: number) => Math.max(0, Math.min(hi, Math.trunc(v) - 1));
     setRect({
-      r1: Math.max(0, Math.min(n - 1, Math.trunc(r1))),
-      c1: Math.max(0, Math.min(m - 1, Math.trunc(c1))),
-      r2: Math.max(0, Math.min(n - 1, Math.trunc(r2))),
-      c2: Math.max(0, Math.min(m - 1, Math.trunc(c2))),
+      r1: to0(r1, n - 1),
+      c1: to0(c1, m - 1),
+      r2: to0(r2, n - 1),
+      c2: to0(c2, m - 1),
     });
   }, [vars, n, m]);
 

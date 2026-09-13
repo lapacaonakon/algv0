@@ -12,8 +12,8 @@ export const chapters: Chapter[] = [
     type: "html",
     content: `<section id="euler-path-vs-cycle" class="mb-20 scroll-mt-10">
     <div class="flex items-center mb-6">
-        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Глава 1</span>
-        <h2 class="text-3xl font-bold text-white">Не будь идиотом: Путь vs Цикл</h2>
+        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Билет 13</span>
+        <h2 class="text-3xl font-bold text-white">Эйлеров цикл и путь: различие</h2>
     </div>
     
     <div class="space-y-8">
@@ -92,7 +92,7 @@ export const chapters: Chapter[] = [
     type: "html",
     content: `<section id="bridges-code" class="mb-20 scroll-mt-10">
     <div class="flex items-center mb-6">
-        <span class="bg-emerald-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Глава 2</span>
+        <span class="bg-emerald-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Билет 11</span>
         <h2 class="text-3xl font-bold text-white">Мосты: Алгоритм + Код</h2>
     </div>
     

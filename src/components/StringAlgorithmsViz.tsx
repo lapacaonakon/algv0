@@ -99,8 +99,15 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
     }, [mode, safePattern, safeText]);
     const runtime = useVizRuntime();
     const runtimeString = vizString(runtime?.variables?.s);
+    const runtimePattern = vizString(runtime?.variables?.pattern);
     const s = runtimeString ?? demoString;
-    const patternLength = runtimeString ? runtimeString.length : demoPatternLength;
+    // Длина образца: приоритет — переменная pattern из Python; иначе всё до
+    // разделителя "#" в склейке pattern#text; иначе вся строка (нет текста).
+    const patternLength = runtimePattern
+        ? runtimePattern.length
+        : runtimeString
+          ? (runtimeString.includes("#") ? runtimeString.indexOf("#") : runtimeString.length)
+          : demoPatternLength;
 
     const [autoPlay, setAutoPlay] = useState(false);
     const [stepIdx, setStepIdx] = useState(0);
