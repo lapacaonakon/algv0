@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            13.09.2026, 14:53:25
+Дата генерации:            13.09.2026, 15:29:52
 Файлов исходного кода:     92
-Суммарный объём кода:      1.36 MB
+Суммарный объём кода:      1.38 MB
 Глав/билетов в пособии:    30
 
 ==========================================================================================================================================
@@ -2418,7 +2418,7 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/92: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 817 | РАЗМЕР: 66.2 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 817 | РАЗМЕР: 66.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2688,12 +2688,12 @@ def erase(root, key):              # удалить произвольную т�
 
             <div class="bg-rose-950/30 rounded-xl border border-rose-800/60 p-4 mt-6">
                 <p class="text-rose-300 font-bold text-sm mb-2">⚠️ Любимый вопрос на экзамене: Zig-Zig — это НЕ «два раза Zig»</p>
-                <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 leading-relaxed">наивно (x, потом x):   60→40→20 стало 20→40→60 — бамбук просто перевернулся, глубина та же
+                <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-300 leading-relaxed">наивно (x, потом x):   60→40→20 стало 20→60→40 — бамбук просто перевернулся, глубина та же
 Zig-Zig (p, потом x):  60→40→20 стало кустом 20(40(60),…)? нет: 20 сверху, ветка укоротилась ВДВОЕ</pre>
                 <p class="text-slate-300 text-sm mt-3">Мнемоника: <b>линия — крути СВЕРХУ вниз, змейка — СНИЗУ вверх</b>. Вся разница в коде: <code class="bg-slate-950 px-2 py-0.5 rounded font-mono text-xs text-white">rotate(p); rotate(x);</code> против <code class="bg-slate-950 px-2 py-0.5 rounded font-mono text-xs text-white">rotate(x); rotate(x);</code> — одна строчка, а без неё амортизации не будет.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mt-6">Полный прогон: бамбук 40 → 30 → 20 → 10, ищем 10. Спуск 4 узла, затем Zig-Zig(Zig-Zig) — и дерево из линии высоты 4 стало кустом высоты 3, а 10 — корнем: следующий запрос к ней — ноль сравнений. Мы не только достали ключ, но и <b>починили дерево по пути</b>: все, мимо кого проходили, подтянулись к корню примерно вдвое. Отсюда амортизация: дорогой запрос нельзя пройти много раз подряд — путь кончается, и удешевляется (строго — методом потенциала: сумма log-размеров поддеревьев падает ровно на столько, сколько поворотов заплатили; отсюда же теорема о статической оптимальности — splay не хуже идеального статического дерева под твою последовательность запросов).</p>
+            <p class="text-slate-300 text-sm mt-6">Полный прогон: бамбук 40 → 30 → 20 → 10, ищем 10. Спуск 4 узла, затем Zig-Zig(Zig-Zig) — 10 стала корнем, и следующий запрос к ней — ноль сравнений; на длинном бамбуке каждый такой прогон сжимает путь примерно вдвое (высота 8 → 6, 14 → 9 — проверь в симуляторе). Мы не только достали ключ, но и <b>починили дерево по пути</b>: все, мимо кого проходили, подтянулись к корню примерно вдвое. Отсюда амортизация: дорогой запрос нельзя пройти много раз подряд — путь кончается, и удешевляется (строго — методом потенциала: сумма log-размеров поддеревьев падает ровно на столько, сколько поворотов заплатили; отсюда же теорема о статической оптимальности — splay не хуже идеального статического дерева под твою последовательность запросов).</p>
 
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-4">
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
@@ -2844,7 +2844,7 @@ def find(root, key):                 # поиск: спуск + splay ВСЕГД
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         🎓 Аналогия 1: Учеба в вузе
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">У тебя есть предметы. "Матан 2" нельзя взять, если не сдал "Матан 1". Топологическая сортировка — это расписание, которое гарантрует, что ты не встретишь предмет, пререквизиты которого ты еще не прошел.</p>
+                    <p class="text-slate-300 text-sm mb-4">У тебя есть предметы. "Матан 2" нельзя взять, если не сдал "Матан 1". Топологическая сортировка — это расписание, которое гарантирует, что ты не встретишь предмет, пререквизиты которого ты еще не прошел.</p>
                 </div>
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
@@ -3324,7 +3324,7 @@ export const chapters: Chapter[] = [
                 <p class="text-rose-400">Почему Гамильтон — NP-полный:</p>
                 <p>
                     Задача коммивояжёра (TSP) — это взвешенная версия гамильтонова пути. 
-                    Доказано, что любой полиномиальный алгоритм для TSP решит NP=... 
+                    TSP — NP-трудная: полиномиальный алгоритм для неё означал бы P = NP. 
                     В общем, не парься. Просто запомни ассоциацию: Гамильтон = больничка.
                 </p>
             </div>
@@ -3554,7 +3554,7 @@ void find_bridges() {
                         <li><strong class="text-white">Жадная раскраска:</strong> идём по вершинам v = 0…n−1, красим в минимальный цвет, свободный у соседей. Дал ≤ Δ+1 цветов (Δ — максимальная степень). Порядок вершин важен!</li>
                         <li><strong class="text-white">χ(G) = 2 ⟺ граф двудолен</strong> (нет нечётных циклов). K3,3 — двудольный, ему хватит 2 цветов, хоть он и непланарен.</li>
                         <li><strong class="text-white">Планарный ⇒ χ ≤ 4</strong> (теорема о четырёх красках); тривиальные оценки: χ(K_n) = n, χ(цикла чётной длины) = 2, χ(цикла нечётной длины) = 3.</li>
-                        <li><strong class="text-white">Брукс–Вингертер (не путать с жадной!):</strong> для связного графа, который не полный и не нечётный цикл, χ(G) ≤ Δ.</li>
+                        <li><strong class="text-white">Теорема Брукса (не путать с жадной!):</strong> для связного графа, который не полный и не нечётный цикл, χ(G) ≤ Δ.</li>
                     </ul>
                 </div>
             </div>
@@ -5153,7 +5153,7 @@ export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 25/92: src/data/vizSync.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 761 | РАЗМЕР: 46.9 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 778 | РАЗМЕР: 48.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -5188,21 +5188,35 @@ export interface PageSync {
 /** Справочные значения, указанные внутри самих симуляторов (демо-графы, строки и т.п.). */
 export const PAGE_SYNC: Record<string, PageSync> = {
   "segment-trees": {
-    vizTitle: "Дерево отрезков",
-    stepNote: "Шаг = спуск по вершине v: либо читаем tree[v], либо толкаем lazy к детям 2·v и 2·v+1.",
-    code: `n = 8                       # длина массива (демо)
-tree = [0] * (2 * n)
-i = 0                       # лист: tree[n + i]
+    vizTitle: "Дерево отрезков: build → query → массовое обновление (Lazy)",
+    stepNote: "Шаг = спуск по вершине v: целиком внутри отрезка — пишем tree[v] и вешаем обещание lazy[v]; частичное пересечение — толкаем lazy детям 2·v и 2·v+1.",
+    code: `n = 6                       # длина массива демо: [5, 8, 3, 12, 7, 2]
+A = [5, 8, 3, 12, 7, 2]
+tree = [0] * (4 * n)
+lazy = [0] * (4 * n)        # lazy[v] — невыполненное «обещание» для детей
+
+def build(v, l, r):
+    if l == r:
+        tree[v] = A[l]
+        return
+    m = (l + r) // 2
+    build(2 * v, l, m)
+    build(2 * v + 1, m + 1, r)
+    tree[v] = tree[2 * v] + tree[2 * v + 1]
+build(1, 0, n - 1)
 
 v, l, r = 1, 0, n - 1       # вершина и её отрезок
 m = (l + r) // 2            # граница детей 2v, 2v+1
-print(f"v={v} [{l}..{r}] mid={m}")`,
+ul, ur, add = 1, 3, 10      # массовое обновление: A[1..3] += 10 (демо)`,
     variables: [
-      { name: "n", role: "длина исходного массива; листья дерева лежат в tree[n … 2·n − 1]", range: "n = 8 на демо" },
-      { name: "i", role: "индекс элемента массива; его лист — tree[n + i]", range: "0 … n−1" },
-      { name: "v", role: "текущая вершина дерева отрезков", range: "1 … 2·n−1" },
+      { name: "n", role: "длина исходного массива; рекурсивное дерево хранится в tree[1 … 4·n)", range: "n = 6 на демо" },
+      { name: "i", role: "индекс элемента массива (для точечных операций)", range: "0 … n−1" },
+      { name: "v", role: "текущая вершина дерева — подсвечивается во всех вкладках, включая Lazy", range: "1 … 4·n−1" },
       { name: "l, r", role: "границы отрезка, за который отвечает вершина v", range: "0 … n−1" },
-      { name: "m", role: "середина отрезка m = (l + r) // 2 — граница между детьми", range: "l ≤ m < r" },
+      { name: "m", role: "середина отрезка m = (l + r) // 2 — граница детей", range: "l ≤ m < r" },
+      { name: "ul, ur", role: "границы массового обновления (вкладка «Обновление на отрезке»)", range: "0 … n−1" },
+      { name: "add", role: "добавка A[ul..ur] += add — питон рулит демонстрацией Lazy", range: "любое число" },
+      { name: "lazy", role: "массив обещаний: lazy[v] ≠ 0 — детям ещё не отдано", range: "заполняется демо" },
     ],
   },
   treap: {
@@ -5528,6 +5542,9 @@ F = 2 - V + E               # формула: V − E + F = 2
 not_planar = E > 3 * V - 6  # 10 > 9 → K5 непланарен
 
 # покраска (вторая демонстрация страницы):
+# смежности демо-графа из 7 вершин A..G
+adj = [[1, 4, 5], [0, 2, 5], [1, 3, 5, 6], [2, 4, 5, 6],
+       [3, 0, 5], [0, 1, 2, 3, 4, 6], [2, 3, 5]]
 color = [-1] * 7            # color[v] — цвет вершины (0=красный, 1=синий…)
 k, v = 0, 0                 # сколько цветов использовано; красимая вершина
 for v in range(7):          # жадная раскраска
@@ -6461,7 +6478,7 @@ export const tickets14to20: Chapter[] = [
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 28/92: src/data/tickets/ticket21_24.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 262 | РАЗМЕР: 19.6 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 262 | РАЗМЕР: 19.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -6522,7 +6539,7 @@ export const tickets21to24: Chapter[] = [
                         <li><b>abca</b>: О! Начало ("a") совпало с текущим концом ("a"). Длина — 1. <code class="text-indigo-300">π[3] = 1</code></li>
                         <li><b>abcab</b>: Начало ("ab") совпало с концом ("ab"). Длина — 2. <code class="text-indigo-300">π[4] = 2</code></li>
                         <li><b>abcabc</b>: Начало ("abc") совпало с концом ("abc"). Длина — 3. <code class="text-indigo-300">π[5] = 3</code></li>
-                        <li><b>abcabcd</b>: "d" всё испортила. "abcd" из начала не совпадает с "abcd" в конце? Нет, "abcd" != "abcd" (упс, "abca" vs "abcd"). Конец "abcd" не совпадает с началом "abc...". <code class="text-indigo-300">π[6] = 0</code></li>
+                        <li><b>abcabcd</b>: "d" всё испортила. Кандидат — продолжить префикс длины 3 ("abc"): сравниваем s[6]='d' с s[3]='c' — не совпало. Откат по π: j = π[2] = 0. Теперь 'd' против 'a' — снова мимо. Общей части нет. <code class="text-indigo-300">π[6] = 0</code></li>
                     </ul>
                 </div>
             </details>
@@ -6702,7 +6719,7 @@ int go(int v, char c) {
             <h3 class="text-xl font-bold text-purple-400 mb-4">Границы невозможного</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-purple-500/30">
                 <p class="text-lg text-purple-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">P: Можно решить быстро (полином).<br>NP: Можно БЫСТРО ПРОВЕРИТЬ готовый ответ.<br>Сведение (Reduction) A->B: Если я умею решать B, я могу конвертнуть решение в A без потери времени.</p>
+                <p class="text-xl font-mono text-white">P: Можно решить быстро (полином).<br>NP: Можно БЫСТРО ПРОВЕРИТЬ готовый ответ.<br>Сведение (Reduction) A ≤p B: вход задачи A преобразуется за полином во вход задачи B; умеешь решать B — решаешь и A.</p>
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <!-- Аналогия 1 -->
@@ -6717,7 +6734,7 @@ int go(int v, char c) {
                     <div class="absolute -top-3 left-4 bg-purple-900 text-purple-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-purple-500 shadow-md">
                         🔄 Аналогия 2: Машина-переводчик (Сведение)
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Сведение A к B — это когда ты не умеешь говорить по-китайски (A), но у тебя есть отличный переводчик на английский (Сведение) и друг, болтающий по-английски (решение B). Если любая NP-задача сводится к задаче B, то B — это <b>NP-Полная</b> (сосредоточение всего зла)!</p>
+                    <p class="text-slate-300 text-sm mb-4">Сведение A к B — это когда ты не умеешь говорить по-китайски (A), но у тебя есть отличный переводчик на английский (Сведение) и друг, болтающий по-английски (решение B). Если любая NP-задача сводится к задаче B, а сама B лежит в NP, то B — <b>NP-полная</b> (сосредоточение всего зла). Без «B ∈ NP» это лишь NP-трудная!</p>
                 </div>
             </div>
         </div>
@@ -6934,13 +6951,13 @@ while(!q.empty()) {
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         🎓 Аналогия 1: Учеба в вузе
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">У тебя есть предметы. "Матан 2" нельзя взять, если не сдал "Матан 1". Топологическая сортировка — это расписание, которое гарантрует, что ты не встретишь предмет, пререквизиты которого ты еще не прошел.</p>
+                    <p class="text-slate-300 text-sm mb-4">У тебя есть предметы. "Матан 2" нельзя взять, если не сдал "Матан 1". Топологическая сортировка — это расписание, которое гарантирует, что ты не встретишь предмет, пререквизиты которого ты еще не прошел.</p>
                 </div>
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         💀 Ограничения: Циклы
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Не работает на грахах с циклами. "Чтобы устроиться на работу нужен опыт. Чтобы получить опыт, нужна работа". Алгоритм выявит цикл и скажет, что отсортировать невозможно.</p>
+                    <p class="text-slate-300 text-sm mb-4">Не работает на графах с циклами. "Чтобы устроиться на работу нужен опыт. Чтобы получить опыт, нужна работа". Алгоритм выявит цикл и скажет, что отсортировать невозможно.</p>
                 </div>
             </div>
 
@@ -7112,7 +7129,7 @@ void topological_sort(int n) {
             </div>
             
             <p class="text-slate-300 text-sm">
-                <strong>Важно:</strong> Это работает только в неориентированных грахах! Если мосты рвут связи между островами, то мосты крепятся к точкам сочленения. То есть, <strong>все точки вокруг мостов — это точки сочленения</strong> (кроме случаев, когда берег - это тупик со степенью 1).
+                <strong>Важно:</strong> Это работает только в неориентированных графах! Если мосты рвут связи между островами, то мосты крепятся к точкам сочленения. То есть, <strong>все точки вокруг мостов — это точки сочленения</strong> (кроме случаев, когда берег - это тупик со степенью 1).
             </p>
         </div>
 
@@ -8582,7 +8599,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 36/92: src/components/ColoringViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 235 | РАЗМЕР: 10.0 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 235 | РАЗМЕР: 10.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useMemo, useState } from "react";
@@ -8812,7 +8829,7 @@ export function ColoringViz() {
           </div>
           <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-3 text-[11px] text-slate-400 leading-relaxed">
             <b className="text-slate-200">Жадный алгоритм:</b> идём по вершинам v = 0…n−1 и красим в минимальный цвет, которого нет у соседей.
-            Для планарного графа он даст ≤ 6 цветов, а существование 4-цветной раскраски — теорема (проверяется перебором, компьютер Аппеля и Хакена, 1976).
+            На этом графе жадная раскраска даёт 4 цвета. Для любого планарного графа существует порядок вершин, при котором жадная даст ≤ 6 цветов (в планарном всегда есть вершина степени ≤ 5), а существование 4-цветной раскраски — теорема Аппеля и Хакена (1976, перебор на компьютере).
           </div>
         </div>
       </div>
@@ -17501,7 +17518,7 @@ export const SalmonAutomatonWidget: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 64/92: src/components/SegmentTreeVisualizer.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 534 | РАЗМЕР: 30.1 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 694 | РАЗМЕР: 39.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -17518,6 +17535,8 @@ interface Step {
   mergeChildren?: [number, number];          // pair being merged
   arrayHighlight?: [number, number];         // [L, R] range in source array
   result?: number;                           // partial result for query
+  lazyState?: Record<number, number>;        // node index → невыполненное «обещание» (lazy)
+  promisePushed?: number;                    // узел, у которого сейчас толкаем обещание детям
 }
 
 // ===== PURE LOGIC: build tree =====
@@ -17685,11 +17704,118 @@ const QUERY_BU_CODE = [
   "  // -----",
   "  while (l < r) {",
   "    if (l & 1) res += tree[l++];",
-  "    // -----",
+  "  // -----",
   "    if (r & 1) res += tree[--r];",
   "    l >>= 1; r >>= 1;",
   "  return res; }"
 ];
+
+// ===== STEP GENERATOR: массовое обновление с Lazy Propagation =====
+const LAZY_CODE = [
+  "update(v, l, r) {",                 // 1
+  "  if (r < uL || uR < l) return",    // 2
+  "  if (uL <= l && r <= uR) {",       // 3
+  "    tree[v] += add * (r - l + 1)",  // 4
+  "    lazy[v] += add  // обещание",   // 5
+  "    return",                        // 6
+  "  }",                               // 7
+  "  push(v) // старое обещание вниз", // 8
+  "  m = (l + r) >> 1",                // 9
+  "  update(2v, l, m)",                // 10
+  "  update(2v+1, m+1, r)",            // 11
+  "  tree[v] = tree[2v]+tree[2v+1]",   // 12
+  "}",                                 // 13
+  "// --- запрос sum(uL..uR):",        // 14
+  "// спускаясь, толкаем lazy вниз," ,  // 15
+  "// целиком внутри — читаем tree[v]" // 16
+];
+
+export function genLazySteps(arr: number[], uL: number, uR: number, add: number): Step[] {
+  const n = arr.length;
+  const steps: Step[] = [];
+  let id = 0;
+  const tree: Record<number, number> = {};
+  const lazy: Record<number, number> = {};
+  for (const k of Object.keys(buildTreeFull(arr))) {
+    tree[Number(k)] = buildTreeFull(arr)[Number(k)];
+    lazy[Number(k)] = 0;
+  }
+  const full = buildTreeFull(arr);
+
+  const snap = (desc: string, codeLine: number, hl: number[], extra?: Partial<Step>) => {
+    steps.push({
+      id: id++,
+      desc,
+      codeLine,
+      treeState: { ...tree },
+      highlightNodes: [...hl],
+      lazyState: { ...lazy },
+      ...extra,
+    });
+  };
+  snap(`Старт: дерево построено (корень = ${full[1]}). Обещаний пока нет: lazy все нули. Готовим update([${uL}..${uR}], +${add}).`, 1, [1]);
+
+  function pushDown(v: number, l: number, r: number) {
+    if (lazy[v] !== 0) {
+      const m = (l + r) >> 1;
+      const d = lazy[v];
+      snap(`push(${v}): обещание +${d} с узла ${v} уходит детям 2·${v} и 2·${v}+1. Самих детей НЕ трогаем рекурсивно — только их tree и их lazy.`, 8, [v, 2 * v, 2 * v + 1], { promisePushed: v });
+      tree[2 * v] = (tree[2 * v] ?? 0) + d * (m - l + 1);
+      lazy[2 * v] = (lazy[2 * v] ?? 0) + d;
+      tree[2 * v + 1] = (tree[2 * v + 1] ?? 0) + d * (r - m);
+      lazy[2 * v + 1] = (lazy[2 * v + 1] ?? 0) + d;
+      lazy[v] = 0;
+      snap(`Обещание ${v} исполнено и снято (lazy[${v}] = 0). Дети получили свои стикеры «+${d}».`, 8, [2 * v, 2 * v + 1]);
+    }
+  }
+
+  function update(v: number, l: number, r: number) {
+    if (r < uL || uR < l) {
+      snap(`update(v=${v}, [${l}..${r}]): отрезок не пересекается с [${uL}..${uR}] → выходим, ничего не трогаем.`, 2, [v]);
+      return;
+    }
+    if (uL <= l && r <= uR) {
+      tree[v] = (tree[v] ?? 0) + add * (r - l + 1);
+      lazy[v] = (lazy[v] ?? 0) + add;
+      snap(`update(v=${v}, [${l}..${r}]): отрезок ЦЕЛИКОМ внутри [${uL}..${uR}] → tree[${v}] += ${add}·${r - l + 1} = ${tree[v]}, и вешаем обещание lazy[${v}] = ${lazy[v]}. Детям сюда спускаться не будем — O(log n)!`, 5, [v]);
+      return;
+    }
+    pushDown(v, l, r);
+    const m = (l + r) >> 1;
+    snap(`update(v=${v}, [${l}..${r}]): частичное пересечение. mid = ${m}. Спускаемся в обоих детей.`, 9, [v]);
+    update(2 * v, l, m);
+    update(2 * v + 1, m + 1, r);
+    tree[v] = (tree[2 * v] ?? 0) + (tree[2 * v + 1] ?? 0);
+    snap(`Возврат в v=${v}: tree[${v}] = tree[${2 * v}] + tree[${2 * v + 1}] = ${tree[v]}.`, 12, [v], { mergeChildren: [2 * v, 2 * v + 1] });
+  }
+
+  update(1, 0, n - 1);
+  snap(`🎉 Массовое обновление [${uL}..${uR}] += ${add} готово. Корень = ${tree[1]}. Обещаний на пути — минимум: каждый стикер «+${add}» покрывает целый подотрезок.`, 13, [1]);
+
+  // --- фаза 2: запрос суммы, который "собирает" обещания ---
+  let res = 0;
+  function query(v: number, l: number, r: number) {
+    if (r < uL || uR < l) {
+      snap(`query(v=${v}, [${l}..${r}]): не пересекает запрос → 0.`, 15, [v]);
+      return;
+    }
+    if (uL <= l && r <= uR) {
+      res += tree[v] ?? 0;
+      snap(`query(v=${v}, [${l}..${r}]): целиком внутри → доверяем tree[${v}] = ${tree[v]} (ленивое значение уже верное!).`, 16, [v], { result: res });
+      return;
+    }
+    pushDown(v, l, r);
+    const m = (l + r) >> 1;
+    snap(`query(v=${v}, [${l}..${r}]): частичное пересечение — прежде чем идти вниз, исполняем обещание узла (push). mid = ${m}.`, 15, [v]);
+    query(2 * v, l, m);
+    query(2 * v + 1, m + 1, r);
+  }
+  res = 0;
+  snap(`Теперь запрос sum([${uL}..${uR}]) — проверим, что ответы с ленивыми обещаниями остаются верными.`, 14, [1]);
+  query(1, 0, n - 1);
+  snap(`🎉 sum([${uL}..${uR}]) = ${res} — совпадает с честным пересчётом по массиву. Обещания сработали.`, 16, [1], { result: res });
+  return steps;
+}
 
 // ===== PLAYER COMPONENT =====
 function Player({ steps, color }: { steps: Step[]; color: 'indigo' | 'emerald' | 'amber' }) {
@@ -17714,7 +17840,7 @@ function Player({ steps, color }: { steps: Step[]; color: 'indigo' | 'emerald' |
 }
 
 // ===== SIMULATION PANEL =====
-function SimPanel({ title, icon, steps, code, color, arr }: { title: string; icon: string; steps: Step[]; code: string[]; color: 'indigo' | 'emerald' | 'amber'; arr: number[] }) {
+function SimPanel({ title, icon, steps, code, color, arr, liveNode }: { title: string; icon: string; steps: Step[]; code: string[]; color: 'indigo' | 'emerald' | 'amber'; arr: number[]; liveNode?: number | null }) {
   const p = Player({ steps, color });
   if (!p) return null;
   const { step, idx, setIdx, playing, setPlaying, speed, setSpeed, clr, total } = p;
@@ -17725,12 +17851,15 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
   const renderNode = useCallback((nd: VNode): React.ReactElement => {
     const isHigh = step.highlightNodes.includes(nd.v);
     const isChild = step.mergeChildren?.includes(nd.v);
+    const isLive = liveNode !== null && liveNode !== undefined && liveNode === nd.v;
     const has = nd.val !== null;
+    const promise = step.lazyState?.[nd.v] ?? 0;
 
     let cls = 'bg-slate-800 border-slate-700 text-slate-400';
     if (isHigh) cls = `${clr.ring} text-white ring-2 scale-105 shadow-lg z-10`;
     else if (isChild) cls = `${clr.childRing} text-amber-300 ring-2`;
     else if (has) cls = `${clr.filled} text-slate-200`;
+    if (isLive) cls += ' outline outline-2 outline-cyan-400/90';
 
     return (
       <div key={nd.v} className="flex flex-col items-center">
@@ -17738,6 +17867,11 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
           <span className="text-[7px] opacity-60 font-mono">v{nd.v}</span>
           <span className="text-[9px] font-bold">[{nd.l}..{nd.r}]</span>
           <span className="text-xs font-extrabold font-mono text-white">{has ? nd.val : '·'}</span>
+          {promise !== 0 && (
+            <span className="mt-0.5 px-1 rounded-full bg-amber-500/25 border border-amber-400 text-amber-300 text-[7px] font-bold font-mono whitespace-nowrap">
+              🏷️ +{promise}
+            </span>
+          )}
         </div>
         {(nd.left || nd.right) && (
           <div className="flex flex-col items-center mt-1 w-full">
@@ -17750,7 +17884,7 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
         )}
       </div>
     );
-  }, [step, clr]);
+  }, [step, clr, liveNode]);
 
   return (
     <div className={`rounded-2xl border overflow-hidden flex flex-col ${color === 'indigo' ? 'border-indigo-500/30' : color === 'emerald' ? 'border-emerald-500/30' : 'border-amber-500/30'}`}>
@@ -17832,11 +17966,16 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 export function SegmentTreeVisualizer() {
   const runtime = useVizRuntime();
   const liveI = vizNumber(runtime?.variables?.i);
+  const liveV = vizNumber(runtime?.variables?.v);
+  const liveAdd = vizNumber(runtime?.variables?.add);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
   const [qR, setQR] = useState(4);
-  const [view, setView] = useState<'build' | 'queries' | 'theory'>('build');
+  const [uL, setUL] = useState(1);
+  const [uR, setUR] = useState(3);
+  const [uAdd, setUAdd] = useState(10);
+  const [view, setView] = useState<'build' | 'queries' | 'lazy' | 'theory'>('build');
 
   // Clamp query range when array changes
   useEffect(() => {
@@ -17862,6 +18001,9 @@ export function SegmentTreeVisualizer() {
   const buildSteps = useMemo(() => genBuildSteps(arr), [arr]);
   const queryTDSteps = useMemo(() => genQueryTopDownSteps(arr, qL, qR), [arr, qL, qR]);
   const queryBUSteps = useMemo(() => genQueryBottomUpSteps(arr, qL, qR), [arr, qL, qR]);
+  // Питон умеет рулить добавкой: переменная add из кода компилятора подменяет значение слайдера.
+  const effAdd = liveAdd ?? uAdd;
+  const lazySteps = useMemo(() => genLazySteps(arr, uL, uR, effAdd), [arr, uL, uR, effAdd]);
 
   const totalSum = arr.reduce((a, b) => a + b, 0);
 
@@ -17937,6 +18079,9 @@ export function SegmentTreeVisualizer() {
         <button onClick={() => setView('queries')} className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-bold text-xs transition-colors ${view === 'queries' ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>
           <Search className="w-3.5 h-3.5" /> Запрос: сверху ↓ vs снизу ↑
         </button>
+        <button onClick={() => setView('lazy')} className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-bold text-xs transition-colors ${view === 'lazy' ? 'border-amber-500 text-amber-400 bg-amber-500/5' : 'border-transparent text-slate-400 hover:text-slate-200'}`} title="Массовое обновление на отрезке через обещания (Lazy Propagation) — ядро билета">
+          🏷️ Обновление на отрезке (Lazy)
+        </button>
         <button onClick={() => setView('theory')} className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-bold text-xs transition-colors ${view === 'theory' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>
           <Info className="w-3.5 h-3.5" /> Почему / Сравнение
         </button>
@@ -17974,6 +18119,38 @@ export function SegmentTreeVisualizer() {
             code={QUERY_BU_CODE}
             color="amber"
             arr={arr}
+          />
+        </div>
+      )}
+
+      {view === 'lazy' && (
+        <div className="space-y-4">
+          <div className="bg-slate-950 p-4 rounded-xl border border-amber-500/30 flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Отрезок</label>
+              <input type="number" min={0} max={arr.length - 1} value={uL} onChange={e => setUL(Math.max(0, Math.min(arr.length - 1, Number(e.target.value))))} className="w-14 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded px-2 py-1.5 outline-none focus:border-amber-500" />
+              <span className="text-slate-500">…</span>
+              <input type="number" min={0} max={arr.length - 1} value={uR} onChange={e => setUR(Math.max(0, Math.min(arr.length - 1, Number(e.target.value))))} className="w-14 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded px-2 py-1.5 outline-none focus:border-amber-500" />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Добавка</label>
+              <input type="number" value={effAdd} onChange={e => setUAdd(Number(e.target.value) || 0)} className="w-20 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded px-2 py-1.5 outline-none focus:border-amber-500" title={liveAdd !== null ? 'задана переменной add в Python-компиляторе' : 'A[uL..uR] += add'} />
+            </div>
+            <p className="text-[11px] text-slate-500 max-w-md">
+              Ко всем элементам отрезка прибавляем <b className="text-amber-300">add</b> за <b className="text-white">O(log n)</b>: спускаемся только по границе, а внутри вешаем стикер-обещание 🏷️. Вопрос «а когда стикеры исполняются?» — на втором прогоне (запрос суммы).
+              {liveAdd !== null && <span className="ml-2 text-emerald-400 font-bold">🐍 add = {liveAdd} из Python</span>}
+              {liveV !== null && <span className="ml-2 text-cyan-400 font-bold">🐍 v = {liveV} подсвечен</span>}
+            </p>
+          </div>
+          <SimPanel
+            key={`lazy-${arr.join('-')}-${uL}-${uR}-${effAdd}`}
+            title={`update([${uL}..${uR}], +${effAdd}) → query([${uL}..${uR}]) с Lazy Propagation`}
+            icon="🏷️"
+            steps={lazySteps}
+            code={LAZY_CODE}
+            color="amber"
+            arr={arr}
+            liveNode={liveV}
           />
         </div>
       )}
@@ -27831,5 +28008,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 92 файлов • сгенерировано 13.09.2026, 14:53:25
+КОНЕЦ ДОКУМЕНТА • 92 файлов • сгенерировано 13.09.2026, 15:29:52
 ==========================================================================================================================================

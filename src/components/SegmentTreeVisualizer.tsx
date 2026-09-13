@@ -12,6 +12,8 @@ interface Step {
   mergeChildren?: [number, number];          // pair being merged
   arrayHighlight?: [number, number];         // [L, R] range in source array
   result?: number;                           // partial result for query
+  lazyState?: Record<number, number>;        // node index → невыполненное «обещание» (lazy)
+  promisePushed?: number;                    // узел, у которого сейчас толкаем обещание детям
 }
 
 // ===== PURE LOGIC: build tree =====
@@ -179,11 +181,118 @@ const QUERY_BU_CODE = [
   "  // -----",
   "  while (l < r) {",
   "    if (l & 1) res += tree[l++];",
-  "    // -----",
+  "  // -----",
   "    if (r & 1) res += tree[--r];",
   "    l >>= 1; r >>= 1;",
   "  return res; }"
 ];
+
+// ===== STEP GENERATOR: массовое обновление с Lazy Propagation =====
+const LAZY_CODE = [
+  "update(v, l, r) {",                 // 1
+  "  if (r < uL || uR < l) return",    // 2
+  "  if (uL <= l && r <= uR) {",       // 3
+  "    tree[v] += add * (r - l + 1)",  // 4
+  "    lazy[v] += add  // обещание",   // 5
+  "    return",                        // 6
+  "  }",                               // 7
+  "  push(v) // старое обещание вниз", // 8
+  "  m = (l + r) >> 1",                // 9
+  "  update(2v, l, m)",                // 10
+  "  update(2v+1, m+1, r)",            // 11
+  "  tree[v] = tree[2v]+tree[2v+1]",   // 12
+  "}",                                 // 13
+  "// --- запрос sum(uL..uR):",        // 14
+  "// спускаясь, толкаем lazy вниз," ,  // 15
+  "// целиком внутри — читаем tree[v]" // 16
+];
+
+export function genLazySteps(arr: number[], uL: number, uR: number, add: number): Step[] {
+  const n = arr.length;
+  const steps: Step[] = [];
+  let id = 0;
+  const tree: Record<number, number> = {};
+  const lazy: Record<number, number> = {};
+  for (const k of Object.keys(buildTreeFull(arr))) {
+    tree[Number(k)] = buildTreeFull(arr)[Number(k)];
+    lazy[Number(k)] = 0;
+  }
+  const full = buildTreeFull(arr);
+
+  const snap = (desc: string, codeLine: number, hl: number[], extra?: Partial<Step>) => {
+    steps.push({
+      id: id++,
+      desc,
+      codeLine,
+      treeState: { ...tree },
+      highlightNodes: [...hl],
+      lazyState: { ...lazy },
+      ...extra,
+    });
+  };
+  snap(`Старт: дерево построено (корень = ${full[1]}). Обещаний пока нет: lazy все нули. Готовим update([${uL}..${uR}], +${add}).`, 1, [1]);
+
+  function pushDown(v: number, l: number, r: number) {
+    if (lazy[v] !== 0) {
+      const m = (l + r) >> 1;
+      const d = lazy[v];
+      snap(`push(${v}): обещание +${d} с узла ${v} уходит детям 2·${v} и 2·${v}+1. Самих детей НЕ трогаем рекурсивно — только их tree и их lazy.`, 8, [v, 2 * v, 2 * v + 1], { promisePushed: v });
+      tree[2 * v] = (tree[2 * v] ?? 0) + d * (m - l + 1);
+      lazy[2 * v] = (lazy[2 * v] ?? 0) + d;
+      tree[2 * v + 1] = (tree[2 * v + 1] ?? 0) + d * (r - m);
+      lazy[2 * v + 1] = (lazy[2 * v + 1] ?? 0) + d;
+      lazy[v] = 0;
+      snap(`Обещание ${v} исполнено и снято (lazy[${v}] = 0). Дети получили свои стикеры «+${d}».`, 8, [2 * v, 2 * v + 1]);
+    }
+  }
+
+  function update(v: number, l: number, r: number) {
+    if (r < uL || uR < l) {
+      snap(`update(v=${v}, [${l}..${r}]): отрезок не пересекается с [${uL}..${uR}] → выходим, ничего не трогаем.`, 2, [v]);
+      return;
+    }
+    if (uL <= l && r <= uR) {
+      tree[v] = (tree[v] ?? 0) + add * (r - l + 1);
+      lazy[v] = (lazy[v] ?? 0) + add;
+      snap(`update(v=${v}, [${l}..${r}]): отрезок ЦЕЛИКОМ внутри [${uL}..${uR}] → tree[${v}] += ${add}·${r - l + 1} = ${tree[v]}, и вешаем обещание lazy[${v}] = ${lazy[v]}. Детям сюда спускаться не будем — O(log n)!`, 5, [v]);
+      return;
+    }
+    pushDown(v, l, r);
+    const m = (l + r) >> 1;
+    snap(`update(v=${v}, [${l}..${r}]): частичное пересечение. mid = ${m}. Спускаемся в обоих детей.`, 9, [v]);
+    update(2 * v, l, m);
+    update(2 * v + 1, m + 1, r);
+    tree[v] = (tree[2 * v] ?? 0) + (tree[2 * v + 1] ?? 0);
+    snap(`Возврат в v=${v}: tree[${v}] = tree[${2 * v}] + tree[${2 * v + 1}] = ${tree[v]}.`, 12, [v], { mergeChildren: [2 * v, 2 * v + 1] });
+  }
+
+  update(1, 0, n - 1);
+  snap(`🎉 Массовое обновление [${uL}..${uR}] += ${add} готово. Корень = ${tree[1]}. Обещаний на пути — минимум: каждый стикер «+${add}» покрывает целый подотрезок.`, 13, [1]);
+
+  // --- фаза 2: запрос суммы, который "собирает" обещания ---
+  let res = 0;
+  function query(v: number, l: number, r: number) {
+    if (r < uL || uR < l) {
+      snap(`query(v=${v}, [${l}..${r}]): не пересекает запрос → 0.`, 15, [v]);
+      return;
+    }
+    if (uL <= l && r <= uR) {
+      res += tree[v] ?? 0;
+      snap(`query(v=${v}, [${l}..${r}]): целиком внутри → доверяем tree[${v}] = ${tree[v]} (ленивое значение уже верное!).`, 16, [v], { result: res });
+      return;
+    }
+    pushDown(v, l, r);
+    const m = (l + r) >> 1;
+    snap(`query(v=${v}, [${l}..${r}]): частичное пересечение — прежде чем идти вниз, исполняем обещание узла (push). mid = ${m}.`, 15, [v]);
+    query(2 * v, l, m);
+    query(2 * v + 1, m + 1, r);
+  }
+  res = 0;
+  snap(`Теперь запрос sum([${uL}..${uR}]) — проверим, что ответы с ленивыми обещаниями остаются верными.`, 14, [1]);
+  query(1, 0, n - 1);
+  snap(`🎉 sum([${uL}..${uR}]) = ${res} — совпадает с честным пересчётом по массиву. Обещания сработали.`, 16, [1], { result: res });
+  return steps;
+}
 
 // ===== PLAYER COMPONENT =====
 function Player({ steps, color }: { steps: Step[]; color: 'indigo' | 'emerald' | 'amber' }) {
@@ -208,7 +317,7 @@ function Player({ steps, color }: { steps: Step[]; color: 'indigo' | 'emerald' |
 }
 
 // ===== SIMULATION PANEL =====
-function SimPanel({ title, icon, steps, code, color, arr }: { title: string; icon: string; steps: Step[]; code: string[]; color: 'indigo' | 'emerald' | 'amber'; arr: number[] }) {
+function SimPanel({ title, icon, steps, code, color, arr, liveNode }: { title: string; icon: string; steps: Step[]; code: string[]; color: 'indigo' | 'emerald' | 'amber'; arr: number[]; liveNode?: number | null }) {
   const p = Player({ steps, color });
   if (!p) return null;
   const { step, idx, setIdx, playing, setPlaying, speed, setSpeed, clr, total } = p;
@@ -219,12 +328,15 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
   const renderNode = useCallback((nd: VNode): React.ReactElement => {
     const isHigh = step.highlightNodes.includes(nd.v);
     const isChild = step.mergeChildren?.includes(nd.v);
+    const isLive = liveNode !== null && liveNode !== undefined && liveNode === nd.v;
     const has = nd.val !== null;
+    const promise = step.lazyState?.[nd.v] ?? 0;
 
     let cls = 'bg-slate-800 border-slate-700 text-slate-400';
     if (isHigh) cls = `${clr.ring} text-white ring-2 scale-105 shadow-lg z-10`;
     else if (isChild) cls = `${clr.childRing} text-amber-300 ring-2`;
     else if (has) cls = `${clr.filled} text-slate-200`;
+    if (isLive) cls += ' outline outline-2 outline-cyan-400/90';
 
     return (
       <div key={nd.v} className="flex flex-col items-center">
@@ -232,6 +344,11 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
           <span className="text-[7px] opacity-60 font-mono">v{nd.v}</span>
           <span className="text-[9px] font-bold">[{nd.l}..{nd.r}]</span>
           <span className="text-xs font-extrabold font-mono text-white">{has ? nd.val : '·'}</span>
+          {promise !== 0 && (
+            <span className="mt-0.5 px-1 rounded-full bg-amber-500/25 border border-amber-400 text-amber-300 text-[7px] font-bold font-mono whitespace-nowrap">
+              🏷️ +{promise}
+            </span>
+          )}
         </div>
         {(nd.left || nd.right) && (
           <div className="flex flex-col items-center mt-1 w-full">
@@ -244,7 +361,7 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
         )}
       </div>
     );
-  }, [step, clr]);
+  }, [step, clr, liveNode]);
 
   return (
     <div className={`rounded-2xl border overflow-hidden flex flex-col ${color === 'indigo' ? 'border-indigo-500/30' : color === 'emerald' ? 'border-emerald-500/30' : 'border-amber-500/30'}`}>
@@ -326,11 +443,16 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 export function SegmentTreeVisualizer() {
   const runtime = useVizRuntime();
   const liveI = vizNumber(runtime?.variables?.i);
+  const liveV = vizNumber(runtime?.variables?.v);
+  const liveAdd = vizNumber(runtime?.variables?.add);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
   const [qR, setQR] = useState(4);
-  const [view, setView] = useState<'build' | 'queries' | 'theory'>('build');
+  const [uL, setUL] = useState(1);
+  const [uR, setUR] = useState(3);
+  const [uAdd, setUAdd] = useState(10);
+  const [view, setView] = useState<'build' | 'queries' | 'lazy' | 'theory'>('build');
 
   // Clamp query range when array changes
   useEffect(() => {
@@ -356,6 +478,9 @@ export function SegmentTreeVisualizer() {
   const buildSteps = useMemo(() => genBuildSteps(arr), [arr]);
   const queryTDSteps = useMemo(() => genQueryTopDownSteps(arr, qL, qR), [arr, qL, qR]);
   const queryBUSteps = useMemo(() => genQueryBottomUpSteps(arr, qL, qR), [arr, qL, qR]);
+  // Питон умеет рулить добавкой: переменная add из кода компилятора подменяет значение слайдера.
+  const effAdd = liveAdd ?? uAdd;
+  const lazySteps = useMemo(() => genLazySteps(arr, uL, uR, effAdd), [arr, uL, uR, effAdd]);
 
   const totalSum = arr.reduce((a, b) => a + b, 0);
 
@@ -431,6 +556,9 @@ export function SegmentTreeVisualizer() {
         <button onClick={() => setView('queries')} className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-bold text-xs transition-colors ${view === 'queries' ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>
           <Search className="w-3.5 h-3.5" /> Запрос: сверху ↓ vs снизу ↑
         </button>
+        <button onClick={() => setView('lazy')} className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-bold text-xs transition-colors ${view === 'lazy' ? 'border-amber-500 text-amber-400 bg-amber-500/5' : 'border-transparent text-slate-400 hover:text-slate-200'}`} title="Массовое обновление на отрезке через обещания (Lazy Propagation) — ядро билета">
+          🏷️ Обновление на отрезке (Lazy)
+        </button>
         <button onClick={() => setView('theory')} className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 font-bold text-xs transition-colors ${view === 'theory' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>
           <Info className="w-3.5 h-3.5" /> Почему / Сравнение
         </button>
@@ -468,6 +596,38 @@ export function SegmentTreeVisualizer() {
             code={QUERY_BU_CODE}
             color="amber"
             arr={arr}
+          />
+        </div>
+      )}
+
+      {view === 'lazy' && (
+        <div className="space-y-4">
+          <div className="bg-slate-950 p-4 rounded-xl border border-amber-500/30 flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Отрезок</label>
+              <input type="number" min={0} max={arr.length - 1} value={uL} onChange={e => setUL(Math.max(0, Math.min(arr.length - 1, Number(e.target.value))))} className="w-14 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded px-2 py-1.5 outline-none focus:border-amber-500" />
+              <span className="text-slate-500">…</span>
+              <input type="number" min={0} max={arr.length - 1} value={uR} onChange={e => setUR(Math.max(0, Math.min(arr.length - 1, Number(e.target.value))))} className="w-14 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded px-2 py-1.5 outline-none focus:border-amber-500" />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Добавка</label>
+              <input type="number" value={effAdd} onChange={e => setUAdd(Number(e.target.value) || 0)} className="w-20 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded px-2 py-1.5 outline-none focus:border-amber-500" title={liveAdd !== null ? 'задана переменной add в Python-компиляторе' : 'A[uL..uR] += add'} />
+            </div>
+            <p className="text-[11px] text-slate-500 max-w-md">
+              Ко всем элементам отрезка прибавляем <b className="text-amber-300">add</b> за <b className="text-white">O(log n)</b>: спускаемся только по границе, а внутри вешаем стикер-обещание 🏷️. Вопрос «а когда стикеры исполняются?» — на втором прогоне (запрос суммы).
+              {liveAdd !== null && <span className="ml-2 text-emerald-400 font-bold">🐍 add = {liveAdd} из Python</span>}
+              {liveV !== null && <span className="ml-2 text-cyan-400 font-bold">🐍 v = {liveV} подсвечен</span>}
+            </p>
+          </div>
+          <SimPanel
+            key={`lazy-${arr.join('-')}-${uL}-${uR}-${effAdd}`}
+            title={`update([${uL}..${uR}], +${effAdd}) → query([${uL}..${uR}]) с Lazy Propagation`}
+            icon="🏷️"
+            steps={lazySteps}
+            code={LAZY_CODE}
+            color="amber"
+            arr={arr}
+            liveNode={liveV}
           />
         </div>
       )}
