@@ -401,7 +401,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
     return () => window.clearTimeout(t);
   }, [playing, debug, stepBy, playbackSpeed]);
 
-  const debugRun = useCallback(async () => {
+  const debugRun = useCallback(async (autoPlay = false) => {
     if (running) return;
 
     const source = code;
@@ -430,6 +430,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
       const result = JSON.parse(String(raw)) as DebugResult;
 
       setDebug({ result, idx: 0, src: source, input, request });
+      setPlaying(autoPlay && result.steps.length > 1);
       const printed = [...stdout, ...stderr].join("");
       setOutput(printed || "Программа ничего не вывела — трасса и переменные всё равно доступны.");
       setRuntimeMessage(
@@ -507,6 +508,22 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
   }, [debug, curDebug, snapshotAt]);
   const debugChanged = curDebug?.step ? changedVars(curDebug.step.locals, shownLocals) : {};
   const debugOrdered = curDebug?.step ? orderVars(shownLocals, syncVarBases) : [];
+
+  /** Одна и та же кнопка запуска всегда видна: из редактора строит трассу и
+   * проигрывает её, в отладчике переключает play/pause. */
+  const runOrTogglePlayback = useCallback(() => {
+    if (running) return;
+    if (!debug || debug.result.steps.length === 0) {
+      void debugRun(true);
+      return;
+    }
+    if (playing) {
+      setPlaying(false);
+      return;
+    }
+    if (debug.idx >= debug.result.steps.length - 1) stepTo(0);
+    setPlaying(true);
+  }, [debug, debugRun, playing, running, stepTo]);
 
   /** Вставка сниппета из шпаргалки в позицию курсора. */
   const insertSnippet = useCallback((snippet: string) => {
@@ -603,6 +620,25 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
         <span className="hidden sm:inline text-[10px] text-slate-500">Pyodide</span>
 
         <div className="ml-auto flex items-center gap-1">
+          <Tooltip
+            side="bottom"
+            content={running ? "Python выполняется…" : playing ? "Пауза автопрохода" : debug ? "Продолжить автопроход" : "Выполнить код и запустить автопроход"}
+          >
+            <button
+              type="button"
+              onClick={runOrTogglePlayback}
+              disabled={running}
+              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-bold transition-colors disabled:opacity-60 ${
+                playing
+                  ? "bg-amber-500/15 text-amber-300 hover:bg-amber-500/25"
+                  : "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
+              }`}
+              aria-label={running ? "Python выполняется" : playing ? "Пауза" : "Запустить код"}
+            >
+              {running ? <Loader2 className="h-4 w-4 animate-spin" /> : playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              <span>{playbackSpeed}×</span>
+            </button>
+          </Tooltip>
           <Tooltip side="bottom" content="Скопировать код из редактора.">
             <button
               type="button"
@@ -818,14 +854,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
               <Tooltip content={playing ? `Пауза автопрохода ${playbackSpeed}× (пробел)` : debug.idx >= debug.result.steps.length - 1 ? `Проиграть трассу заново со скоростью ${playbackSpeed}× (пробел)` : `Продолжить автопроход со скоростью ${playbackSpeed}× (пробел)`}>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!curDebug?.step) return;
-                    if (playing) setPlaying(false);
-                    else {
-                      if (debug.idx >= debug.result.steps.length - 1) stepTo(0);
-                      setPlaying(true);
-                    }
-                  }}
+                  onClick={runOrTogglePlayback}
                   className={`mx-0.5 inline-flex items-center gap-1 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
                   aria-label={playing ? `Пауза автопрохода ${playbackSpeed}×` : `Пуск автопрохода ${playbackSpeed}×`}
                 >

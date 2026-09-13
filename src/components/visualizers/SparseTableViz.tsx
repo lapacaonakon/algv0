@@ -432,10 +432,10 @@ const Viz2DBuild: React.FC = () => {
   const liveK = vizNumber(vars?.k);
   const liveR = vizNumber(vars?.r);
   const liveC = vizNumber(vars?.c);
-  const liveSource = vizArray(vars?.A);
   const liveTable = vizRecord(vars?.st2);
   const hasLiveSource = !!vars && Object.prototype.hasOwnProperty.call(vars, "A");
   const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
+  const liveTableEmpty = hasLiveTable && Object.keys(liveTable ?? {}).length === 0;
   const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
   const compilerLinked = codeCell !== null || liveK !== null || hasLiveSource || hasLiveTable;
   const shownK = liveK !== null
@@ -496,11 +496,10 @@ const Viz2DBuild: React.FC = () => {
                         const c = idx % stepSize;
                         
                         const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
-                        const sourceRow = vizArray(liveSource?.[r]);
-                        const sourceValue = step === 0 ? sourceRow?.[c] : undefined;
-                        // A — неизменяемый базовый слой 1×1; очистка st2 скрывает
-                        // только вычисляемые уровни, но не исходную матрицу.
-                        const shownValue = compilerLinked ? (liveValue ?? sourceValue) : ST2D[r][c][step][step];
+                        // A и st2 — разные объекты: пока st2 пуст, его базовый
+                        // слой тоже пуст. Значения A появятся здесь только после
+                        // явной инициализации st2[(r,c,0,0)] в Python-коде.
+                        const shownValue = compilerLinked ? liveValue : ST2D[r][c][step][step];
                         const isBlank = shownValue === undefined || shownValue === null;
                         let highlightClass = isBlank
                           ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'
@@ -565,14 +564,28 @@ const Viz2DBuild: React.FC = () => {
           <h3 className="text-lg font-bold text-slate-300 mb-6 flex items-center gap-2">Код построения и формула</h3>
           {shownK === 0 ? (
              <div className="text-slate-400 text-sm leading-relaxed font-sans mt-4">
-               <p className="mb-4">При <span className="font-mono text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">k = 0</span> квадраты имеют размер <span className="font-bold text-white">1×1</span>.</p>
-               <div className="bg-[#0a0f1e] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner">
-                 <span className="text-slate-500">// Базовый случай: квадрат размера 1x1 это сама ячейка</span><br/>
-                 <span className="text-indigo-400">ST</span>[r][c][0][0] = matrix[r][c];
-               </div>
-               <p className="mt-6 italic text-indigo-400 flex items-center gap-2">
-                 <Play size={14} className="fill-indigo-400" /> Выберите шаг 1, чтобы увидеть как собираются квадраты бóльшего размера.
-               </p>
+               {liveTableEmpty ? (
+                 <div className="rounded-xl border border-dashed border-amber-500/50 bg-amber-500/5 p-4">
+                   <p className="font-bold text-amber-300">st2 = {'{}'} — рабочая таблица действительно пуста</p>
+                   <p className="mt-2 text-xs text-slate-400">
+                     Матрица <span className="font-mono text-slate-200">A</span> существует отдельно. Ячейки появятся только после явной записи базового слоя:
+                   </p>
+                   <div className="mt-3 rounded-lg bg-[#0a0f1e] p-3 font-mono text-xs text-slate-300">
+                     <span className="text-indigo-400">st2</span>[(r, c, 0, 0)] = <span className="text-emerald-300">A</span>[r][c]
+                   </div>
+                 </div>
+               ) : (
+                 <>
+                   <p className="mb-4">При <span className="font-mono text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">k = 0</span> квадраты имеют размер <span className="font-bold text-white">1×1</span>.</p>
+                   <div className="bg-[#0a0f1e] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner">
+                     <span className="text-slate-500">// Базовый случай: квадрат размера 1×1 — сама ячейка</span><br/>
+                     <span className="text-indigo-400">st2</span>[(r, c, 0, 0)] = <span className="text-emerald-300">A</span>[r][c]
+                   </div>
+                   <p className="mt-6 italic text-indigo-400 flex items-center gap-2">
+                     <Play size={14} className="fill-indigo-400" /> Выберите шаг 1, чтобы увидеть, как собираются квадраты бóльшего размера.
+                   </p>
+                 </>
+               )}
              </div>
           ) : (
              <div className="flex flex-col gap-4 animate-in fade-in duration-300">
