@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Play, RotateCcw, SkipForward, HelpCircle, CheckCircle, XCircle, GitGraph, Layers, Users, BookOpen, Clock, Code, Award } from 'lucide-react';
+import { useVizRuntime, vizNumber, vizString } from '../data/vizStepBus';
 
 interface Vertex {
   id: number;
@@ -53,13 +54,38 @@ const initialEdges: Edge[] = [
   { id: '5-8', u: 5, v: 8, weight: 13, status: 'pending', color: 'none' }, // F-I (13) - cycle in Kruskal
 ];
 
-export const KruskalSimulator: React.FC = () => {
-  const [activeAlgo, setActiveAlgo] = useState<'kruskal' | 'prim' | 'boruvka'>('kruskal');
+export const KruskalSimulator: React.FC<{ defaultAlgo?: 'kruskal' | 'prim' | 'boruvka' }> = ({ defaultAlgo = 'kruskal' }) => {
+  const [activeAlgo, setActiveAlgo] = useState<'kruskal' | 'prim' | 'boruvka'>(defaultAlgo);
   const [vertices, setVertices] = useState<Vertex[]>(initialVertices);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [stepIndex, setStepIndex] = useState<number>(0);
   const [heapQueue, setHeapQueue] = useState<string[]>([]);
-  const [activeCheatTab, setActiveCheatTab] = useState<'kruskal' | 'prim' | 'boruvka'>('kruskal');
+  const [activeCheatTab, setActiveCheatTab] = useState<'kruskal' | 'prim' | 'boruvka'>(defaultAlgo);
+
+  // ── Синхронизация с Python-компилятором: i — индекс ребра в отсортированном
+  // списке, u/v — метки вершин, w — вес. Подсвечиваем ребро прямо на графе.
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveW = vizNumber(vars?.w);
+  const liveU = vizString(vars?.u);
+  const liveV = vizString(vars?.v);
+  const liveEdges: Edge[] = (() => {
+    if (liveI === null && liveW === null && liveU === null) return edges;
+    const target =
+      (liveI !== null && initialEdges[liveI]) ||
+      (liveU && liveV
+        ? initialEdges.find(
+            (e) =>
+              (initialVertices[e.u].label === liveU && initialVertices[e.v].label === liveV) ||
+              (initialVertices[e.u].label === liveV && initialVertices[e.v].label === liveU)
+          )
+        : null) ||
+      (liveW !== null ? initialEdges.find((e) => e.weight === liveW) : null);
+    if (!target) return edges;
+    return edges.map((e) => (e.id === target.id && e.status === 'pending' ? { ...e, status: 'inspecting' as const } : e));
+  })();
+  const compilerLinked = liveI !== null || liveW !== null || liveU !== null;
 
   const [logs, setLogs] = useState<StepLog[]>([
     {
@@ -801,9 +827,16 @@ export const KruskalSimulator: React.FC = () => {
               Шаг {stepIndex} / {currentSteps.length}
             </div>
 
+            {compilerLinked && (
+              <div className="absolute bottom-4 right-4 z-10 rounded-lg border border-emerald-500/40 bg-slate-900/90 px-3 py-1.5 text-xs font-mono text-emerald-300">
+                🐍 Python: i={liveI ?? "—"}{liveU || liveV ? `, ${liveU ?? "?"}—${liveV ?? "?"}` : ""}
+                {liveW !== null ? `, w=${liveW}` : ""} — ребро подсвечено
+              </div>
+            )}
+
             {/* SVG Edges */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {edges.map(edge => {
+              {liveEdges.map(edge => {
                 const u = vertices[edge.u];
                 const v = vertices[edge.v];
                 const strokeColor = getEdgeStroke(edge.status, edge.color);

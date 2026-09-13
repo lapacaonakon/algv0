@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useVizRuntime, vizNumber } from "../data/vizStepBus";
 
 /**
  * Интерактивный Treap — шесть режимов:
@@ -611,6 +612,7 @@ const BuildMode: React.FC = () => {
   const [connIdx, setConnIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [sortCost, setSortCost] = useState<string | null>(null);
+  const live = useTreapLive();
 
   const parsed = useMemo(() => parsePairs(raw), [raw]);
   const userPairs = parsed.errors.length ? [] : parsed.pairs;
@@ -652,6 +654,13 @@ const BuildMode: React.FC = () => {
     setConnIdx(0);
     setPlaying(true);
   };
+
+  // Компилятор: i двигает демонстрацию — шаг сортировки или проведённое ребро.
+  useEffect(() => {
+    if (live.i === null) return;
+    if (phase === "sort") setSortIdx(Math.min(live.i, 3));
+    else if (phase === "connect") setConnIdx(Math.min(live.i, leftRightEdges.length));
+  }, [live.i, phase, leftRightEdges.length]);
 
   const comparisons = algo === "quicksort" ? (n > 1 ? Math.round(n * Math.log2(n)) : 0) : 0;
   const connEdgesAll = order === "y-desc" ? canonEdges : leftRightEdges;
@@ -905,6 +914,10 @@ const SplitMode: React.FC = () => {
   const fullTree = useMemo(() => buildTree(POINTS), []);
   const split = useMemo(() => splitTree(buildTree(POINTS), x0), [x0]);
   const steps = split.trace;
+  const live = useTreapLive();
+  // Компилятор: x — ключ разреза, i — номер шага спуска.
+  useEffect(() => { if (live.x !== null) setX0(live.x); }, [live.x]);
+  useEffect(() => { if (live.i !== null) setStepIdx(Math.min(live.i, steps.length - 1)); }, [live.i, steps.length]);
   const idx = Math.min(stepIdx, steps.length - 1);
   const done = idx >= steps.length - 1;
 
@@ -955,6 +968,7 @@ const SplitMode: React.FC = () => {
       )}
 
       <div className="text-xs text-slate-400 bg-slate-900/40 rounded-lg px-3 py-2 border border-slate-800">
+        <LiveChip live={live} />{' '}
         💡 <b>Как это работает на самом деле:</b> идём сверху с двумя корзинами. Узел, целиком помещающийся в корзину (вместе со своим поддеревом), отдаётся <b>вместе с веткой</b> — дальше режется только одна ветка. Поэтому split — O(h), а не O(n).
       </div>
     </div>
@@ -965,6 +979,9 @@ const SplitMode: React.FC = () => {
 
 const MergeMode: React.FC = () => {
   const [stepIdx, setStepIdx] = useState(0);
+  const live = useTreapLive();
+  // Компилятор: i — номер шага слияния.
+  useEffect(() => { if (live.i !== null) setStepIdx(live.i); }, [live.i]);
   const { l, r } = useMemo(() => splitTree(buildTree(POINTS), 6), []);
   const merged = useMemo(() => mergeTree(cloneTree(l), cloneTree(r)), [l, r]);
   const steps = merged.trace;
@@ -992,6 +1009,7 @@ const MergeMode: React.FC = () => {
       </div>
 
       <div className="text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">
+        <LiveChip live={live} />{' '}
         {cur?.chosenId ? (
           <>⚖️ {cur.note}</>
         ) : (
@@ -1021,6 +1039,10 @@ const EraseMode: React.FC = () => {
   const fullTree = useMemo(() => buildTree(POINTS), []);
   const res = useMemo(() => eraseNode(buildTree(POINTS), key), [key]);
   const steps = res.trace;
+  const live = useTreapLive();
+  // Компилятор: x — ключ удаляемой вершины, i — шаг спуска.
+  useEffect(() => { if (live.x !== null && POINTS.some((p) => p.key === live.x)) setKey(live.x); }, [live.x]);
+  useEffect(() => { if (live.i !== null) setStepIdx(Math.min(live.i, steps.length - 1)); }, [live.i, steps.length]);
   const idx = Math.min(stepIdx, steps.length - 1);
   const done = idx >= steps.length - 1;
 
@@ -1035,6 +1057,7 @@ const EraseMode: React.FC = () => {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-sm text-slate-300">Удалить точку с x =</span>
+        <LiveChip live={live} />
         <select value={key} onChange={(e) => { setKey(Number(e.target.value)); setStepIdx(0); }} className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white">
           {POINTS.map((p) => <option key={p.key} value={p.key}>{p.key}</option>)}
         </select>
@@ -1337,6 +1360,24 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "search", label: "Поиск ≠ сортировка" },
   { id: "game", label: "Игра 🖱️" },
 ];
+
+
+/** Значения из Python-компилятора: x — ключ, y — приоритет, i — индекс шага. */
+function useTreapLive(): { x: number | null; y: number | null; i: number | null; linked: boolean } {
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const x = vizNumber(vars?.x);
+  const y = vizNumber(vars?.y);
+  const i = vizNumber(vars?.i);
+  return { x, y, i, linked: x !== null || y !== null || i !== null };
+}
+
+const LiveChip: React.FC<{ live: { x: number | null; y: number | null; i: number | null; linked: boolean } }> = ({ live }) =>
+  live.linked ? (
+    <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-2 py-1 text-[10px] font-mono text-emerald-300">
+      🐍 Python: x={live.x ?? "—"} · y={live.y ?? "—"} · i={live.i ?? "—"}
+    </span>
+  ) : null;
 
 export const TreapBuildViz = () => {
   const [tab, setTab] = useState<Tab>("build");

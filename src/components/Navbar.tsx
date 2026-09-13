@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { BookOpen, Cpu, Sparkles, FileDown, FileText, Code2, Loader2, Terminal } from 'lucide-react';
+import { BookOpen, Sparkles, FileDown, FileText, Code2, Loader2, Terminal, GraduationCap } from 'lucide-react';
 import { chapters } from '../data/content';
 import { downloadBookHtml } from '../utils/exportHtml';
 
 interface NavbarProps {
-  activeTab: 'guide' | 'simulator';
-  setActiveTab: (tab: 'guide' | 'simulator') => void;
   /** Открыта ли боковая панель компилятора. */
   compilerOpen: boolean;
   onToggleCompiler: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, compilerOpen, onToggleCompiler }) => {
+export const Navbar: React.FC<NavbarProps> = ({ compilerOpen, onToggleCompiler }) => {
   const [busy, setBusy] = useState(false);
 
   const saveBook = async () => {
@@ -43,25 +41,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, compile
         <div className="flex items-center w-full lg:w-auto gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700 overflow-x-auto">
           <button
             id="tab-guide-btn"
-            onClick={() => setActiveTab('guide')}
-            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'guide'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="hidden sm:flex flex-1 lg:flex-none items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-white bg-indigo-600/80 shadow-lg shadow-indigo-600/20 whitespace-nowrap"
+            title="Содержание пособия"
           >
             <BookOpen className="w-4 h-4" /> Учебное пособие
-          </button>
-          <button
-            id="tab-simulator-btn"
-            onClick={() => setActiveTab('simulator')}
-            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'simulator'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Cpu className="w-4 h-4" /> Тренажёры
           </button>
           <button
             id="tab-compiler-btn"
@@ -77,13 +61,24 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, compile
             <Terminal className="w-4 h-4" /> Python
           </button>
           <a
+            id="download-guide-pdf-btn"
+            href={`${import.meta.env.BASE_URL}export/guide_all_topics.pdf`}
+            download="guide_all_topics.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-indigo-300 hover:text-white hover:bg-indigo-600/20 border border-indigo-500/30 transition-all duration-200 whitespace-nowrap"
+            title="Скачать PDF-конспект: текст всех тем и картинки визуализаций (без кода компилятора), собирается автоматически"
+          >
+            <GraduationCap className="w-4 h-4" /> PDF (конспект)
+          </a>
+          <a
             id="download-pdf-btn"
             href={`${import.meta.env.BASE_URL}export/full_code_all_pages.pdf`}
             download="full_code_all_pages.pdf"
             target="_blank"
             rel="noreferrer"
             className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-emerald-400 hover:text-white hover:bg-emerald-600/20 border border-emerald-500/30 transition-all duration-200 whitespace-nowrap"
-            title="Скачать полный PDF сборник всех страниц и кода (370+ страниц)"
+            title="Скачать полный PDF сборник всех страниц и кода"
           >
             <FileDown className="w-4 h-4" /> Скачать PDF
           </a>

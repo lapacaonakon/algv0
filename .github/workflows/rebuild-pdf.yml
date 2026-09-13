@@ -4,9 +4,12 @@ name: Rebuild code PDF
 #
 #   исходный код  ──▶  full_code_all_pages.txt   (scripts/export/collect-code.mjs)
 #        │
-#        └──────────▶  page-0001.png … page-NNNN.png  (scripts/export/render-pages.mjs, ImageMagick)
-#                              │
-#                              └──▶  full_code_all_pages.pdf  (scripts/export/build-pdf.mjs, pdfkit)
+#        ├──────────▶  page-0001.png … page-NNNN.png  (scripts/export/render-pages.mjs, ImageMagick)
+#        │                   │
+#        │                   └──▶  full_code_all_pages.pdf  (scripts/export/build-pdf.mjs, pdfkit)
+#        │
+#        └──────────▶  guide_all_topics.pdf            (scripts/export/build-guide-pdf.mjs)
+#                      PDF-конспект: текст всех тем + схемы визуализаций, без кода компилятора.
 #
 # Готовые TXT и PDF коммитятся обратно в ветку (их отдаёт приложение по /export/...),
 # промежуточные PNG сохраняются как artifacts запуска.
@@ -80,6 +83,9 @@ jobs:
       - name: Step 3 — png → pdf
         run: npm run export:pdf
 
+      - name: Step 4 — PDF-конспект (текст тем + визуализации)
+        run: npm run export:guide
+
       - name: Type-check приложения
         run: npx tsc --noEmit
         continue-on-error: true
@@ -93,6 +99,8 @@ jobs:
             echo "| --- | --- |"
             echo "| \`public/export/full_code_all_pages.txt\` | $(du -h public/export/full_code_all_pages.txt | cut -f1) |"
             echo "| \`public/export/full_code_all_pages.pdf\` | $(du -h public/export/full_code_all_pages.pdf | cut -f1) |"
+            echo "| \`public/export/guide_all_topics.pdf\` | $(du -h public/export/guide_all_topics.pdf | cut -f1) |"
+            echo "Страниц в конспекте: $(node -e "console.log(require('./tmp/guide-pdf-report.json').pages)")"
             echo "| PNG-страниц | $(ls tmp/export-pages/*.png | wc -l) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -103,6 +111,7 @@ jobs:
           path: |
             public/export/full_code_all_pages.pdf
             public/export/full_code_all_pages.txt
+            public/export/guide_all_topics.pdf
           if-no-files-found: error
           retention-days: 30
 
@@ -118,7 +127,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf
+          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf public/export/guide_all_topics.pdf
           if git diff --cached --quiet; then
             echo "Экспорт не изменился — коммит не нужен."
             exit 0

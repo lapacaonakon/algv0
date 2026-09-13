@@ -15,6 +15,9 @@ import { KosarajuViz } from "./KosarajuViz";
 import { KruskalSimulator } from "./KruskalSimulator";
 import MnemonicCards from "./MnemonicCards";
 import { PlanarityDemo } from "./PlanarityDemo";
+import { ColoringViz } from "./ColoringViz";
+import { ComponentsViz } from "./ComponentsViz";
+import { ComplexityClassesViz } from "./ComplexityClassesViz";
 import { QueueViz } from "./QueueViz";
 import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
 import { SegmentTreeVisualizer } from "./SegmentTreeVisualizer";
@@ -24,7 +27,6 @@ import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
 import { WaterfallAnimationWidget } from "./WaterfallAnimationWidget";
 import ChapterImage from "./ChapterImage";
-import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
 import { TreapBuildViz } from "./TreapBuildViz";
@@ -101,10 +103,24 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
   "top-sort": { title: "Топологическая сортировка", Component: TopologicalSortViz },
   "scc-kosaraju": { title: "Компоненты сильной связности (Косарайю)", Component: KosarajuViz },
+  "graph-components": {
+    title: "Компоненты связности: BFS-разметка",
+    hint: "Каждый запуск обхода красит один «остров»; число запусков = число компонент. Компилятор читает v, comp[], q, count.",
+    Component: ComponentsViz,
+  },
   "graph-articulation": { title: "Точки сочленения", Component: ArticulationPointsViz },
   "bridges-code": { title: "Мосты: DFS + tin/low", Component: DfsBridgesSimulator },
   "euler-path-vs-cycle": { title: "Эйлеров путь и цикл", Component: EulerSimulator },
-  "planarity-euler-formula": { title: "Планарность: K5 и K3,3", Component: PlanarityDemo },
+  "planarity-euler-formula": {
+    title: "Планарность: K5/K3,3 + раскраска",
+    hint: "Слева — непланарные графы с подсветкой пересечений; ниже — жадная раскраска: кликни цвет и вершину, конфликты видны сразу.",
+    Component: () => (
+      <div className="space-y-10">
+        <PlanarityDemo />
+        <ColoringViz />
+      </div>
+    ),
+  },
   dijkstra: {
     title: "Дейкстра",
     hint: "Жадно забираем ближайшую вершину и релаксируем её рёбра.",
@@ -134,9 +150,9 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     ),
   },
   "johnson-algo": { title: "Алгоритм Джонсона", Component: JohnsonViz },
-  "mst-kruskal": { title: "Краскал и DSU", Component: KruskalSimulator },
-  "mst-prima": { title: "Прим", Component: KruskalSimulator },
-  "mst-boruvka": { title: "Борувка", Component: KruskalSimulator },
+  "mst-kruskal": { title: "Краскал и DSU", hint: "Сортируем рёбра по весу и жадно берём те, что не создают цикл (DSU/раскраска кланов).", Component: () => <KruskalSimulator defaultAlgo="kruskal" /> },
+  "mst-prima": { title: "Прим (плесень растёт от старта)", hint: "Дерево растёт от стартовой вершины: из кучи каждый раз достаём самое дешёвое ребро наружу.", Component: () => <KruskalSimulator defaultAlgo="prim" /> },
+  "mst-boruvka": { title: "Борувка (коллективизация)", hint: "Каждая компонента параллельно выбирает своё самое дешёвое исходящее ребро — за фазу компонент становится вдвое меньше.", Component: () => <KruskalSimulator defaultAlgo="boruvka" /> },
   "string-kmp": { title: "Префикс-функция (КМП)", Component: () => <StringAlgorithmsViz defaultMode="kmp" /> },
   "string-z-func": { title: "Z-функция", Component: () => <StringAlgorithmsViz defaultMode="z" /> },
   "aho-corasick": {
@@ -149,12 +165,12 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
       </div>
     ),
   },
-  intro: { title: "Мнемокарточки", Component: MnemonicCards },
-  "everyday-basics": {
-    title: "Бытовой тренажёр: стек, очередь, куча",
-    hint: "Тарелки, очередь в столовой и мешок гипотез — три базовые структуры на житейских примерах.",
-    Component: Simulator,
+  "complexity-classes": {
+    title: "Классы сложности: матрёшка P ⊆ NP ⊆ PSPACE",
+    hint: "Кликни класс или задачу; стрелки ≤p показывают сведения. Компилятор читает cls, task, reductions.",
+    Component: ComplexityClassesViz,
   },
+  intro: { title: "Мнемокарточки", Component: MnemonicCards },
 };
 
 export const getViz = (id?: string): VizEntry | undefined => (id ? VIZ_REGISTRY[id] : undefined);

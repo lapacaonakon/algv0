@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useVizRuntime, vizNumber } from "../data/vizStepBus";
 
 /**
  * Splay на БОЛЬШОМ дереве — по урокам treap-прохода.
@@ -423,12 +424,30 @@ const SplayWalkViz: React.FC = () => {
   const baseRef = useRef<SN>(initial);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── Синхронизация с Python-компилятором: key (или x) — запустить splay,
+  // i — перейти к кадру расшейвливания.
+  const runtime = useVizRuntime();
+  const liveKey = vizNumber(runtime?.variables?.key) ?? vizNumber(runtime?.variables?.x);
+  const liveIdx = vizNumber(runtime?.variables?.i);
+  const appliedKey = useRef<number | null>(null);
+  useEffect(() => {
+    if (liveKey !== null && appliedKey.current !== liveKey) {
+      appliedKey.current = liveKey;
+      runKeyRef.current?.(liveKey);
+    }
+  }, [liveKey]);
+  useEffect(() => {
+    if (liveIdx !== null && steps) setIdx(Math.min(liveIdx, steps.length - 1));
+  }, [liveIdx, steps]);
+
   const runKey = (key: number, isInsert = false) => {
     const { steps: st } = splaySteps(baseRef.current, key, isInsert);
     setSteps(st);
     setIdx(0);
     setPlaying(true);
   };
+  const runKeyRef = useRef(runKey);
+  runKeyRef.current = runKey;
 
   useEffect(() => {
     if (!playing || !steps) return;

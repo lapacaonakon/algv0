@@ -210,8 +210,8 @@ void find_bridges() {
     type: "html",
     content: `<section id="planarity-euler-formula" class="mb-20 scroll-mt-10">
     <div class="flex items-center mb-6">
-        <span class="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Глава 3</span>
-        <h2 class="text-3xl font-bold text-white">Планарность и формула Эйлера</h2>
+        <span class="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Билет 7</span>
+        <h2 class="text-3xl font-bold text-white">Планарность и покраска</h2>
     </div>
     
     <div class="space-y-8">
@@ -278,6 +278,46 @@ void find_bridges() {
                 </p>
             </div>
         </details>
+
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-fuchsia-500 scroll-mt-10 mt-8">
+            <h3 class="text-xl font-bold text-fuchsia-400 mb-4">7.2 Покраска графов</h3>
+
+            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-fuchsia-500/30">
+                <p class="text-lg text-fuchsia-300 italic mb-2">Строгое правило / Формула:</p>
+                <p class="text-xl font-mono text-white">χ(G) — минимальное число цветов, при котором никакие две смежные вершины не совпадают</p>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-fuchsia-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-fuchsia-500 shadow-md">
+                        🗺️ Аналогия: карта на стене
+                    </div>
+                    <p class="text-slate-300 text-sm mb-4">
+                        Красим карту регионов: соседние регионы не должны быть одного цвета, иначе границы не видно.
+                        Регион = вершина, общая граница = ребро. Вопрос «сколько цветов хватит?» — это и есть χ(G).
+                        Для плоской карты (планарный граф!) ответ всегда: <strong class="text-white">четырёх красок достаточно</strong> —
+                        теорема о четырёх красках (Аппель и Хакен, 1976, перебор на компьютере: 1936 «неудобных» конфигураций).
+                    </p>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-amber-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-amber-900 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">
+                        📦 Что нужно знать на экзамен
+                    </div>
+                    <ul class="text-slate-300 text-sm space-y-2 list-disc pl-4">
+                        <li><strong class="text-white">Жадная раскраска:</strong> идём по вершинам v = 0…n−1, красим в минимальный цвет, свободный у соседей. Дал ≤ Δ+1 цветов (Δ — максимальная степень). Порядок вершин важен!</li>
+                        <li><strong class="text-white">χ(G) = 2 ⟺ граф двудолен</strong> (нет нечётных циклов). K3,3 — двудольный, ему хватит 2 цветов, хоть он и непланарен.</li>
+                        <li><strong class="text-white">Планарный ⇒ χ ≤ 4</strong> (теорема о четырёх красках); тривиальные оценки: χ(K_n) = n, χ(цикла чётной длины) = 2, χ(цикла нечётной длины) = 3.</li>
+                        <li><strong class="text-white">Брукс–Вингертер (не путать с жадной!):</strong> для связного графа, который не полный и не нечётный цикл, χ(G) ≤ Δ.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="text-slate-400 text-xs mt-4">
+                Почему раскраска «сложная»: проверить раскраску легко (пробежались по рёбрам — полином), а найти раскраску в k цветов — NP-полная задача.
+                Даже «раскрасима ли карта в 3 цвета?» — NP-полна. Это мостик к билету 24: задача из NP, проверка быстрая, поиск — нет.
+            </p>
+        </div>
     </div>
 </section>`,
   },

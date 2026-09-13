@@ -7,11 +7,9 @@ import { MobileToc } from "./components/MobileToc";
 import { ChapterView } from "./components/ChapterView";
 import { ChapterNav } from "./components/ChapterNav";
 import { SimulatorModal } from "./components/hints/SimulatorModal";
-import { SimulatorHub } from "./components/SimulatorHub";
 import { PythonCompiler } from "./components/PythonCompiler";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"guide" | "simulator">("guide");
   const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0].id);
   const [modalVizId, setModalVizId] = useState<string | null>(null);
   /** Боковая (на мобильном — нижняя) панель компилятора поверх текущей страницы. */
@@ -99,16 +97,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
       <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         compilerOpen={compilerOpen}
         onToggleCompiler={() => setCompilerOpen((o) => !o)}
       />
 
       {/* При открытой панели контент сдвигается: снизу отступ на мобильном, справа — на десктопе */}
       <div ref={contentRef} className={compilerOpen ? "max-lg:pb-[58dvh]" : ""}>
-        {activeTab === "guide" ? (
-          <>
+        <>
             <MobileToc
               selectedChapterId={activeChapterId}
               setSelectedChapterId={goTo}
@@ -171,17 +166,6 @@ export default function App() {
               </main>
             </div>
           </>
-        ) : (
-          <main className="px-4 sm:px-6 lg:px-10 py-6 lg:py-10 max-w-screen-2xl mx-auto">
-            <SimulatorHub
-              onOpen={setModalVizId}
-              onGoChapter={(id) => {
-                setActiveTab("guide");
-                goTo(id);
-              }}
-            />
-          </main>
-        )}
 
         <footer className="p-8 text-center text-slate-600 text-xs border-t border-slate-900 mt-12 bg-slate-950">
           © 2026 Universal Educational Guide. Интерактивные визуализации алгоритмов.
@@ -198,7 +182,9 @@ export default function App() {
           height={compilerHeight}
           onWidthChange={setCompilerWidth}
           onHeightChange={setCompilerHeight}
-          onOpenGuide={() => setActiveTab("guide")}
+          onOpenGuide={() =>
+            document.getElementById("chapter-viz")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
           onClose={() => setCompilerOpen(false)}
         />
       )}

@@ -96,7 +96,8 @@ export default function DijkstraViz() {
         activeCodeLine: 5,
       });
 
-      const neighbors = edges.filter(e => e.u === u);
+      // Граф неориентированный: при релаксации смотрим рёбра в обе стороны.
+      const neighbors = edges.filter(e => e.u === u || e.v === u).map(e => (e.u === u ? e : { ...e, u: e.v, v: e.u }));
       for (const edge of neighbors) {
         const v = edge.v;
         if (visited[v]) continue;

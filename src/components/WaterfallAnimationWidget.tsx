@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useVizRuntime, vizNumber, vizString } from '../data/vizStepBus';
 import { ArrowRight, CheckCircle2, AlertCircle, Lightbulb, Play, GitBranch } from 'lucide-react';
 
 // Структура заранее подготовленного красивого бора для анимации водопада
@@ -65,6 +66,25 @@ export const WaterfallAnimationWidget: React.FC = () => {
   // === СОСТОЯНИЯ РЕЖИМА ОБУЧЕНИЯ (TRAINING) ===
   // Шаги обучения от 0 до 8 (по числу вершин в боре, исключая корень)
   const [trainStep, setTrainStep] = useState<number>(0);
+
+  // ── Синхронизация с Python-компилятором: s/текст, i — позиция в тексте,
+  // v — текущая вершина автомата. Влияет на режим поиска.
+  const runtime = useVizRuntime();
+  const liveText = vizString(runtime?.variables?.s) ?? vizString(runtime?.variables?.text);
+  const liveI = vizNumber(runtime?.variables?.i);
+  const liveNode = vizNumber(runtime?.variables?.v) ?? vizNumber(runtime?.variables?.node);
+  useEffect(() => {
+    if (liveText) {
+      setTextToScan(liveText.toUpperCase().replace(/[^A-Z]/g, ''));
+      resetSearchSimulation();
+    }
+  }, [liveText]);
+  useEffect(() => {
+    if (liveI !== null) setCurrentIndex(Math.max(0, Math.min(liveI, textToScan.length)));
+  }, [liveI, textToScan.length]);
+  useEffect(() => {
+    if (liveNode !== null && WATERFALL_NODES[liveNode]) setCurrentNode(liveNode);
+  }, [liveNode]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const clean = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
