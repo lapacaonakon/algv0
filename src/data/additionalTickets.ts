@@ -1,4 +1,6 @@
 import { Chapter } from "../types";
+import waffleImg from "../assets/waffle-grid.jpg";
+import cakeImg from "../assets/sparse-cake.jpg";
 
 export const additionalTickets: Chapter[] = [
   {
@@ -50,51 +52,69 @@ int minimum = min(ans1, ans2);</pre>
         </div>
 
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-amber-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-amber-400 mb-4">⚖️ Префиксная vs Разреженная: это НЕ конкуренты</h3>
-            <p class="text-slate-300 text-sm mb-4">Частая ошибка: «разреженная таблица — это как префиксные суммы, только чуть меньше памяти за ту же скорость». <b class="text-rose-300">Наоборот. Ровно наоборот.</b> Разреженная таблица прожорливее в десятки раз — и платит она не зря, потому что умеет то, чего префиксные суммы не умеют никак.</p>
+            <h3 class="text-xl font-bold text-amber-400 mb-4">⚖️ Префиксная vs Разреженная: вафли против тортика</h3>
+            <p class="text-slate-300 text-sm mb-5">Частая ошибка: «разреженная таблица — как префиксные суммы, только чуть меньше памяти за ту же скорость». <b class="text-rose-300">Наоборот. Ровно наоборот.</b> Это не конкуренты: префиксная — маленькая сетка <b>только для суммы</b>, разреженная — огромный тортик для min/max/gcd. Сумму нельзя считать через sparse (перекрывающиеся линейки посчитают клетки дважды), минимум нельзя через префиксную (нет обратной операции).</p>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-emerald-600/40 relative pt-8">
+                <div class="bg-slate-800 p-5 rounded-lg border border-emerald-600/40 relative pt-9">
                     <div class="absolute -top-3 left-4 bg-emerald-700 text-emerald-100 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🪶 Префиксная матрица сумм (билет 5)
+                        🧇 Сетка из вафельных трубочек — префиксные суммы (билет 5)
                     </div>
-                    <ul class="text-slate-300 text-sm space-y-1.5">
-                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">N × M</code> — одна копия матрицы, и всё</li>
-                        <li>· Запрос суммы на прямоугольнике: <b>O(1)</b></li>
-                        <li>· Умеет <b>только сумму</b> — у суммы есть вычитание (обратная операция)</li>
-                        <li>· Менять элементы нельзя — пересчитается вся матрица</li>
-                    </ul>
+                    <img src="${waffleImg}" alt="Сетка вафельных трубочек: прямоугольник вынимается, пустые слоты пунктиром" class="w-full max-w-[420px] mx-auto rounded-lg border border-slate-700 my-3" />
+                    <p class="text-slate-300 text-sm mb-2">Каждая трубочка = сумма всего прямоугольника от угла (0,0). Нужный кусок <b>вынимается</b> по включениям-исключениям — как палочки на картинке: вынули четыре — получили любой прямоугольник.</p>
+                    <p class="text-slate-300 text-sm">И палочки можно не только вынимать, но и <b class="text-emerald-300">вставлять обратно</b>: у суммы есть вычитание. Поэтому хватает одной сетки.</p>
                 </div>
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                <div class="bg-slate-900 p-5 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-9">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🐘 2D Sparse table минимумов (этот билет)
+                        🎂 Слоёный тортик — sparse table (этот билет)
                     </div>
-                    <ul class="text-slate-300 text-sm space-y-1.5">
-                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">N × M × log N × log M</code> — жирнее в десятки раз</li>
-                        <li>· Запрос минимума на прямоугольнике: <b>O(1)</b></li>
-                        <li>· Умеет <b>min, max, gcd</b> — операции, где перекрытие не мешает (x O x = x)</li>
-                        <li>· Менять элементы тоже нельзя</li>
-                    </ul>
+                    <img src="${cakeImg}" alt="Толстый многослойный тортик: уровень = копия матрицы" class="w-full max-w-[420px] mx-auto rounded-lg border border-slate-700 my-3" />
+                    <p class="text-slate-300 text-sm mb-2">Каждый слой тортика — почти полная копия матрицы (ответы на квадраты 1×1, 2×2, 4×4, 8×8…). Слоёв log N × log M: для 1000×1000 это ≈ <b class="text-rose-300">100 копий матрицы</b>. Жирный — потому что печём все ответы заранее, зато запрос O(1).</p>
+                    <p class="text-slate-300 text-sm">А главное — <b class="text-rose-300">крем обратно не запихнёшь</b>: зная min двух кусков, минимум «на reversal» не развернёшь. Обратной операции нет — вот для таких случаев тортик и нужен.</p>
                 </div>
             </div>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">
-                        🎂 Аналогия 3: Слоёный тортик
-                    </div>
-                    <p class="text-slate-300 text-sm">Почему «тортик» жирный: на каждом уровне хранится почти полная копия матрицы. Уровней по каждой оси — log (для 1000×1000 это 10 × 10). Итого ≈ <b class="text-amber-300">100 копий матрицы вместо одной</b>. Вот цена O(1) для минимума: запекли все возможные вопросы заранее.</p>
-                </div>
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-slate-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-sky-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-sky-500 shadow-md">
-                        🔋 Аналогия 4: Аккумулятор
-                    </div>
-                    <p class="text-slate-300 text-sm">Почему префиксная «тонкая»: сумма аккумулирует — каждая клетка уже несёт в себе весь прямоугольник от угла (0,0), и лишнее можно <b>вычесть</b>. У минимума обратной операции нет: зная min двух кусков, ты не развернёшь его назад. Поэтому для минимума и нужен тортик.</p>
-                </div>
+            <div class="overflow-x-auto mt-6">
+                <table class="w-full text-sm text-slate-300 border-collapse">
+                    <thead>
+                        <tr class="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                            <th class="py-2 pr-4 font-bold"></th>
+                            <th class="py-2 pr-4 font-bold text-emerald-400">🧇 Префиксная (вафли)</th>
+                            <th class="py-2 font-bold text-rose-400">🎂 Sparse (тортик)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-top">
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Память</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(N·M) — одна сетка</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(N·M·log N·log M) — ≈100 копий</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Построение</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(N·M)</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(N·M·log N·log M) — печь долго</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Запрос</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(1)</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(1)</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Умеет</td>
+                            <td class="py-2 pr-4">только <b>сумму</b> — есть вычитание</td>
+                            <td class="py-2"><b>min / max / gcd</b> — перекрытие не мешает (x O x = x)</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Обратная операция</td>
+                            <td class="py-2 pr-4 text-emerald-300">есть: палочки можно вставить назад</td>
+                            <td class="py-2 text-rose-300">нет: крем обратно не запихнёшь</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-5">
                 <p class="text-slate-300 text-sm mb-1">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· «Сумму посчитаю через sparse table» — нельзя: перекрывающиеся линейки посчитают клетки дважды. Сумма ≠ идемпотентна.</p>
                 <p class="text-slate-400 text-sm mb-1">· «Минимум посчитаю префиксными суммами» — нельзя: нет вычитания, нет обратной операции.</p>
-                <p class="text-slate-400 text-sm">· Они решают <b class="text-slate-200">разные задачи</b>: маленькая сумма против огромного минимума. Выбирай не «какая круче», а «какой запрос у тебя на входе».</p>
+                <p class="text-slate-400 text-sm">· Выбирай не «что круче», а «какой запрос на входе»: сумма — вафли, минимум — тортик.</p>
             </div>
         </div>
     </div>

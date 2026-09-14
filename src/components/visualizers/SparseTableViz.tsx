@@ -425,6 +425,9 @@ const Viz1D: React.FC = () => {
 
 const Viz2DBuild: React.FC = () => {
   const [k, setK] = useState(1);
+  // Пока пользователь сам не выбрал уровень, вкладки следуют за k из Python;
+  // после клика — локальный выбор главнее (Python не «ворует» клики).
+  const [userPicked, setUserPicked] = useState(false);
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null);
   const [locked, setLocked] = useState<{ r: number; c: number } | null>(null);
   const runtime = useVizRuntime();
@@ -433,16 +436,18 @@ const Viz2DBuild: React.FC = () => {
   const liveR = vizNumber(vars?.r);
   const liveC = vizNumber(vars?.c);
   const liveTable = vizRecord(vars?.st2);
+  const liveA = vizArray(vars?.A);
   const hasLiveSource = !!vars && Object.prototype.hasOwnProperty.call(vars, "A");
   const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
   const liveTableEmpty = hasLiveTable && Object.keys(liveTable ?? {}).length === 0;
   const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
   const compilerLinked = codeCell !== null || liveK !== null || hasLiveSource || hasLiveTable;
-  const shownK = liveK !== null
+  const pythonK = liveK !== null
     ? Math.max(0, Math.min(3, Math.trunc(liveK)))
     : hasLiveSource
       ? 0
       : k;
+  const shownK = userPicked ? k : pythonK;
 
   // Уровень и клетка берутся прямо из k/r/c; номер строки трассы не нужен.
   useEffect(() => {
@@ -467,13 +472,22 @@ const Viz2DBuild: React.FC = () => {
           {[0, 1, 2, 3].map(step => (
             <button
               key={step}
-              onClick={() => { setK(step); setHover(null); setLocked(null); }}
+              onClick={() => { setK(step); setUserPicked(true); setHover(null); setLocked(null); }}
               className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${shownK === step ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
             >
               {step === 0 ? "Оригинал (1x1)" : `Шаг ${step} (${1<<step}x${1<<step})`}
             </button>
           ))}
         </div>
+        {userPicked && (
+          <button
+            onClick={() => { setUserPicked(false); setK(pythonK); }}
+            className="mb-4 text-[11px] font-bold px-3 py-1 rounded-lg bg-slate-800/70 border border-slate-700 text-slate-400 hover:text-white hover:border-indigo-500 transition-colors"
+            title="Снова следовать за переменной k из Python-кода"
+          >
+            ↩ снова вести уровень из Python (k = {pythonK})
+          </button>
+        )}
 
         <div className="flex flex-col items-center gap-4 w-full max-h-[70vh] sm:h-[600px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
           {[...Array(shownK + 1)].map((_, i) => shownK - i).map((step, idx) => {
@@ -490,16 +504,24 @@ const Viz2DBuild: React.FC = () => {
                      <span className={`text-[10px] font-mono font-normal mt-1 border px-1.5 py-0.5 rounded ${isCurr ? 'bg-indigo-900/40 border-indigo-800/40 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>ST[][][{step}][{step}]</span>
                    </h4>
                    <div className="max-w-full overflow-x-auto">
-                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 shadow-[0_0_25px_rgba(99,102,241,0.05)] relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
+                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
                      {Array.from({length: stepSize * stepSize}).map((_, idx) => {
                         const r = Math.floor(idx / stepSize);
                         const c = idx % stepSize;
                         
                         const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
-                        // A и st2 — разные объекты: пока st2 пуст, его базовый
-                        // слой тоже пуст. Значения A появятся здесь только после
-                        // явной инициализации st2[(r,c,0,0)] в Python-коде.
-                        const shownValue = compilerLinked ? liveValue : ST2D[r][c][step][step];
+                        // Базовый слой (k = 0) — это сама матрица A: пока st2 пуст,
+                        // 1×1-клетки честно рисуем из A (она уже определена в init),
+                        // а старшие уровни остаются пустым каркасом до заполнения st2.
+                        const aRow = step === 0 && liveA && Array.isArray(liveA[r]) ? (liveA[r] as unknown[]) : null;
+                        const aCell = aRow && typeof aRow[c] === "number" ? (aRow[c] as number) : null;
+                        const shownValue = !compilerLinked
+                          ? ST2D[r][c][step][step]
+                          : liveValue !== undefined && liveValue !== null
+                            ? liveValue
+                            : aCell !== null
+                              ? aCell
+                              : undefined;
                         const isBlank = shownValue === undefined || shownValue === null;
                         let highlightClass = isBlank
                           ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'
@@ -512,7 +534,7 @@ const Viz2DBuild: React.FC = () => {
 
                         if (isActive) {
                           if (isCurr) {
-                            highlightClass = `bg-indigo-500 text-white font-bold scale-[1.12] shadow-xl border-indigo-300 transition-all ${locked && locked.r === r && locked.c === c ? 'ring-[3px] ring-white ring-offset-2 ring-offset-[#0a0f1e]' : ''}`;
+                            highlightClass = `bg-indigo-500 text-white font-bold border-indigo-200 ring-2 ring-indigo-300/60 transition-colors ${locked && locked.r === r && locked.c === c ? 'ring-[3px] ring-white ring-offset-2 ring-offset-[#0a0f1e]' : ''}`;
                             zIndex = 'z-10';
                           } else {
                             const prevL = 1 << (shownK - 1);
@@ -520,13 +542,13 @@ const Viz2DBuild: React.FC = () => {
                             const isLeft = c < activeCell.c + prevL;
                             
                             if (isTop && isLeft) {
-                               highlightClass = 'bg-rose-500/90 text-white font-bold border-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-rose-500/90 text-white font-bold border-rose-300 border-rose-200/70';
                             } else if (isTop && !isLeft) {
-                               highlightClass = 'bg-blue-500/90 text-white font-bold border-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-blue-500/90 text-white font-bold border-blue-300 border-blue-200/70';
                             } else if (!isTop && isLeft) {
-                               highlightClass = 'bg-emerald-500/90 text-white font-bold border-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-emerald-500/90 text-white font-bold border-emerald-300 border-emerald-200/70';
                             } else {
-                               highlightClass = 'bg-amber-500/90 text-white font-bold border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-amber-500/90 text-white font-bold border-amber-300 border-amber-200/70';
                             }
                             zIndex = 'z-10';
                           }

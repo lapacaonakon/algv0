@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            14.09.2026, 11:30:06
+Дата генерации:            14.09.2026, 14:53:07
 Файлов исходного кода:     96
 Суммарный объём кода:      1.41 MB
 Глав/билетов в пособии:    30
@@ -2423,10 +2423,12 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/96: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 866 | РАЗМЕР: 72.3 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 886 | РАЗМЕР: 74.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
+import waffleImg from "../assets/waffle-grid.jpg";
+import cakeImg from "../assets/sparse-cake.jpg";
 
 export const additionalTickets: Chapter[] = [
   {
@@ -2478,51 +2480,69 @@ int minimum = min(ans1, ans2);</pre>
         </div>
 
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-amber-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-amber-400 mb-4">⚖️ Префиксная vs Разреженная: это НЕ конкуренты</h3>
-            <p class="text-slate-300 text-sm mb-4">Частая ошибка: «разреженная таблица — это как префиксные суммы, только чуть меньше памяти за ту же скорость». <b class="text-rose-300">Наоборот. Ровно наоборот.</b> Разреженная таблица прожорливее в десятки раз — и платит она не зря, потому что умеет то, чего префиксные суммы не умеют никак.</p>
+            <h3 class="text-xl font-bold text-amber-400 mb-4">⚖️ Префиксная vs Разреженная: вафли против тортика</h3>
+            <p class="text-slate-300 text-sm mb-5">Частая ошибка: «разреженная таблица — как префиксные суммы, только чуть меньше памяти за ту же скорость». <b class="text-rose-300">Наоборот. Ровно наоборот.</b> Это не конкуренты: префиксная — маленькая сетка <b>только для суммы</b>, разреженная — огромный тортик для min/max/gcd. Сумму нельзя считать через sparse (перекрывающиеся линейки посчитают клетки дважды), минимум нельзя через префиксную (нет обратной операции).</p>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-emerald-600/40 relative pt-8">
+                <div class="bg-slate-800 p-5 rounded-lg border border-emerald-600/40 relative pt-9">
                     <div class="absolute -top-3 left-4 bg-emerald-700 text-emerald-100 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🪶 Префиксная матрица сумм (билет 5)
+                        🧇 Сетка из вафельных трубочек — префиксные суммы (билет 5)
                     </div>
-                    <ul class="text-slate-300 text-sm space-y-1.5">
-                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">N × M</code> — одна копия матрицы, и всё</li>
-                        <li>· Запрос суммы на прямоугольнике: <b>O(1)</b></li>
-                        <li>· Умеет <b>только сумму</b> — у суммы есть вычитание (обратная операция)</li>
-                        <li>· Менять элементы нельзя — пересчитается вся матрица</li>
-                    </ul>
+                    <img src="${waffleImg}" alt="Сетка вафельных трубочек: прямоугольник вынимается, пустые слоты пунктиром" class="w-full max-w-[420px] mx-auto rounded-lg border border-slate-700 my-3" />
+                    <p class="text-slate-300 text-sm mb-2">Каждая трубочка = сумма всего прямоугольника от угла (0,0). Нужный кусок <b>вынимается</b> по включениям-исключениям — как палочки на картинке: вынули четыре — получили любой прямоугольник.</p>
+                    <p class="text-slate-300 text-sm">И палочки можно не только вынимать, но и <b class="text-emerald-300">вставлять обратно</b>: у суммы есть вычитание. Поэтому хватает одной сетки.</p>
                 </div>
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                <div class="bg-slate-900 p-5 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-9">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🐘 2D Sparse table минимумов (этот билет)
+                        🎂 Слоёный тортик — sparse table (этот билет)
                     </div>
-                    <ul class="text-slate-300 text-sm space-y-1.5">
-                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">N × M × log N × log M</code> — жирнее в десятки раз</li>
-                        <li>· Запрос минимума на прямоугольнике: <b>O(1)</b></li>
-                        <li>· Умеет <b>min, max, gcd</b> — операции, где перекрытие не мешает (x O x = x)</li>
-                        <li>· Менять элементы тоже нельзя</li>
-                    </ul>
+                    <img src="${cakeImg}" alt="Толстый многослойный тортик: уровень = копия матрицы" class="w-full max-w-[420px] mx-auto rounded-lg border border-slate-700 my-3" />
+                    <p class="text-slate-300 text-sm mb-2">Каждый слой тортика — почти полная копия матрицы (ответы на квадраты 1×1, 2×2, 4×4, 8×8…). Слоёв log N × log M: для 1000×1000 это ≈ <b class="text-rose-300">100 копий матрицы</b>. Жирный — потому что печём все ответы заранее, зато запрос O(1).</p>
+                    <p class="text-slate-300 text-sm">А главное — <b class="text-rose-300">крем обратно не запихнёшь</b>: зная min двух кусков, минимум «на reversal» не развернёшь. Обратной операции нет — вот для таких случаев тортик и нужен.</p>
                 </div>
             </div>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">
-                        🎂 Аналогия 3: Слоёный тортик
-                    </div>
-                    <p class="text-slate-300 text-sm">Почему «тортик» жирный: на каждом уровне хранится почти полная копия матрицы. Уровней по каждой оси — log (для 1000×1000 это 10 × 10). Итого ≈ <b class="text-amber-300">100 копий матрицы вместо одной</b>. Вот цена O(1) для минимума: запекли все возможные вопросы заранее.</p>
-                </div>
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-slate-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-sky-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-sky-500 shadow-md">
-                        🔋 Аналогия 4: Аккумулятор
-                    </div>
-                    <p class="text-slate-300 text-sm">Почему префиксная «тонкая»: сумма аккумулирует — каждая клетка уже несёт в себе весь прямоугольник от угла (0,0), и лишнее можно <b>вычесть</b>. У минимума обратной операции нет: зная min двух кусков, ты не развернёшь его назад. Поэтому для минимума и нужен тортик.</p>
-                </div>
+            <div class="overflow-x-auto mt-6">
+                <table class="w-full text-sm text-slate-300 border-collapse">
+                    <thead>
+                        <tr class="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                            <th class="py-2 pr-4 font-bold"></th>
+                            <th class="py-2 pr-4 font-bold text-emerald-400">🧇 Префиксная (вафли)</th>
+                            <th class="py-2 font-bold text-rose-400">🎂 Sparse (тортик)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-top">
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Память</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(N·M) — одна сетка</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(N·M·log N·log M) — ≈100 копий</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Построение</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(N·M)</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(N·M·log N·log M) — печь долго</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Запрос</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(1)</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(1)</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Умеет</td>
+                            <td class="py-2 pr-4">только <b>сумму</b> — есть вычитание</td>
+                            <td class="py-2"><b>min / max / gcd</b> — перекрытие не мешает (x O x = x)</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Обратная операция</td>
+                            <td class="py-2 pr-4 text-emerald-300">есть: палочки можно вставить назад</td>
+                            <td class="py-2 text-rose-300">нет: крем обратно не запихнёшь</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-5">
                 <p class="text-slate-300 text-sm mb-1">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· «Сумму посчитаю через sparse table» — нельзя: перекрывающиеся линейки посчитают клетки дважды. Сумма ≠ идемпотентна.</p>
                 <p class="text-slate-400 text-sm mb-1">· «Минимум посчитаю префиксными суммами» — нельзя: нет вычитания, нет обратной операции.</p>
-                <p class="text-slate-400 text-sm">· Они решают <b class="text-slate-200">разные задачи</b>: маленькая сумма против огромного минимума. Выбирай не «какая круче», а «какой запрос у тебя на входе».</p>
+                <p class="text-slate-400 text-sm">· Выбирай не «что круче», а «какой запрос на входе»: сумма — вафли, минимум — тортик.</p>
             </div>
         </div>
     </div>
@@ -6143,10 +6163,12 @@ export function buildInitTemplate(chapterId: string, chapterTitle: string, demoI
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 26/96: src/data/tickets/ticket1_5.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 335 | РАЗМЕР: 29.4 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 357 | РАЗМЕР: 31.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
+import waffleImg from "../../assets/waffle-grid.jpg";
+import cakeImg from "../../assets/sparse-cake.jpg";
 
 export const tickets1to5: Chapter[] = [
   {
@@ -6255,51 +6277,69 @@ int minimum = min(st[L][k], st[R - (1 << k) + 1][k]);</pre>
         </div>
 
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-amber-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-amber-400 mb-4">⚖️ Префиксная vs Разреженная: это НЕ конкуренты</h3>
-            <p class="text-slate-300 text-sm mb-4">Частая ошибка: «разреженная таблица — это как префиксные суммы, только чуть меньше памяти за ту же скорость». <b class="text-rose-300">Наоборот. Ровно наоборот.</b> Разреженная таблица прожорливее в десятки раз — и платит она не зря, потому что умеет то, чего префиксные суммы не умеют никак.</p>
+            <h3 class="text-xl font-bold text-amber-400 mb-4">⚖️ Префиксная vs Разреженная: вафли против тортика</h3>
+            <p class="text-slate-300 text-sm mb-5">Частая ошибка: «разреженная таблица — как префиксные суммы, только чуть меньше памяти за ту же скорость». <b class="text-rose-300">Наоборот. Ровно наоборот.</b> Это не конкуренты: префиксная — маленькая сетка <b>только для суммы</b>, разреженная — огромный тортик для min/max/gcd. Сумму нельзя считать через sparse (перекрывающиеся линейки посчитают клетки дважды), минимум нельзя через префиксную (нет обратной операции).</p>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-emerald-600/40 relative pt-8">
+                <div class="bg-slate-800 p-5 rounded-lg border border-emerald-600/40 relative pt-9">
                     <div class="absolute -top-3 left-4 bg-emerald-700 text-emerald-100 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🪶 Префиксная матрица сумм (билет 5)
+                        🧇 Сетка из вафельных трубочек — префиксные суммы (билет 5)
                     </div>
-                    <ul class="text-slate-300 text-sm space-y-1.5">
-                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">N × M</code> — одна копия матрицы, и всё</li>
-                        <li>· Запрос суммы на прямоугольнике: <b>O(1)</b></li>
-                        <li>· Умеет <b>только сумму</b> — у суммы есть вычитание (обратная операция)</li>
-                        <li>· Менять элементы нельзя — пересчитается вся матрица</li>
-                    </ul>
+                    <img src="${waffleImg}" alt="Сетка вафельных трубочек: прямоугольник вынимается, пустые слоты пунктиром" class="w-full max-w-[420px] mx-auto rounded-lg border border-slate-700 my-3" />
+                    <p class="text-slate-300 text-sm mb-2">Каждая трубочка = сумма всего прямоугольника от угла (0,0). Нужный кусок <b>вынимается</b> по включениям-исключениям — как палочки на картинке: вынули четыре — получили любой прямоугольник.</p>
+                    <p class="text-slate-300 text-sm">И палочки можно не только вынимать, но и <b class="text-emerald-300">вставлять обратно</b>: у суммы есть вычитание. Поэтому хватает одной сетки.</p>
                 </div>
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                <div class="bg-slate-900 p-5 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-9">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🐘 2D Sparse table минимумов (этот билет)
+                        🎂 Слоёный тортик — sparse table (этот билет)
                     </div>
-                    <ul class="text-slate-300 text-sm space-y-1.5">
-                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">N × M × log N × log M</code> — жирнее в десятки раз</li>
-                        <li>· Запрос минимума на прямоугольнике: <b>O(1)</b></li>
-                        <li>· Умеет <b>min, max, gcd</b> — операции, где перекрытие не мешает (x O x = x)</li>
-                        <li>· Менять элементы тоже нельзя</li>
-                    </ul>
+                    <img src="${cakeImg}" alt="Толстый многослойный тортик: уровень = копия матрицы" class="w-full max-w-[420px] mx-auto rounded-lg border border-slate-700 my-3" />
+                    <p class="text-slate-300 text-sm mb-2">Каждый слой тортика — почти полная копия матрицы (ответы на квадраты 1×1, 2×2, 4×4, 8×8…). Слоёв log N × log M: для 1000×1000 это ≈ <b class="text-rose-300">100 копий матрицы</b>. Жирный — потому что печём все ответы заранее, зато запрос O(1).</p>
+                    <p class="text-slate-300 text-sm">А главное — <b class="text-rose-300">крем обратно не запихнёшь</b>: зная min двух кусков, минимум «на reversal» не развернёшь. Обратной операции нет — вот для таких случаев тортик и нужен.</p>
                 </div>
             </div>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">
-                        🎂 Аналогия 3: Слоёный тортик
-                    </div>
-                    <p class="text-slate-300 text-sm">Почему «тортик» жирный: на каждом уровне хранится почти полная копия матрицы. Уровней по каждой оси — log (для 1000×1000 это 10 × 10). Итого ≈ <b class="text-amber-300">100 копий матрицы вместо одной</b>. Вот цена O(1) для минимума: запекли все возможные вопросы заранее.</p>
-                </div>
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-slate-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-sky-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-sky-500 shadow-md">
-                        🔋 Аналогия 4: Аккумулятор
-                    </div>
-                    <p class="text-slate-300 text-sm">Почему префиксная «тонкая»: сумма аккумулирует — каждая клетка уже несёт в себе весь прямоугольник от угла (0,0), и лишнее можно <b>вычесть</b>. У минимума обратной операции нет: зная min двух кусков, ты не развернёшь его назад. Поэтому для минимума и нужен тортик.</p>
-                </div>
+            <div class="overflow-x-auto mt-6">
+                <table class="w-full text-sm text-slate-300 border-collapse">
+                    <thead>
+                        <tr class="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                            <th class="py-2 pr-4 font-bold"></th>
+                            <th class="py-2 pr-4 font-bold text-emerald-400">🧇 Префиксная (вафли)</th>
+                            <th class="py-2 font-bold text-rose-400">🎂 Sparse (тортик)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-top">
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Память</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(N·M) — одна сетка</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(N·M·log N·log M) — ≈100 копий</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Построение</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(N·M)</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(N·M·log N·log M) — печь долго</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Запрос</td>
+                            <td class="py-2 pr-4 font-mono text-xs text-emerald-300">O(1)</td>
+                            <td class="py-2 font-mono text-xs text-rose-300">O(1)</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Умеет</td>
+                            <td class="py-2 pr-4">только <b>сумму</b> — есть вычитание</td>
+                            <td class="py-2"><b>min / max / gcd</b> — перекрытие не мешает (x O x = x)</td>
+                        </tr>
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 pr-4 text-slate-500">Обратная операция</td>
+                            <td class="py-2 pr-4 text-emerald-300">есть: палочки можно вставить назад</td>
+                            <td class="py-2 text-rose-300">нет: крем обратно не запихнёшь</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-5">
                 <p class="text-slate-300 text-sm mb-1">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· «Сумму посчитаю через sparse table» — нельзя: перекрывающиеся линейки посчитают клетки дважды. Сумма ≠ идемпотентна.</p>
                 <p class="text-slate-400 text-sm mb-1">· «Минимум посчитаю префиксными суммами» — нельзя: нет вычитания, нет обратной операции.</p>
-                <p class="text-slate-400 text-sm">· Они решают <b class="text-slate-200">разные задачи</b>: маленькая сумма против огромного минимума. Выбирай не «какая круче», а «какой запрос у тебя на входе».</p>
+                <p class="text-slate-400 text-sm">· Выбирай не «что круче», а «какой запрос на входе»: сумма — вафли, минимум — тортик.</p>
             </div>
         </div>
     </div>
@@ -6467,9 +6507,11 @@ function rotate(x) {
                 </div>
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-sky-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-sky-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-sky-500 shadow-md">
-                        🔋 Аналогия 2: Аккумулятор
+                        🧇 Аналогия 2: Сетка из вафельных трубочек (аккумулятор)
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Префиксная матрица «тонкая» — ровно одна копия на клетку — потому что сумма <b>аккумулирует</b>: каждая клетка P[i][j] уже несёт в себе площадь всего прямоугольника от угла (0,0). Лишнее просто <b>вычитаем</b> по включениям-исключениям. Фокус держится на обратной операции: у минимума «вычесть» нет, поэтому там (билет 2) приходится печь слёный тортик из ~100 копий матрицы.</p>
+                    <img src="${waffleImg}" alt="Сетка вафельных трубочек: прямоугольник вынимается по включениям-исключениям" class="w-full max-w-[380px] mx-auto rounded-lg border border-slate-700 my-3" />
+                    <p class="text-slate-300 text-sm mb-3">Каждая трубочка «аккумулирует» — несёт сумму всего прямоугольника от угла (0,0). Любой кусок <b>вынимается</b> по включениям-исключениям (пунктирные слоты на картинке), а главное — палочки можно <b class="text-emerald-300">вставлять обратно</b>: у суммы есть вычитание. У минимума обратной операции нет, поэтому там (билет 2) печут слоёный тортик: N·M·log N·log M ≈ 100 копий матрицы против одной сетки O(N·M).</p>
+                    <p class="text-xs font-mono text-slate-400 border-t border-slate-700/60 pt-2">память O(N·M) · построение O(N·M) · запрос O(1) · только сумма</p>
                 </div>
             </div>
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-4">
@@ -24315,7 +24357,7 @@ const Prefix2D: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 78/96: src/components/visualizers/SparseTableViz.tsx
-КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 830 | РАЗМЕР: 51.6 KB
+КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 852 | РАЗМЕР: 52.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useContext, useEffect, useState } from "react";
@@ -24745,6 +24787,9 @@ const Viz1D: React.FC = () => {
 
 const Viz2DBuild: React.FC = () => {
   const [k, setK] = useState(1);
+  // Пока пользователь сам не выбрал уровень, вкладки следуют за k из Python;
+  // после клика — локальный выбор главнее (Python не «ворует» клики).
+  const [userPicked, setUserPicked] = useState(false);
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null);
   const [locked, setLocked] = useState<{ r: number; c: number } | null>(null);
   const runtime = useVizRuntime();
@@ -24753,16 +24798,18 @@ const Viz2DBuild: React.FC = () => {
   const liveR = vizNumber(vars?.r);
   const liveC = vizNumber(vars?.c);
   const liveTable = vizRecord(vars?.st2);
+  const liveA = vizArray(vars?.A);
   const hasLiveSource = !!vars && Object.prototype.hasOwnProperty.call(vars, "A");
   const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
   const liveTableEmpty = hasLiveTable && Object.keys(liveTable ?? {}).length === 0;
   const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
   const compilerLinked = codeCell !== null || liveK !== null || hasLiveSource || hasLiveTable;
-  const shownK = liveK !== null
+  const pythonK = liveK !== null
     ? Math.max(0, Math.min(3, Math.trunc(liveK)))
     : hasLiveSource
       ? 0
       : k;
+  const shownK = userPicked ? k : pythonK;
 
   // Уровень и клетка берутся прямо из k/r/c; номер строки трассы не нужен.
   useEffect(() => {
@@ -24787,13 +24834,22 @@ const Viz2DBuild: React.FC = () => {
           {[0, 1, 2, 3].map(step => (
             <button
               key={step}
-              onClick={() => { setK(step); setHover(null); setLocked(null); }}
+              onClick={() => { setK(step); setUserPicked(true); setHover(null); setLocked(null); }}
               className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${shownK === step ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
             >
               {step === 0 ? "Оригинал (1x1)" : `Шаг ${step} (${1<<step}x${1<<step})`}
             </button>
           ))}
         </div>
+        {userPicked && (
+          <button
+            onClick={() => { setUserPicked(false); setK(pythonK); }}
+            className="mb-4 text-[11px] font-bold px-3 py-1 rounded-lg bg-slate-800/70 border border-slate-700 text-slate-400 hover:text-white hover:border-indigo-500 transition-colors"
+            title="Снова следовать за переменной k из Python-кода"
+          >
+            ↩ снова вести уровень из Python (k = {pythonK})
+          </button>
+        )}
 
         <div className="flex flex-col items-center gap-4 w-full max-h-[70vh] sm:h-[600px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
           {[...Array(shownK + 1)].map((_, i) => shownK - i).map((step, idx) => {
@@ -24810,16 +24866,24 @@ const Viz2DBuild: React.FC = () => {
                      <span className={`text-[10px] font-mono font-normal mt-1 border px-1.5 py-0.5 rounded ${isCurr ? 'bg-indigo-900/40 border-indigo-800/40 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>ST[][][{step}][{step}]</span>
                    </h4>
                    <div className="max-w-full overflow-x-auto">
-                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 shadow-[0_0_25px_rgba(99,102,241,0.05)] relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
+                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
                      {Array.from({length: stepSize * stepSize}).map((_, idx) => {
                         const r = Math.floor(idx / stepSize);
                         const c = idx % stepSize;
                         
                         const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
-                        // A и st2 — разные объекты: пока st2 пуст, его базовый
-                        // слой тоже пуст. Значения A появятся здесь только после
-                        // явной инициализации st2[(r,c,0,0)] в Python-коде.
-                        const shownValue = compilerLinked ? liveValue : ST2D[r][c][step][step];
+                        // Базовый слой (k = 0) — это сама матрица A: пока st2 пуст,
+                        // 1×1-клетки честно рисуем из A (она уже определена в init),
+                        // а старшие уровни остаются пустым каркасом до заполнения st2.
+                        const aRow = step === 0 && liveA && Array.isArray(liveA[r]) ? (liveA[r] as unknown[]) : null;
+                        const aCell = aRow && typeof aRow[c] === "number" ? (aRow[c] as number) : null;
+                        const shownValue = !compilerLinked
+                          ? ST2D[r][c][step][step]
+                          : liveValue !== undefined && liveValue !== null
+                            ? liveValue
+                            : aCell !== null
+                              ? aCell
+                              : undefined;
                         const isBlank = shownValue === undefined || shownValue === null;
                         let highlightClass = isBlank
                           ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'
@@ -24832,7 +24896,7 @@ const Viz2DBuild: React.FC = () => {
 
                         if (isActive) {
                           if (isCurr) {
-                            highlightClass = `bg-indigo-500 text-white font-bold scale-[1.12] shadow-xl border-indigo-300 transition-all ${locked && locked.r === r && locked.c === c ? 'ring-[3px] ring-white ring-offset-2 ring-offset-[#0a0f1e]' : ''}`;
+                            highlightClass = `bg-indigo-500 text-white font-bold border-indigo-200 ring-2 ring-indigo-300/60 transition-colors ${locked && locked.r === r && locked.c === c ? 'ring-[3px] ring-white ring-offset-2 ring-offset-[#0a0f1e]' : ''}`;
                             zIndex = 'z-10';
                           } else {
                             const prevL = 1 << (shownK - 1);
@@ -24840,13 +24904,13 @@ const Viz2DBuild: React.FC = () => {
                             const isLeft = c < activeCell.c + prevL;
                             
                             if (isTop && isLeft) {
-                               highlightClass = 'bg-rose-500/90 text-white font-bold border-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-rose-500/90 text-white font-bold border-rose-300 border-rose-200/70';
                             } else if (isTop && !isLeft) {
-                               highlightClass = 'bg-blue-500/90 text-white font-bold border-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-blue-500/90 text-white font-bold border-blue-300 border-blue-200/70';
                             } else if (!isTop && isLeft) {
-                               highlightClass = 'bg-emerald-500/90 text-white font-bold border-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-emerald-500/90 text-white font-bold border-emerald-300 border-emerald-200/70';
                             } else {
-                               highlightClass = 'bg-amber-500/90 text-white font-bold border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-amber-500/90 text-white font-bold border-amber-300 border-amber-200/70';
                             }
                             zIndex = 'z-10';
                           }
@@ -28456,5 +28520,5 @@ jobs:
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 96 файлов • сгенерировано 14.09.2026, 11:30:06
+КОНЕЦ ДОКУМЕНТА • 96 файлов • сгенерировано 14.09.2026, 14:53:07
 ==========================================================================================================================================
