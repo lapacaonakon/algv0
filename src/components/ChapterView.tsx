@@ -1,10 +1,37 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles } from "lucide-react";
+import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles, Terminal } from "lucide-react";
 import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
 import { getViz } from "./vizRegistry";
+import { VizChapterContext } from "../data/vizStepBus";
 import { ChapterNav } from "./ChapterNav";
+import { RELATED, chapters as allChapters } from "../data/content";
+
+/** «Читать рядом»: кликабельные ссылки на связанные билеты (внизу страницы). */
+const RelatedTickets: React.FC<{ chapterId: string; onGo: (id: string) => void }> = ({ chapterId, onGo }) => {
+  const related = (RELATED[chapterId] ?? []).filter((id) => id !== chapterId);
+  if (related.length === 0) return null;
+  const getTitle = (id: string): string => allChapters.find((c) => c.id === id)?.title ?? id;
+  return (
+    <nav className="mt-10 mb-2 p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-300/80 mb-2 flex items-center gap-1.5">
+        <MousePointerClick className="w-3.5 h-3.5" /> Читать рядом — темы решают смежные задачи
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {related.map((id) => (
+          <button
+            key={id}
+            onClick={() => onGo(id)}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-200 hover:text-white hover:border-indigo-500 transition-colors"
+          >
+            {getTitle(id)}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+};
 import { downloadChapterHtml } from "../utils/exportHtml";
 
 interface Props {
@@ -15,11 +42,13 @@ interface Props {
   total: number;
   onGo: (id: string) => void;
   onOpenSimulator: (vizId: string) => void;
+  /** Перейти во вкладку компилятора — там уже подставлены переменные этой демонстрации. */
+  onOpenCompiler?: () => void;
 }
 
 const isTouch = () => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
 
-export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator }) => {
+export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator, onOpenCompiler }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [anchor, setAnchor] = useState<HintAnchor | null>(null);
   const hideTimer = useRef<number | null>(null);
@@ -147,17 +176,32 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 Демонстрация: {viz.title}
               </h3>
-              <button
-                onClick={() => onOpenSimulator(chapter.id)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
-              >
-                <Maximize2 className="w-3.5 h-3.5" /> Развернуть
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenSimulator(chapter.id)}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" /> Развернуть
+                </button>
+                {onOpenCompiler && (
+                  <button
+                    onClick={onOpenCompiler}
+                    title="Открыть Python: код выполняется автоматически, а значения i, j, k, v, P, st… сразу подсвечивают объекты демонстрации"
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 hover:text-white hover:border-emerald-500 transition-colors"
+                  >
+                    <Terminal className="w-3.5 h-3.5" /> Код ↔ визуализация
+                  </button>
+                )}
+              </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
-            <viz.Component />
+            <VizChapterContext.Provider value={chapter.id}>
+              <viz.Component />
+            </VizChapterContext.Provider>
           </section>
         )}
+
+        <RelatedTickets chapterId={chapter.id} onGo={onGo} />
 
         <ChapterNav prev={prev} next={next} index={index} total={total} onGo={onGo} />
       </article>

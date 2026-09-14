@@ -12,7 +12,9 @@
     "export:txt": "node scripts/export/collect-code.mjs",
     "export:png": "node scripts/export/render-pages.mjs",
     "export:pdf": "node scripts/export/build-pdf.mjs",
-    "export": "npm run export:txt && npm run export:png && npm run export:pdf"
+    "export": "npm run export:txt && npm run export:png && npm run export:pdf",
+    "export:guide": "node scripts/export/build-guide-pdf.mjs",
+    "selftest": "npx esbuild scripts/selftest/bundle.ts --bundle --platform=node --format=cjs --outfile=/tmp/bundle-selftest.cjs --log-level=error --loader:.jpg=file && node /tmp/bundle-selftest.cjs && npx esbuild scripts/selftest/lazy.ts --bundle --platform=node --format=cjs --outfile=/tmp/lazy-selftest.cjs --jsx=automatic --loader:.css=empty --log-level=error && node /tmp/lazy-selftest.cjs && npx esbuild scripts/selftest/harness-entry.ts --bundle --platform=node --format=cjs --outfile=/tmp/harness.cjs --log-level=error && python3 scripts/selftest/harness_check.py"
   },
   "dependencies": {
     "clsx": "2.1.1",
@@ -21,6 +23,7 @@
     "pdfkit": "^0.20.1",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "svg-to-pdfkit": "^0.1.8",
     "tailwind-merge": "3.4.0"
   },
   "devDependencies": {
@@ -30,7 +33,7 @@
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
-    "esbuild": "^0.28.2",
+    "esbuild": "^0.24.0",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vite": "7.3.2",

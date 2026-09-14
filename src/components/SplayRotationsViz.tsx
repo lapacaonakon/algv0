@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useVizRuntime, vizNumber, vizString } from "../data/vizStepBus";
 import { Gauge, Pause, Play, RotateCcw } from "lucide-react";
 
 /**
@@ -337,10 +338,25 @@ const Tree: React.FC<{ frame: Frame; prev: Pos; keys: Case["keys"] }> = ({ frame
 };
 
 export const SplayRotationsViz: React.FC = () => {
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveCase = vizString(vars?.case);
+  const liveFrame = vizNumber(vars?.i);
   const [caseIdx, setCaseIdx] = useState(0);
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [slow, setSlow] = useState(false);
+
+  // Компилятор: case = "zig" / "zig-zig" / "zig-zag", i — номер кадра.
+  useEffect(() => {
+    if (liveCase) {
+      const ci = CASES.findIndex((c) => c.key.toLowerCase() === liveCase.trim().toLowerCase());
+      if (ci >= 0) setCaseIdx(ci);
+    }
+  }, [liveCase]);
+  useEffect(() => {
+    if (liveFrame !== null) setFrame(Math.min(liveFrame, CASES[caseIdx].frames.length - 1));
+  }, [liveFrame, caseIdx]);
 
   const active = CASES[caseIdx];
   const total = active.frames.length;

@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useVizRuntime, vizArray, vizNumber } from '../data/vizStepBus';
 
 interface Step {
   k: number; i: number; j: number;
-  matrix: number[][]; updated: boolean;
+  matrix: (number | null)[][]; updated: boolean;
   log: string; activeCodeLine: number;
 }
 
 export default function FloydViz() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const runtime = useVizRuntime();
+  // k/i/j/d приходят напрямую; номер строки произвольной программы не используется.
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodeNames = ['А 0', 'Б 1', 'В 2', 'Г 3', 'Д 4', 'Е 5', 'Ж 6'];
@@ -110,8 +113,32 @@ export default function FloydViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  if (!currentStep) return <div>Загрузка...</div>;
+  const baseStep = steps[currentStepIndex] || null;
+  if (!baseStep) return <div>Загрузка...</div>;
+
+  const vars = runtime?.variables;
+  const liveK = vizNumber(vars?.k);
+  const liveI = vizNumber(vars?.i);
+  const liveJ = vizNumber(vars?.j);
+  const rawMatrix = vizArray(vars?.d) ?? vizArray(vars?.dist);
+  const liveMatrix = rawMatrix
+    ? baseStep.matrix.map((row, i) => {
+        const values = vizArray(rawMatrix[i]);
+        return row.map((_, j) => vizNumber(values?.[j]));
+      })
+    : undefined;
+  const compilerLinked = liveK !== null || liveI !== null || liveJ !== null || !!rawMatrix;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        k: liveK ?? -1,
+        i: liveI ?? -1,
+        j: liveJ ?? -1,
+        matrix: liveMatrix ?? baseStep.matrix,
+        updated: !!runtime?.changed?.some((name) => name === "d" || name === "dist"),
+        log: `Компилятор: k=${liveK ?? "—"}, i=${liveI ?? "—"}, j=${liveJ ?? "—"}. Подсветка взята из реальных переменных.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -243,8 +270,10 @@ export default function FloydViz() {
                       let bg = 'bg-slate-900/40 text-slate-300';
                       if (isUpd) bg = 'bg-emerald-900/80 text-emerald-200 border-2 border-emerald-500 shadow-inner z-10 relative';
                       else if (isVia) bg = 'bg-indigo-950/80 text-indigo-200 border border-indigo-500 shadow-inner z-10 relative';
+                      else if (currentStep.i === -1 && currentStep.k >= 0 && (i === currentStep.k || j === currentStep.k))
+                        bg = 'bg-indigo-950/60 text-indigo-200 border border-indigo-800/60'; // вся строка/столбец текущего посредника k
                       else if (i === j) bg = 'bg-slate-950/60 text-slate-500';
-                      return (<td key={j} className={`p-2 border-r border-rose-900/50 transition-colors ${bg}`}>{val === 999 ? '∞' : val}</td>);
+                      return (<td key={j} className={`p-2 border-r border-rose-900/50 transition-colors ${bg}`}>{val === null ? '·' : val === 999 ? '∞' : val}</td>);
                     })}
                   </tr>
                 ))}

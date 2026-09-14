@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Undo } from "lucide-react";
+import { useVizRuntime, vizArray, vizString } from "../data/vizStepBus";
 
 const C1_NODES = [
   { id: 0, label: "A", x: 190, y: 60 },
@@ -17,6 +18,12 @@ const C1_EDGES = [
 ];
 
 export function EulerSimulator() {
+  // ── Синхронизация с Python-компилятором: path — последовательность меток
+  // вершин (["A","B","C"...]), degrees/deg — словарь степеней для проверки чётности.
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const livePathLabels = vizArray(vars?.path)?.map((x) => vizString(x)).filter((x): x is string => x !== null) ?? null;
+
   const [c1Path, setC1Path] = useState<number[]>([]);
   const [c1VisitedEdges, setC1VisitedEdges] = useState<string[]>([]);
   const [c1Msg, setC1Msg] = useState("Кликни на вершину, чтобы начать обход.");
@@ -25,6 +32,36 @@ export function EulerSimulator() {
   const resetC1 = () => {
     setC1Path([]); setC1VisitedEdges([]); setC1Msg("Кликни на вершину, чтобы начать обход."); setC1Done(false);
   };
+
+  // Компилятор управляет обходом, если в коде есть path = ["A","B",...].
+  const compilerLinked = livePathLabels !== null && livePathLabels.length > 0;
+  const livePath = useMemo(() => {
+    if (!compilerLinked) return null;
+    const ids = livePathLabels!
+      .map((lab) => C1_NODES.find((n) => n.label === lab)?.id)
+      .filter((x): x is number => x !== undefined);
+    return ids;
+  }, [compilerLinked, livePathLabels]);
+  const shownPath = livePath ?? c1Path;
+  const shownVisited = useMemo(() => {
+    if (livePath) {
+      const keys: string[] = [];
+      for (let i = 1; i < livePath.length; i++) {
+        const a = livePath[i - 1];
+        const b = livePath[i];
+        if (C1_EDGES.some((e) => (e.u === a && e.v === b) || (e.u === b && e.v === a))) {
+          keys.push(`${Math.min(a, b)}-${Math.max(a, b)}`);
+        }
+      }
+      return keys;
+    }
+    return c1VisitedEdges;
+  }, [livePath, c1VisitedEdges]);
+
+  const degrees = useMemo(
+    () => C1_NODES.map((n) => ({ label: n.label, deg: C1_EDGES.filter((e) => e.u === n.id || e.v === n.id).length })),
+    []
+  );
 
   const clickC1 = (vId: number) => {
     if (c1Done && c1Path.length > 0) return;
@@ -80,15 +117,15 @@ export function EulerSimulator() {
             const u = C1_NODES.find(n => n.id === e.u)!;
             const v = C1_NODES.find(n => n.id === e.v)!;
             const key = `${Math.min(e.u,e.v)}-${Math.max(e.u,e.v)}`;
-            const used = c1VisitedEdges.includes(key);
+            const used = shownVisited.includes(key);
             return <line key={i} x1={u.x} y1={u.y} x2={v.x} y2={v.y}
               stroke={used ? "#6366f1" : "#475569"}
               strokeWidth={used ? 4 : 2}
               className="transition-all duration-300" />;
           })}
           {C1_NODES.map(n => {
-            const isLast = c1Path[c1Path.length-1] === n.id;
-            const visited = c1Path.includes(n.id);
+            const isLast = shownPath[shownPath.length-1] === n.id;
+            const visited = shownPath.includes(n.id);
             return <g key={n.id} className="cursor-pointer" onClick={() => clickC1(n.id)}>
               {isLast && <circle cx={n.x} cy={n.y} r={17} fill="none" stroke="#6366f1" strokeWidth={2} className="animate-pulse" />}
               <circle cx={n.x} cy={n.y} r={11}
@@ -101,7 +138,11 @@ export function EulerSimulator() {
           })}
         </svg>
         <div className="absolute top-2 left-2 bg-slate-900/90 border border-slate-700/60 px-2 py-1 rounded-md text-[10px] text-slate-300">
-          Ребёр: {c1VisitedEdges.length}/{C1_EDGES.length}
+          Ребёр: {shownVisited.length}/{C1_EDGES.length}
+          {compilerLinked && <span className="ml-2 text-emerald-300">🐍 path = [{livePathLabels!.join(" → ")}]</span>}
+        </div>
+        <div className="absolute bottom-2 left-2 bg-slate-900/90 border border-slate-700/60 px-2 py-1 rounded-md text-[10px] text-slate-300">
+          Степени: {degrees.map((d) => `${d.label}:${d.deg}${d.deg % 2 ? " (нечёт!)" : ""}`).join("  ")}
         </div>
       </div>
       

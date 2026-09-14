@@ -56,7 +56,7 @@ export const tickets21to24: Chapter[] = [
                         <li><b>abca</b>: О! Начало ("a") совпало с текущим концом ("a"). Длина — 1. <code class="text-indigo-300">π[3] = 1</code></li>
                         <li><b>abcab</b>: Начало ("ab") совпало с концом ("ab"). Длина — 2. <code class="text-indigo-300">π[4] = 2</code></li>
                         <li><b>abcabc</b>: Начало ("abc") совпало с концом ("abc"). Длина — 3. <code class="text-indigo-300">π[5] = 3</code></li>
-                        <li><b>abcabcd</b>: "d" всё испортила. "abcd" из начала не совпадает с "abcd" в конце? Нет, "abcd" != "abcd" (упс, "abca" vs "abcd"). Конец "abcd" не совпадает с началом "abc...". <code class="text-indigo-300">π[6] = 0</code></li>
+                        <li><b>abcabcd</b>: "d" всё испортила. Кандидат — продолжить префикс длины 3 ("abc"): сравниваем s[6]='d' с s[3]='c' — не совпало. Откат по π: j = π[2] = 0. Теперь 'd' против 'a' — снова мимо. Общей части нет. <code class="text-indigo-300">π[6] = 0</code></li>
                     </ul>
                 </div>
             </details>
@@ -236,7 +236,7 @@ int go(int v, char c) {
             <h3 class="text-xl font-bold text-purple-400 mb-4">Границы невозможного</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-purple-500/30">
                 <p class="text-lg text-purple-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">P: Можно решить быстро (полином).<br>NP: Можно БЫСТРО ПРОВЕРИТЬ готовый ответ.<br>Сведение (Reduction) A->B: Если я умею решать B, я могу конвертнуть решение в A без потери времени.</p>
+                <p class="text-xl font-mono text-white">P: Можно решить быстро (полином).<br>NP: Можно БЫСТРО ПРОВЕРИТЬ готовый ответ.<br>Сведение (Reduction) A ≤p B: вход задачи A преобразуется за полином во вход задачи B; умеешь решать B — решаешь и A.</p>
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <!-- Аналогия 1 -->
@@ -251,7 +251,7 @@ int go(int v, char c) {
                     <div class="absolute -top-3 left-4 bg-purple-900 text-purple-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-purple-500 shadow-md">
                         🔄 Аналогия 2: Машина-переводчик (Сведение)
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Сведение A к B — это когда ты не умеешь говорить по-китайски (A), но у тебя есть отличный переводчик на английский (Сведение) и друг, болтающий по-английски (решение B). Если любая NP-задача сводится к задаче B, то B — это <b>NP-Полная</b> (сосредоточение всего зла)!</p>
+                    <p class="text-slate-300 text-sm mb-4">Сведение A к B — это когда ты не умеешь говорить по-китайски (A), но у тебя есть отличный переводчик на английский (Сведение) и друг, болтающий по-английски (решение B). Если любая NP-задача сводится к задаче B, а сама B лежит в NP, то B — <b>NP-полная</b> (сосредоточение всего зла). Без «B ∈ NP» это лишь NP-трудная!</p>
                 </div>
             </div>
         </div>

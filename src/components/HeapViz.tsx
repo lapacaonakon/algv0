@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Heart } from 'lucide-react';
+import { useVizRuntime, vizArray, vizNumber } from '../data/vizStepBus';
 
 interface Patient {
   id: string;
@@ -86,6 +87,23 @@ let uid = 300;
 
 export const HeapViz: React.FC = () => {
   const [heap, setHeap]                 = useState<Patient[]>(INITIAL_PATIENTS);
+  const runtime = useVizRuntime();
+  const liveHeap = vizArray(runtime?.variables?.h) ?? vizArray(runtime?.variables?.a);
+  const liveI = vizNumber(runtime?.variables?.i);
+  const visualHeap: Patient[] = liveHeap
+    ? liveHeap.map((value, index) => {
+        const tuple = vizArray(value);
+        const priority = vizNumber(tuple?.[0]) ?? vizNumber(value) ?? 0;
+        return {
+          id: `python-${index}`,
+          name: tuple ? String(tuple[1] ?? value) : String(value),
+          emoji: "🔢",
+          symptom: `индекс ${index}`,
+          priority,
+          animState: "idle",
+        };
+      })
+    : heap;
   const [customName, setCustomName]     = useState('');
   const [customPriority, setCustomPriority] = useState(50);
   const [log, setLog]                   = useState<string[]>(['🚑 Скорая помощь везёт пациентов! Нажми INSERT или EXTRACT.']);
@@ -200,12 +218,12 @@ export const HeapViz: React.FC = () => {
   };
 
   // --- Render binary tree lines ---
-  const edges = heap.flatMap((_, idx) => {
+  const edges = visualHeap.flatMap((_, idx) => {
     const res: React.ReactElement[] = [];
     const p = nodePos(idx);
     const l = 2 * idx + 1;
     const r = 2 * idx + 2;
-    if (l < heap.length) {
+    if (l < visualHeap.length) {
       const lp = nodePos(l);
       res.push(
         <line key={`el${idx}`}
@@ -215,7 +233,7 @@ export const HeapViz: React.FC = () => {
         />
       );
     }
-    if (r < heap.length) {
+    if (r < visualHeap.length) {
       const rp = nodePos(r);
       res.push(
         <line key={`er${idx}`}
@@ -315,9 +333,10 @@ export const HeapViz: React.FC = () => {
               {edges}
             </svg>
 
-            {heap.map((patient, idx) => {
+            {visualHeap.map((patient, idx) => {
               const pos = nodePos(idx);
               const isRoot = idx === 0;
+              const isCompilerNode = liveI === idx;
               return (
                 <div
                   key={patient.id}
@@ -327,6 +346,7 @@ export const HeapViz: React.FC = () => {
                     ${patient.animState === 'in' ? 'anim-patient-in' : ''}
                     ${patient.animState === 'winner' ? 'anim-winner-glow ring-4 ring-emerald-400' : ''}
                     ${patient.animState === 'out' ? 'anim-heal-exit' : ''}
+                    ${isCompilerNode ? 'ring-4 ring-amber-400 border-amber-300 scale-110 z-30' : ''}
                     ${isRoot ? 'bg-rose-950/80 border-rose-500/80 scale-110 z-20' : 'bg-slate-950/90 border-slate-800'}
                   `}
                   style={{

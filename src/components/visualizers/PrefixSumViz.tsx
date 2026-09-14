@@ -1,4 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import {
+  emitVizDemo,
+  useVizRuntime,
+  vizArray,
+  vizNumber,
+  VizChapterContext,
+} from "../../data/vizStepBus";
 
 /**
  * Префиксные суммы: 1D и 2D.
@@ -25,6 +32,13 @@ const cellBase =
 
 export const PrefixSumViz: React.FC = () => {
   const [mode, setMode] = useState<"1d" | "2d">("1d");
+  const chapterId = useContext(VizChapterContext);
+
+  // Вкладка 2D = своё демо (свой скелет): компилятор подхватывает переключение.
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, mode === "2d" ? "2d" : "");
+  }, [chapterId, mode]);
+
   return (
     <div className="w-full bg-slate-950 rounded-2xl border border-slate-800 p-3 sm:p-5 shadow-xl">
       <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
@@ -60,6 +74,19 @@ const Prefix1D: React.FC = () => {
   /** Что сейчас под курсором: префикс P[i] или элемент a[i]. */
   const [hover, setHover] = useState<{ kind: "pref" | "a"; i: number } | null>(null);
   const [range, setRange] = useState<{ l: number; r: number }>({ l: 2, r: 5 });
+  /** Снимок i/P из автоматически выполненного Python-кода. */
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveP = vizArray(vars?.P);
+  const hasLiveP = !!vars && Object.prototype.hasOwnProperty.call(vars, "P");
+  const compilerLinked = liveI !== null || hasLiveP;
+  // i/P управляют ячейками напрямую; индекс Python-строки здесь ничего не значит.
+  const shownDriven = compilerLinked
+    ? liveI !== null
+      ? Math.max(0, Math.min(A1.length, Math.trunc(liveI)))
+      : Math.max(0, Math.min(A1.length, (liveP?.length ?? 1) - 1))
+    : null;
 
   const covered =
     hover?.kind === "pref"
@@ -89,6 +116,7 @@ const Prefix1D: React.FC = () => {
             {A1.map((v, i) => {
               const inCover = covered && i >= covered.from && i <= covered.to;
               const inRange = i >= range.l && i <= range.r;
+              const isDrivenAdd = shownDriven !== null && shownDriven >= 1 && i === shownDriven - 1; // a[i] сейчас прибавляем к P
               return (
                 <div
                   key={i}
@@ -96,11 +124,13 @@ const Prefix1D: React.FC = () => {
                   onMouseLeave={() => setHover(null)}
                   onClick={() => setRange((r) => (i < r.l ? { l: i, r: r.r } : { l: r.l, r: i }))}
                   className={`${cellBase} cursor-pointer ${
-                    inCover
-                      ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
-                      : inRange
-                        ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
-                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    isDrivenAdd
+                      ? "bg-amber-500 text-black ring-2 ring-amber-300 font-extrabold"
+                      : inCover
+                        ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
+                        : inRange
+                          ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                   }`}
                   title={`a[${i}] = ${v}`}
                 >
@@ -117,23 +147,34 @@ const Prefix1D: React.FC = () => {
               const active = hover?.kind === "pref" && hover.i === i;
               const isL = i === range.l;
               const isR = i === range.r + 1;
+              const liveValue = liveP?.[i];
+              const blank = hasLiveP && (liveValue === undefined || liveValue === null);
+              const masked = !hasLiveP && shownDriven !== null && i > shownDriven;
+              const isDrivenCur = shownDriven !== null && i === shownDriven && (compilerLinked || shownDriven >= 1);
+              const shownValue = hasLiveP ? liveValue : v;
               return (
                 <div
                   key={i}
                   onMouseEnter={() => setHover({ kind: "pref", i })}
                   onMouseLeave={() => setHover(null)}
                   className={`${cellBase} cursor-help ${
-                    active
-                      ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
-                      : isR
-                        ? "bg-emerald-700 text-white"
-                        : isL
-                          ? "bg-rose-700 text-white"
-                          : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                    isDrivenCur
+                      ? "bg-emerald-600 text-white ring-2 ring-emerald-300 font-extrabold scale-110 shadow-lg shadow-emerald-500/30"
+                      : blank
+                        ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
+                      : masked
+                        ? "bg-slate-800/50 text-slate-700 border border-dashed border-slate-700"
+                        : active
+                          ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
+                          : isR
+                            ? "bg-emerald-700 text-white"
+                            : isL
+                              ? "bg-rose-700 text-white"
+                              : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
                   }`}
-                  title={`P[${i}] = сумма a[0..${i - 1}]`}
+                  title={blank || masked ? `P[${i}] — пустая ячейка` : `P[${i}] = ${String(shownValue)}`}
                 >
-                  {v}
+                  {blank || masked ? "·" : String(shownValue)}
                 </div>
               );
             })}
@@ -143,7 +184,15 @@ const Prefix1D: React.FC = () => {
 
       {/* Пояснение под курсором */}
       <div className="min-h-[62px] bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm">
-        {hover?.kind === "pref" ? (
+        {shownDriven !== null && !hover ? (
+          <p className="text-slate-300">
+            <b className="text-emerald-400">Компилятор → визуализация:</b>{" "}
+            <span className="font-mono text-white">i = {shownDriven}</span>, активна ячейка{" "}
+            <span className="font-mono text-emerald-300">P[{shownDriven}]</span>
+            {hasLiveP && <> = <span className="font-mono text-amber-300">{String(liveP?.[shownDriven] ?? "пусто")}</span></>}.
+            <span className="ml-1 text-slate-500">Пустой P всё равно рисуется каркасом квадратов.</span>
+          </p>
+        ) : hover?.kind === "pref" ? (
           hover.i === 0 ? (
             <p className="text-slate-300">
               <b className="text-emerald-400">P[0] = 0</b> — «пустой» префикс. Он нужен, чтобы формула работала и для
@@ -200,6 +249,12 @@ const Prefix1D: React.FC = () => {
 const Prefix2D: React.FC = () => {
   const n = A2.length;
   const m = A2[0].length;
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveJ = vizNumber(vars?.j);
+  const liveS = vizArray(vars?.S);
+  const hasLiveS = !!vars && Object.prototype.hasOwnProperty.call(vars, "S");
 
   const P = useMemo(() => {
     const p = Array.from({ length: n + 1 }, () => Array<number>(m + 1).fill(0));
@@ -213,6 +268,24 @@ const Prefix2D: React.FC = () => {
 
   const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
   const [rect, setRect] = useState({ r1: 1, c1: 1, r2: 2, c2: 2 });
+
+  useEffect(() => {
+    const r1 = vizNumber(vars?.r1);
+    const c1 = vizNumber(vars?.c1);
+    const r2 = vizNumber(vars?.r2);
+    const c2 = vizNumber(vars?.c2);
+    if (r1 === null || c1 === null || r2 === null || c2 === null) return;
+    // Python-шаблон (и глава) используют 1-индексные клетки таблицы S:
+    // клетка (1, 1) — левый верхний элемент матрицы. Внутри визы клетки
+    // 0-индексные, поэтому переводим: (1,1) → (0,0).
+    const to0 = (v: number, hi: number) => Math.max(0, Math.min(hi, Math.trunc(v) - 1));
+    setRect({
+      r1: to0(r1, n - 1),
+      c1: to0(c1, m - 1),
+      r2: to0(r2, n - 1),
+      c2: to0(c2, m - 1),
+    });
+  }, [vars, n, m]);
 
   const D = P[rect.r1][rect.c1];
   const B = P[rect.r1][rect.c2 + 1];
@@ -267,8 +340,13 @@ const Prefix2D: React.FC = () => {
             {P.map((row, i) => (
               <div key={i} className="flex gap-1.5 mb-1.5">
                 {row.map((v, j) => {
+                  const liveRow = vizArray(liveS?.[i]);
+                  const liveValue = liveRow?.[j];
+                  const blank = hasLiveS && (liveValue === undefined || liveValue === null);
+                  const shownValue = hasLiveS ? liveValue : v;
                   const corner = cornerOf(i, j);
                   const isHover = hover?.i === i && hover?.j === j;
+                  const isCompilerCell = liveI === i && liveJ === j;
                   const cornerColor =
                     corner === "A"
                       ? "bg-emerald-600 text-white"
@@ -283,10 +361,17 @@ const Prefix2D: React.FC = () => {
                       onMouseEnter={() => setHover({ i, j })}
                       onMouseLeave={() => setHover(null)}
                       className={`${cellBase} cursor-help relative ${
-                        isHover ? "bg-amber-500 text-white ring-2 ring-amber-300" : cornerColor
+                        isCompilerCell
+                          ? "bg-emerald-600 text-white ring-2 ring-emerald-300 scale-110"
+                          : isHover
+                            ? "bg-amber-500 text-white ring-2 ring-amber-300"
+                            : blank
+                              ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
+                              : cornerColor
                       }`}
+                      title={hasLiveS ? `S[${i}][${j}] = ${String(shownValue ?? "пусто")}` : undefined}
                     >
-                      {v}
+                      {blank ? "·" : String(shownValue)}
                       {corner && !isHover && (
                         <span className="absolute -top-1 -right-1 text-[9px] bg-slate-950 border border-slate-600 rounded px-1 leading-tight">
                           {corner}

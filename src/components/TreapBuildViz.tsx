@@ -1,0 +1,1420 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useVizRuntime, vizNumber } from "../data/vizStepBus";
+
+/**
+ * Интерактивный Treap — шесть режимов:
+ *   build  — сборка: ВИДИМАЯ сортировка точек (и чем сортировать — есть разница),
+ *            координатная плоскость НАВЕРХУ (ассоциация к «декартово»), дерево ниже,
+ *            чек-лист инвариантов (автопроверка, как условия у Ахо—Корасика).
+ *   split  — разрез по x с двумя корзинами (грамотная механика, не «удар меча»).
+ *   merge  — склейка двух деревьев по y.
+ *   erase  — удаление ПРОИЗВОЛЬНОЙ точки: найти по x, сшить детей merge.
+ *   layers — миф «дети в массиве по 2k/2k+1»: работает только у полных деревьев.
+ *   search — «отсортирую бинарным поиском»: поиск не сортирует; сравнительная
+ *            сортировка платит ≥ n·log n сравнений, counting по целым y — O(n+k).
+ *
+ * Канонический набор: все x и все y различны ⇒ дерево единственно.
+ * Узел идентифицируется парой id = "x:y".
+ */
+
+export interface Pair {
+  key: number;
+  grade: number;
+}
+type NodeId = string;
+const pairId = (key: number, grade: number): NodeId => `${key}:${grade}`;
+
+interface TNode {
+  id: NodeId;
+  key: number;
+  grade: number;
+  left: TNode | null;
+  right: TNode | null;
+}
+
+export const POINTS: Pair[] = [
+  { key: 45, grade: 8 },
+  { key: 3, grade: 6 },
+  { key: 6, grade: 5 },
+  { key: 2, grade: 4 },
+  { key: 9, grade: 3 },
+  { key: 7, grade: 2 },
+  { key: 12, grade: 0 },
+  { key: 1, grade: -4 },
+];
+
+/** Порядок ввода (как в черновике) — намеренно НЕ отсортированный. */
+export const INPUT_ORDER: Pair[] = [
+  { key: 3, grade: 5 },
+  { key: 45, grade: 8 },
+  { key: 3, grade: 6 },
+  { key: 1, grade: -4 },
+  { key: 7, grade: 2 },
+  { key: 6, grade: 5 },
+  { key: 2, grade: 4 },
+  { key: 9, grade: 3 },
+  { key: 12, grade: 0 },
+];
+// (3,5) дубль ключа/приоритета — уберём: ввод без повторов
+export const INPUT_CLEAN: Pair[] = INPUT_ORDER.filter((p) => POINTS.some((q) => q.key === p.key && q.grade === p.grade));
+
+const sortedByY = (ps: Pair[]): Pair[] => [...ps].sort((a, b) => b.grade - a.grade);
+
+/* ---------------- чистые алгоритмы (экспортируются для стенда) ---------------- */
+
+export function insert(root: TNode | null, p: Pair): TNode {
+  if (!root) return { id: pairId(p.key, p.grade), key: p.key, grade: p.grade, left: null, right: null };
+  if (p.key <= root.key) root.left = insert(root.left, p);
+  else root.right = insert(root.right, p);
+  return root;
+}
+
+export function buildTree(ps: Pair[]): TNode | null {
+  let root: TNode | null = null;
+  for (const p of sortedByY(ps)) root = insert(root, p);
+  return root;
+}
+
+export interface SplitResult {
+  l: TNode | null;
+  r: TNode | null;
+  trace: { atId: NodeId; goLeft: boolean; note: string }[];
+}
+export function splitTree(root: TNode | null, x: number): SplitResult {
+  const trace: SplitResult["trace"] = [];
+  const go = (t: TNode | null): { l: TNode | null; r: TNode | null } => {
+    if (!t) return { l: null, r: null };
+    if (t.key <= x) {
+      const sub = go(t.right);
+      trace.push({ atId: t.id, goLeft: true, note: `(${t.key}, ${t.grade}) ≤ ${x}: узел и его левое поддерево целиком → L; дальше режем его правое поддерево.` });
+      t.right = sub.l;
+      return { l: t, r: sub.r };
+    }
+    const sub = go(t.left);
+    trace.push({ atId: t.id, goLeft: false, note: `(${t.key}, ${t.grade}) > ${x}: узел и его правое поддерево целиком → R; дальше режем его левое поддерево.` });
+    t.left = sub.r;
+    return { l: sub.l, r: t };
+  };
+  const res = go(root);
+  return { l: res.l, r: res.r, trace };
+}
+
+export interface MergeResult {
+  root: TNode | null;
+  trace: { aId: NodeId | null; bId: NodeId | null; chosenId: NodeId | null; note: string }[];
+}
+export function mergeTree(a: TNode | null, b: TNode | null): MergeResult {
+  const trace: MergeResult["trace"] = [];
+  const go = (a: TNode | null, b: TNode | null): TNode | null => {
+    if (!a || !b) {
+      trace.push({ aId: a?.id ?? null, bId: b?.id ?? null, chosenId: a?.id ?? b?.id ?? null, note: `Одно из деревьев пусто — возвращаем другое целиком.` });
+      return a ?? b;
+    }
+    if (a.grade > b.grade) {
+      trace.push({ aId: a.id, bId: b.id, chosenId: a.id, note: `y корней: ${a.grade} > ${b.grade} → корень (${a.key}, ${a.grade}); склеиваем его правое поддерево с (${b.key}, ${b.grade}).` });
+      a.right = go(a.right, b);
+      return a;
+    }
+    trace.push({ aId: a.id, bId: b.id, chosenId: b.id, note: `y корней: ${b.grade} > ${a.grade} → корень (${b.key}, ${b.grade}); склеиваем (${a.key}, ${a.grade}) с его левым поддеревом.` });
+    b.left = go(a, b.left);
+    return b;
+  };
+  return { root: go(a, b), trace };
+}
+
+export function eraseNode(root: TNode | null, key: number): { root: TNode | null; trace: { atId: NodeId | null; note: string }[] } {
+  const trace: { atId: NodeId | null; note: string }[] = [];
+  const go = (t: TNode | null): TNode | null => {
+    if (!t) return null;
+    if (key < t.key) {
+      trace.push({ atId: t.id, note: `${key} < ${t.key} — ищем левее (спуск по x, O(h)).` });
+      t.left = go(t.left);
+      return t;
+    }
+    if (key > t.key) {
+      trace.push({ atId: t.id, note: `${key} > ${t.key} — ищем правее.` });
+      t.right = go(t.right);
+      return t;
+    }
+    trace.push({ atId: t.id, note: `Нашли (${t.key}, ${t.grade}). Вырезаем: детей сшиваем merge — у кого y больше, тот и родитель.` });
+    const m = mergeTree(t.left, t.right);
+    trace.push(...m.trace.map((s) => ({ atId: s.chosenId, note: s.note })));
+    return m.root;
+  };
+  return { root: go(root), trace };
+}
+
+
+const cloneTree = (t: TNode | null): TNode | null =>
+  t ? { id: t.id, key: t.key, grade: t.grade, left: cloneTree(t.left), right: cloneTree(t.right) } : null;
+
+/* ---------------- валидация treap (для чек-листа и стенда) ---------------- */
+
+export function checkTreap(root: TNode | null): { bst: boolean; heap: boolean } {
+  let bst = true;
+  let heap = true;
+  let prev: number | null = null;
+  const walk = (n: TNode | null, min: number, max: number, parentGrade: number | null) => {
+    if (!n) return;
+    if (n.key <= min || n.key > max) bst = false;
+    if (parentGrade !== null && n.grade > parentGrade) heap = false;
+    walk(n.left, min, n.key, n.grade);
+    if (prev !== null && n.key < prev) bst = false;
+    prev = n.key;
+    walk(n.right, n.key, max, n.grade);
+  };
+  walk(root, -Infinity, Infinity, null);
+  return { bst, heap };
+}
+
+/* ---------------- раскладка сцены дерева ---------------- */
+
+const layoutTree = (root: TNode | null) => {
+  const pos = new Map<NodeId, { px: number; py: number }>();
+  let slot = 0;
+  const walk = (n: TNode | null, depth: number) => {
+    if (!n) return;
+    walk(n.left, depth + 1);
+    pos.set(n.id, { px: 64 + slot * 92, py: 44 + depth * 82 });
+    slot += 1;
+    walk(n.right, depth + 1);
+  };
+  walk(root, 0);
+  return pos;
+};
+
+const treeEdges = (root: TNode | null): { from: NodeId; to: NodeId }[] => {
+  const es: { from: NodeId; to: NodeId }[] = [];
+  const walk = (n: TNode | null) => {
+    if (!n) return;
+    if (n.left) { es.push({ from: n.id, to: n.left.id }); walk(n.left); }
+    if (n.right) { es.push({ from: n.id, to: n.right.id }); walk(n.right); }
+  };
+  walk(root);
+  return es;
+};
+
+interface TreeViewProps {
+  root: TNode | null;
+  width?: number;
+  height?: number;
+  nodeColor?: (id: NodeId) => string;
+  nodeStroke?: (id: NodeId) => string;
+  edgeColor?: (from: NodeId, to: NodeId) => string;
+  edgeDash?: (from: NodeId, to: NodeId) => boolean;
+  pulseId?: NodeId | null;
+  subtitle?: string;
+}
+
+const TreeView: React.FC<TreeViewProps> = ({ root, width, height, nodeColor, nodeStroke, edgeColor, edgeDash, pulseId, subtitle }) => {
+  const pos = useMemo(() => layoutTree(root), [root]);
+  const nodes = useMemo(() => [...pos.entries()].map(([id, c]) => ({ id, ...c })), [pos]);
+  const edges = useMemo(() => treeEdges(root), [root]);
+  const autoW = Math.max(420, ...nodes.map((n) => n.px + 60));
+  const autoH = Math.max(260, ...nodes.map((n) => n.py + 60));
+  const w = width ?? autoW;
+  const h = height ?? autoH;
+  const byId = (id: NodeId) => nodes.find((n) => n.id === id);
+  return (
+    <div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full max-h-[380px]">
+        {edges.map((e) => {
+          const a = byId(e.from);
+          const b = byId(e.to);
+          if (!a || !b) return null;
+          return (
+            <line
+              key={`te-${e.from}-${e.to}`}
+              x1={a.px} y1={a.py} x2={b.px} y2={b.py}
+              stroke={edgeColor ? edgeColor(e.from, e.to) : "#475569"}
+              strokeWidth={2.5}
+              strokeDasharray={edgeDash && edgeDash(e.from, e.to) ? "5,4" : "none"}
+              className="transition-all duration-500"
+            />
+          );
+        })}
+        {nodes.map((n) => {
+          const p = pairParts(n.id);
+          const pulse = pulseId === n.id;
+          return (
+            <g key={`tn-${n.id}`} transform={`translate(${n.px}, ${n.py})`} className="transition-transform duration-500">
+              <circle r={pulse ? 24 : 20} fill={nodeColor ? nodeColor(n.id) : "#0f172a"} stroke={nodeStroke ? nodeStroke(n.id) : "#64748b"} strokeWidth={pulse ? 4 : 2} className="transition-all duration-300" />
+              <text y={-2} fill="#fff" fontSize="13" fontWeight="bold" textAnchor="middle">{p[0]}</text>
+              <text y={13} fill="#cbd5e1" fontSize="10" textAnchor="middle">y={p[1]}</text>
+            </g>
+          );
+        })}
+      </svg>
+      {subtitle && <p className="text-xs text-slate-400 text-center -mt-1">{subtitle}</p>}
+    </div>
+  );
+};
+
+const pairParts = (id: NodeId): [number, number] => {
+  const [a, b] = id.split(":").map(Number);
+  return [a, b];
+};
+
+/* ---------------- плоскость (клетчатая бумага) ---------------- */
+
+const PL_W = 780;
+const PL_H = 300;
+const PX = (key: number) => 42 + (key - 1) * ((PL_W - 64) / 44);
+const PY = (grade: number) => 24 + (8 - grade) * ((PL_H - 48) / 12);
+
+interface PlaneProps {
+  points: Pair[];
+  drawnEdges: { a: Pair; b: Pair }[];
+  pending: Pair | null;
+  interactive?: boolean;
+  selected?: Pair | null;
+  cursor?: { x: number; y: number } | null;
+  badEdge?: { a: Pair; b: Pair } | null;
+  onPointDown?: (p: Pair) => void;
+  onPointUp?: (p: Pair) => void;
+  onMove?: (e: React.PointerEvent<SVGSVGElement>) => void;
+}
+const Plane: React.FC<PlaneProps> = ({ points, drawnEdges, pending, interactive, selected, cursor, badEdge, onPointDown, onPointUp, onMove }) => {
+  const byPair = (p: Pair) => ({ x: PX(p.key), y: PY(p.grade) });
+  return (
+    <svg
+      viewBox={`0 0 ${PL_W} ${PL_H}`}
+      className={`w-full ${interactive ? "touch-none select-none" : ""}`}
+      onPointerMove={onMove}
+      style={interactive ? { cursor: "crosshair" } : undefined}
+    >
+      <defs>
+        <pattern id="pl-grid" width="14" height="14" patternUnits="userSpaceOnUse">
+          <path d="M 14 0 L 0 0 0 14" fill="none" stroke="#1e293b" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect x="34" y="16" width={PL_W - 46} height={PL_H - 32} fill="url(#pl-grid)" opacity="0.5" />
+      <line x1="34" y1={PY(0)} x2={PL_W - 12} y2={PY(0)} stroke="#475569" strokeWidth="1.5" />
+      <line x1={PX(1) - 8} y1="16" x2={PX(1) - 8} y2={PL_H - 16} stroke="#475569" strokeWidth="1.5" />
+      {[0, 10, 20, 30, 40].map((k) => (
+        <text key={`tx-${k}`} x={PX(k)} y={PY(0) + 16} fill="#64748b" fontSize="10" textAnchor="middle" fontFamily="monospace">{k}</text>
+      ))}
+      {[-4, 0, 4, 8].map((g) => (
+        <text key={`ty-${g}`} x={PX(1) - 14} y={PY(g) + 4} fill="#64748b" fontSize="10" textAnchor="end" fontFamily="monospace">{g}</text>
+      ))}
+      <text x={PL_W - 14} y={PY(0) - 8} fill="#94a3b8" fontSize="11" textAnchor="end" fontFamily="monospace">x (ключ) →</text>
+      <text x={PX(1) - 26} y="14" fill="#94a3b8" fontSize="11" fontFamily="monospace">y (приоритет)</text>
+
+      {drawnEdges.map((e, i) => {
+        const a = byPair(e.a);
+        const b = byPair(e.b);
+        const isBad = badEdge && ((badEdge.a.key === e.a.key && badEdge.a.grade === e.a.grade && badEdge.b.key === e.b.key && badEdge.b.grade === e.b.grade) || (badEdge.a.key === e.b.key && badEdge.a.grade === e.b.grade && badEdge.b.key === e.a.key && badEdge.b.grade === e.a.grade));
+        return <line key={`pe-${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={isBad ? "#f43f5e" : "#64748b"} strokeWidth={isBad ? 3.5 : 2} strokeDasharray={isBad ? "4,3" : "none"} className="transition-opacity duration-500" />;
+      })}
+
+      {/* временная линия игры */}
+      {interactive && selected && cursor && (
+        <line
+          x1={PX(selected.key)} y1={PY(selected.grade)} x2={cursor.x} y2={cursor.y}
+          stroke="#818cf8" strokeWidth={2.5} strokeDasharray="5,4" opacity={0.9}
+        />
+      )}
+
+      {points.map((p) => {
+        const done = drawnEdges.some((e) => (e.a.key === p.key && e.a.grade === p.grade) || (e.b.key === p.key && e.b.grade === p.grade));
+        const isSel = selected && selected.key === p.key && selected.grade === p.grade;
+        return (
+          <g
+            key={`pp-${p.key}:${p.grade}`}
+            className="transition-all duration-500"
+            onPointerDown={interactive && onPointDown ? () => onPointDown(p) : undefined}
+            onPointerUp={interactive && onPointUp ? () => onPointUp(p) : undefined}
+            style={interactive ? { cursor: "pointer" } : undefined}
+          >
+            <circle cx={PX(p.key)} cy={PY(p.grade)} r={isSel ? 9 : done ? 7 : 6} fill={isSel ? "#4f46e5" : done ? "#0f172a" : "#334155"} stroke={isSel ? "#a5b4fc" : done ? "#38bdf8" : "#94a3b8"} strokeWidth={isSel ? 2.6 : 1.6} />
+            <text x={PX(p.key)} y={PY(p.grade) + 3.5} fill="#fff" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">{p.key}</text>
+          </g>
+        );
+      })}
+
+      {pending && (
+        <g className="transition-all duration-500">
+          <circle cx={PX(pending.key)} cy={PY(pending.grade)} r={8} fill="none" stroke="#818cf8" strokeWidth={2.4} strokeDasharray="3,2" />
+          <text x={PX(pending.key)} y={PY(pending.grade) + 3.5} fill="#c7d2fe" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">{pending.key}</text>
+        </g>
+      )}
+    </svg>
+  );
+};
+
+
+/* ================= ИГРА: соединение мышкой ================= */
+
+export type GEdge = { a: Pair; b: Pair }; // a — родитель (больший y)
+
+export const CANON_GAME: GEdge[] = (() => {
+  const es: GEdge[] = [];
+  const walk = (n: TNode | null) => {
+    if (!n) return;
+    if (n.left) { es.push({ a: { key: n.key, grade: n.grade }, b: { key: n.left.key, grade: n.left.grade } }); walk(n.left); }
+    if (n.right) { es.push({ a: { key: n.key, grade: n.grade }, b: { key: n.right.key, grade: n.right.grade } }); walk(n.right); }
+  };
+  walk(buildTree(POINTS));
+  return es;
+})();
+
+const sameP = (p: Pair, q: Pair) => p.key === q.key && p.grade === q.grade;
+const gpid = (p: Pair) => `${p.key}:${p.grade}`;
+
+/** Цепочка родителей от точки вверх. */
+const parentOf = (edges: GEdge[], id: string): GEdge | undefined =>
+  edges.find((e) => gpid(e.b) === id);
+const reaches = (edges: GEdge[], from: Pair, target: Pair): boolean => {
+  let cur: Pair | undefined = from;
+  const seen = new Set<string>();
+  while (cur) {
+    if (sameP(cur, target)) return true;
+    if (seen.has(gpid(cur))) return false;
+    seen.add(gpid(cur));
+    cur = parentOf(edges, gpid(cur))?.a;
+  }
+  return false;
+};
+
+/** Проверка BST леса: у узла ≤1 ребёнка слева и ≤1 справа, ключи в границах. */
+export function forestIsBst(edges: GEdge[], all: Pair[]): boolean {
+  const kids = new Map<string, Pair[]>();
+  for (const e of edges) kids.set(gpid(e.a), [...(kids.get(gpid(e.a)) ?? []), e.b]);
+  const hasParent = new Set(edges.map((e) => gpid(e.b)));
+  const roots = all.filter((p) => !hasParent.has(gpid(p)));
+  const ok = (n: Pair | undefined, lo: number, hi: number): boolean => {
+    if (!n) return true;
+    if (n.key <= lo || n.key > hi) return false;
+    const ch = (kids.get(gpid(n)) ?? []).slice().sort((x, y) => x.key - y.key);
+    const left = ch.filter((c) => c.key < n.key);
+    const right = ch.filter((c) => c.key > n.key);
+    if (left.length > 1 || right.length > 1) return false;
+    return ok(left[0], lo, n.key) && ok(right[0], n.key, hi);
+  };
+  return roots.every((r) => ok(r, -Infinity, Infinity));
+}
+
+/** Полный вердикт по текущим линиям. */
+export function gameVerdict(edges: GEdge[], all: Pair[]) {
+  const heap = edges.every((e) => e.a.grade > e.b.grade);
+  const oneParent = new Set(edges.map((e) => gpid(e.b))).size === edges.length;
+  const acyclic = !edges.some((e) => reaches(edges, e.a, e.b));
+  const bst = forestIsBst(edges, all);
+  const roots = all.filter((p) => !edges.some((e) => gpid(e.b) === gpid(p)));
+  const complete = edges.length === all.length - 1 && roots.length === 1;
+  return { heap, oneParent, acyclic, bst, complete, win: heap && oneParent && bst && complete };
+}
+
+/** Попытка хода: почему нельзя — или ОК. */
+export function tryConnect(edges: GEdge[], a: Pair, b: Pair): { ok: true } | { ok: false; reason: string } {
+  if (sameP(a, b)) return { ok: false, reason: "Это одна и та же точка." };
+  if (a.grade === b.grade)
+    return { ok: false, reason: "«!» равны — «кто выше?» не определён. В демо все y различны; по уставу выше тот, кто раньше в списке." };
+  const parent = a.grade > b.grade ? a : b;
+  const child = a.grade > b.grade ? b : a;
+  if (parentOf(edges, gpid(child)))
+    return { ok: false, reason: `У точки (${child.key}; ${child.grade}) уже есть родитель — второй «!» сверху запрещён. Сначала «Отменить линию».` };
+  if (reaches(edges, parent, child))
+    return { ok: false, reason: "Цикл: линия замкнёт сама на себя — дереву нужен корень без родителя." };
+  const next = [...edges, { a: parent, b: child }];
+  if (!forestIsBst(next, POINTS))
+    return { ok: false, reason: "Линия вниз по y допустима, но алфавит ломается: обход слева-направо перестал быть сортировкой по x." };
+  return { ok: true };
+}
+
+/* ================= РЕЖИМ BUILD ================= */
+
+type BuildPhase = "sort" | "connect" | "game";
+type SortAlgo = "none" | "quicksort" | "counting";
+type ConnectOrder = "y-desc" | "left-right";
+
+const parsePairs = (raw: string): { pairs: Pair[]; errors: string[]; equalX: boolean; equalY: boolean } => {
+  const pairs: Pair[] = [];
+  const errors: string[] = [];
+  const seen = new Set<string>();
+  const chunks = raw.split(/[,;\n]+/).map((c) => c.trim()).filter(Boolean);
+  for (const chunk of chunks) {
+    const nums = chunk.split(/[\sxx×*]+/).filter(Boolean).map(Number);
+    if (nums.length !== 2 || nums.some((v) => !Number.isFinite(v))) {
+      errors.push(`«${chunk}» — нужно ровно два числа: x y`);
+      continue;
+    }
+    const id = `${nums[0]}:${nums[1]}`;
+    if (seen.has(id)) {
+      errors.push(`точка (${nums[0]}; ${nums[1]}) дважды — это ОДНА И ТА ЖЕ точка, дубль бессмысленен`);
+      continue;
+    }
+    seen.add(id);
+    pairs.push({ key: nums[0], grade: nums[1] });
+  }
+  const xs = pairs.map((p) => p.key);
+  const ys = pairs.map((p) => p.grade);
+  return { pairs, errors, equalX: new Set(xs).size !== xs.length, equalY: new Set(ys).size !== ys.length };
+};
+
+const DEMO_RAW = "45 8, 3 6, 6 5, 2 4, 9 3, 7 2, 12 0, 1 -4";
+
+/* ---------------- игра «соедини мышкой»: чистая логика (экспорт для стенда) ---------------- */
+
+/** Ребро игры: a = родитель (выше по y), b = ребёнок. */
+export interface GameEdge {
+  a: Pair;
+  b: Pair;
+}
+const pid = (p: Pair) => `${p.key}:${p.grade}`;
+
+export function canConnect(
+  edges: GameEdge[],
+  x: Pair,
+  y: Pair,
+): { ok: boolean; edge?: GameEdge; reason?: string } {
+  if (x.key === y.key && x.grade === y.grade) return { ok: false, reason: "это одна и та же точка" };
+  for (const e of edges) {
+    if ((pid(e.a) === pid(x) && pid(e.b) === pid(y)) || (pid(e.a) === pid(y) && pid(e.b) === pid(x)))
+      return { ok: false, reason: "такая линия уже проведена" };
+  }
+  if (x.grade === y.grade) return { ok: false, reason: "равные «!» — линия не определена: кто из двух выше, решает устав (раньше в списке)" };
+  const [parent, child] = x.grade > y.grade ? [x, y] : [y, x];
+  if (edges.some((e) => pid(e.b) === pid(child)))
+    return { ok: false, reason: `у точки (${child.key}; ${child.grade}) уже есть родитель — у узла он один` };
+  // цикл: родитель уже сидит в компоненте ребёнка (ребёнок — корень своей компоненты)
+  const childComp = new Set<string>([pid(child)]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const e of edges) {
+      if (childComp.has(pid(e.b)) && !childComp.has(pid(e.a))) {
+        childComp.add(pid(e.a));
+        grew = true;
+      }
+    }
+  }
+  if (childComp.has(pid(parent))) return { ok: false, reason: "получился бы цикл — в дереве его не бывает" };
+  return {
+    ok: true,
+    edge: { a: parent, b: child },
+    reason:
+      x.grade > y.grade ? undefined : "линия в treap всегда идёт вниз по y — развернул: родитель — точка с большим «!»",
+  };
+}
+
+export function checkGameState(
+  points: Pair[],
+  edges: GameEdge[],
+): { heapOk: boolean; singleParent: boolean; connected: boolean; countOk: boolean; bstOk: boolean; won: boolean } {
+  const n = points.length;
+  if (n < 2) return { heapOk: true, singleParent: true, connected: false, countOk: false, bstOk: true, won: false };
+  const heapOk = edges.every((e) => e.a.grade > e.b.grade);
+  const parentCount = new Map<string, number>();
+  for (const e of edges) parentCount.set(pid(e.b), (parentCount.get(pid(e.b)) ?? 0) + 1);
+  const singleParent = [...parentCount.values()].every((v) => v <= 1);
+  // связность: компоненты через union-find
+  const comp = new Map<string, string>(points.map((p) => [pid(p), pid(p)]));
+  const find = (x: string): string => {
+    while (comp.get(x) !== x) {
+      comp.set(x, comp.get(x)!);
+      x = comp.get(x)!;
+    }
+    return x;
+  };
+  for (const e of edges) {
+    const ra = find(pid(e.a));
+    const rb = find(pid(e.b));
+    if (ra !== rb) comp.set(ra, rb);
+  }
+  const comps = new Set(points.map((p) => find(pid(p))));
+  const connected = comps.size === 1;
+  const countOk = edges.length === n - 1;
+  // BST: дети по x, inorder не убывает; корень один; защита от циклов
+  const children = new Map<string, Pair[]>();
+  for (const e of edges) children.set(pid(e.a), [...(children.get(pid(e.a)) ?? []), e.b]);
+  const roots = points.filter((p) => !parentCount.has(pid(p)));
+  let bstOk = roots.length === 1;
+  if (bstOk) {
+    const seen = new Set<string>();
+    const inorder: number[] = [];
+    const walk = (p: Pair): void => {
+      if (seen.has(pid(p))) {
+        bstOk = false; // цикл
+        return;
+      }
+      seen.add(pid(p));
+      const kids = children.get(pid(p)) ?? [];
+      if (kids.length > 2) {
+        bstOk = false;
+        return;
+      }
+      const sorted = [...kids].sort((u, v) => u.key - v.key);
+      let left: Pair | null = null;
+      let right: Pair | null = null;
+      if (sorted.length === 2) {
+        if (sorted[0].key === sorted[1].key || sorted[0].key > p.key || sorted[1].key <= p.key) {
+          bstOk = false; // двое детей с равным x или стоящие не по сторонам
+          return;
+        }
+        left = sorted[0];
+        right = sorted[1];
+      } else if (sorted.length === 1) {
+        // одиночный ребёнок: сторона важна — определяем по x (равный — влево по уставу)
+        if (sorted[0].key <= p.key) left = sorted[0];
+        else right = sorted[0];
+      }
+      if (left) walk(left);
+      inorder.push(p.key);
+      if (right) walk(right);
+    };
+    walk(roots[0]);
+    if (seen.size !== n) bstOk = false;
+    for (let i = 1; i < inorder.length; i++)
+      if (inorder[i] < inorder[i - 1]) bstOk = false;
+  }
+  return { heapOk, singleParent, connected, countOk, bstOk, won: heapOk && singleParent && connected && countOk && bstOk };
+}
+
+/** Дерево из проведённых линий — для показа результата игры. */
+export function edgesToTree(edges: GameEdge[]): TNode | null {
+  const parentOf = new Map<string, GameEdge>();
+  for (const e of edges) parentOf.set(pid(e.b), e);
+  const roots = edges.filter((e) => !parentOf.has(pid(e.a)));
+  if (!roots.length && edges.length) return null;
+  const nodes = new Map<string, TNode>();
+  const make = (p: Pair): TNode => ({
+    id: pid(p),
+    key: p.key,
+    grade: p.grade,
+    left: null,
+    right: null,
+  });
+  const rootPair = roots.length ? roots[0].a : edges.length ? null : null;
+  if (!rootPair) return null;
+  const build = (p: Pair): TNode => {
+    const node = make(p);
+    nodes.set(pid(p), node);
+    const kids = edges.filter((e) => pid(e.a) === pid(p)).map((e) => e.b);
+    if (kids.length > 2) return node; // невалидно — поймает чек-лист
+    kids.sort((u, v) => u.key - v.key);
+    const left = kids.filter((k) => k.key <= p.key); // равный x — влево по уставу
+    const right = kids.filter((k) => k.key > p.key);
+    if (left.length > 1 || right.length > 1) return node;
+    if (left[0]) node.left = build(left[0]);
+    if (right[0]) node.right = build(right[0]);
+    return node;
+  };
+  return build(rootPair);
+}
+
+const BuildMode: React.FC = () => {
+  const [raw, setRaw] = useState(DEMO_RAW);
+  const [phase, setPhase] = useState<BuildPhase>("sort");
+  const [algo, setAlgo] = useState<SortAlgo>("none");
+  const [order, setOrder] = useState<ConnectOrder>("y-desc");
+  const [sortIdx, setSortIdx] = useState(0);
+  const [connIdx, setConnIdx] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [sortCost, setSortCost] = useState<string | null>(null);
+  const live = useTreapLive();
+
+  const parsed = useMemo(() => parsePairs(raw), [raw]);
+  const userPairs = parsed.errors.length ? [] : parsed.pairs;
+
+  const n = userPairs.length;
+
+  const userTree = useMemo(() => (userPairs.length >= 1 ? buildTree(userPairs) : null), [userPairs]);
+  const canonEdges = useMemo(() => {
+    const es: { a: Pair; b: Pair }[] = [];
+    const walk = (node: TNode | null) => {
+      if (!node) return;
+      if (node.left) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.left.key, grade: node.left.grade } }); walk(node.left); }
+      if (node.right) { es.push({ a: { key: node.key, grade: node.grade }, b: { key: node.right.key, grade: node.right.grade } }); walk(node.right); }
+    };
+    walk(userTree);
+    return es;
+  }, [userTree]);
+  const leftRightEdges = useMemo(() => [...canonEdges].sort((e1, e2) => e1.a.key - e2.a.key || e1.b.key - e2.b.key), [canonEdges]);
+
+  useEffect(() => {
+    if (!playing || phase === "game") return;
+    const t = setTimeout(() => {
+      if (phase === "sort") {
+        if (algo === "none") { setPlaying(false); return; }
+        if (sortIdx < 3) setSortIdx(sortIdx + 1);
+        else setPlaying(false);
+      } else {
+        const total = order === "y-desc" ? canonEdges.length : leftRightEdges.length;
+        if (connIdx < total) setConnIdx(connIdx + 1);
+        else setPlaying(false);
+      }
+    }, 900);
+    return () => clearTimeout(t);
+  }, [playing, phase, sortIdx, connIdx, algo, order, canonEdges.length, leftRightEdges.length]);
+
+  const startConnect = (ord: ConnectOrder) => {
+    setOrder(ord);
+    setPhase("connect");
+    setConnIdx(0);
+    setPlaying(true);
+  };
+
+  // Компилятор: i двигает демонстрацию — шаг сортировки или проведённое ребро.
+  useEffect(() => {
+    if (live.i === null) return;
+    if (phase === "sort") setSortIdx(Math.min(live.i, 3));
+    else if (phase === "connect") setConnIdx(Math.min(live.i, leftRightEdges.length));
+  }, [live.i, phase, leftRightEdges.length]);
+
+  const comparisons = algo === "quicksort" ? (n > 1 ? Math.round(n * Math.log2(n)) : 0) : 0;
+  const connEdgesAll = order === "y-desc" ? canonEdges : leftRightEdges;
+  const connEdges = connEdgesAll.slice(0, connIdx);
+  const connDone = phase === "connect" && n >= 1 && connIdx >= connEdgesAll.length;
+
+  // --- игра «соедини сам» ---
+  const [gameEdges, setGameEdges] = useState<GameEdge[]>([]);
+  const [sel, setSel] = useState<Pair | null>(null);
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  const [gameMsg, setGameMsg] = useState<string | null>(null);
+  const [badEdge, setBadEdge] = useState<GameEdge | null>(null);
+  const [hintUsed, setHintUsed] = useState(false);
+
+  const resetGame = () => {
+    setGameEdges([]);
+    setSel(null);
+    setCursor(null);
+    setGameMsg(null);
+    setBadEdge(null);
+    setHintUsed(false);
+  };
+  const startGame = () => {
+    resetGame();
+    setPhase("game");
+    setPlaying(false);
+  };
+
+  const verdict = useMemo(() => checkGameState(userPairs, gameEdges), [userPairs, gameEdges]);
+  const gameWon = phase === "game" && verdict.won;
+  const gameTree = useMemo(() => (gameWon ? edgesToTree(gameEdges) : null), [gameWon, gameEdges]);
+
+  const attemptConnect = (x: Pair, y: Pair) => {
+    const r = canConnect(gameEdges, x, y);
+    if (r.ok && r.edge) {
+      setGameEdges((prev) => [...prev, r.edge!]);
+      setGameMsg(r.reason ?? null);
+      setBadEdge(null);
+    } else {
+      setGameMsg(r.reason ?? "так нельзя");
+      setBadEdge({ a: x, b: y });
+      window.setTimeout(() => setBadEdge(null), 900);
+    }
+  };
+  const pointDown = (p: Pair) => {
+    if (phase !== "game") return;
+    if (!sel) {
+      setSel(p);
+      setGameMsg(`Выбрана (${p.key}; ${p.grade}) — теперь кликни ребёнка (точку ниже по y) или протяни линию.`);
+    } else if (sel.key === p.key && sel.grade === p.grade) {
+      setSel(null);
+      setGameMsg(null);
+    } else {
+      attemptConnect(sel, p);
+      setSel(null);
+    }
+  };
+  const pointUp = (p: Pair) => {
+    if (phase !== "game" || !sel) return;
+    if (sel.key === p.key && sel.grade === p.grade) return;
+    attemptConnect(sel, p);
+    setSel(null);
+    setCursor(null);
+  };
+  const planeMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!sel) return;
+    const rect = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+    setCursor({ x: ((e.clientX - rect.left) / rect.width) * PL_W, y: ((e.clientY - rect.top) / rect.height) * PL_H });
+  };
+
+  const undoEdge = () => {
+    setGameEdges((prev) => prev.slice(0, -1));
+    setGameMsg(null);
+  };
+  const showSolution = () => {
+    setGameEdges(canonEdges.map((e) => ({ a: e.a, b: e.b })));
+    setHintUsed(true);
+    setGameMsg("Решение показано — собери сам в следующий раз 🙂");
+  };
+
+
+  return (
+    <div className="space-y-5">
+      {/* Произвольный список */}
+      <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h4 className="text-sm font-bold text-slate-300">✏️ Свои точки (пары «x y» через запятую или с новой строки)</h4>
+          <button onClick={() => { setRaw(DEMO_RAW); setPhase("sort"); setSortIdx(0); setConnIdx(0); setPlaying(false); }} className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600">
+            демо-набор
+          </button>
+        </div>
+        <textarea
+          value={raw}
+          onChange={(e) => { setRaw(e.target.value); setPhase("sort"); setSortIdx(0); setConnIdx(0); setPlaying(false); resetGame(); }}
+          rows={2}
+          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+          placeholder="3 5, 45 8, 1 -4 …"
+        />
+        {parsed.errors.length > 0 && (
+          <div className="mt-2 text-xs text-rose-300 bg-rose-950/30 border border-rose-500/50 rounded-lg px-3 py-2">
+            {parsed.errors.map((e, i) => <div key={i}>✗ {e}</div>)}
+          </div>
+        )}
+        {parsed.errors.length === 0 && (parsed.equalX || parsed.equalY) && (
+          <div className="mt-2 text-xs text-amber-300 bg-amber-950/20 border border-amber-500/50 rounded-lg px-3 py-2 space-y-1">
+            {parsed.equalY && <div>⚡ Есть <b>равные y</b> — «кто выше?» не определён, дерево перестаёт быть единственным. Устав: выше тот, кто <b>раньше в списке</b> (сортировка стабильная).</div>}
+            {parsed.equalX && <div>⚡ Есть <b>равные x</b> — в BST место не однозначно. Устав: равный x идёт <b>влево</b> (в коде: key ≤ node.key → left).</div>}
+          </div>
+        )}
+      </div>
+
+      {/* Координатная плоскость — НАВЕРХУ */}
+      <div className="bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/40">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+          <h4 className="text-base font-bold text-emerald-300">🗺️ Декартова плоскость: малый x — огромный y (Х!Й)</h4>
+          <div className="flex items-center gap-2">
+            {phase === "sort" ? (
+              <>
+                <span className="text-xs text-slate-400">Сортировка по y:</span>
+                {(["quicksort", "counting"] as const).map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => { setAlgo(a); setSortIdx(0); setPlaying(true); setSortCost(a === "quicksort" ? `quicksort: ≈ ${n > 1 ? Math.round(n * Math.log2(n)) : 0} сравнений` : "counting: 0 сравнений (n + k операций)"); }}
+                    disabled={n < 2}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-40 ${algo === a ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
+                  >
+                    {a === "quicksort" ? "quicksort (сравнения)" : "counting по целым y"}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <>
+                <span className="text-xs text-slate-400">Порядок линий:</span>
+                <button
+                  onClick={() => startConnect("y-desc")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${order === "y-desc" && (playing || connDone) ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
+                >
+                  по y ↓ (алгоритм)
+                </button>
+                <button
+                  onClick={() => startConnect("left-right")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${order === "left-right" && phase === "connect" ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}
+                >
+                  слева направо
+                </button>
+                <button
+                  onClick={startGame}
+                  disabled={n < 2}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-40 ${phase === "game" ? "bg-indigo-600 text-white" : "bg-indigo-500/80 text-white hover:bg-indigo-500"}`}
+                >
+                  🎮 соединить сам
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        <Plane
+          points={userPairs}
+          drawnEdges={phase === "game" ? gameEdges : phase === "connect" ? connEdges : []}
+          pending={null}
+          interactive={phase === "game"}
+          selected={sel}
+          cursor={cursor}
+          badEdge={badEdge}
+          onPointDown={pointDown}
+          onPointUp={pointUp}
+          onMove={planeMove}
+        />
+        <div className="mt-2 text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">
+          {phase === "sort" ? (
+            algo === "none" ? (
+              <>Ввод приходит <b>как попало</b> ({n} пар). Сначала сортировка по y — попробуй оба способа и сравни счётчики: <b>разница есть</b>.</>
+            ) : sortIdx < 3 ? (
+              algo === "quicksort" ? (
+                <>⚡ quicksort: счётчик сравнений: <b className="text-amber-300">{Math.round((sortIdx + 1) * comparisons / 3)}</b> из ≈ <b>{comparisons}</b> (n·log₂n).</>
+              ) : (
+                <>🧺 counting: точки в корзины по значению y — <b className="text-emerald-300">0 сравнений</b>, ≈ n + k операций. Работает, потому что y — маленькие целые.</>
+              )
+            ) : (
+              <>Отсортировано ({sortCost ?? "способ не выбран"}). Дерево в любом случае одно и то же. Теперь соединяй линии → или сыграй в <b>Игру 🖱️</b></>
+            )
+          ) : phase === "game" ? (
+            gameWon ? (
+              <>🏆 Готово! {hintUsed ? "Решение подсказано — попробуй собрать сам с чистого листа." : "Ты собрал единственно возможное дерево: линии вниз по y, обход по x отсортирован."}</>
+            ) : gameMsg ? (
+              <>⚠️ {gameMsg}</>
+            ) : (
+              <>Кликни точку-родителя (выше по «!»), затем ребёнка — или зажми и протяни линию. Линий: {gameEdges.length} из {n - 1}.</>
+            )
+          ) : connDone ? (
+            <>🏁 Проведено {connEdges.length} линий в порядке «{order === "y-desc" ? "по y ↓" : "слева направо"}». Результат <b>одинаковый</b>: точки прибиты, дерево одно. А теперь <b>сам</b>: кнопка «🎮 соединить сам».</>
+          ) : (
+            <>Линий проведено: {connIdx} из {connEdgesAll.length} (порядок «{order === "y-desc" ? "по y ↓" : "слева направо"}»).</>
+          )}
+        </div>
+      </div>
+
+      {/* Чек-лист инвариантов */}
+      <div className={`rounded-xl p-4 border transition-colors ${(connDone || gameWon) ? "border-emerald-500/60 bg-emerald-950/20" : "border-slate-700 bg-slate-900/40"}`}>
+        <h4 className="text-sm font-bold text-slate-300 mb-2">✅ Проверка (авто, на текущем состоянии)</h4>
+        <ul className="space-y-1.5 text-sm">
+          {phase === "game" ? (
+            <>
+              <li>{verdict.heapOk ? "✅" : "❌"} каждое ребро ведёт <b>вниз по y</b> — родитель громче ребёнка (куча)</li>
+              <li>{verdict.singleParent ? "✅" : "❌"} у каждой точки <b>не больше одного родителя</b></li>
+              <li>{verdict.connected ? "✅" : "⏳"} все точки <b>в одном дереве</b>, без циклов</li>
+              <li>{verdict.countOk ? "✅" : "⏳"} линий ровно <b>n − 1</b> ({gameEdges.length} из {Math.max(0, n - 1)})</li>
+              <li>{verdict.bstOk ? "✅" : "❌"} обход слева-направо даёт <b>сортировку по x</b> (BST)</li>
+            </>
+          ) : (
+            <>
+              <li>{connDone ? "✅" : "⏳"} каждое ребро ведёт <b>вниз по y</b> — родитель громче ребёнка (куча)</li>
+              <li>{connDone ? "✅" : "⏳"} обход слева-направо даёт <b>сортировку по x</b> (BST)</li>
+              <li>{connDone ? "✅" : "⏳"} линий ровно <b>n − 1</b>, все точки в одном дереве</li>
+            </>
+          )}
+        </ul>
+        {phase === "game" && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            <button onClick={undoEdge} disabled={!gameEdges.length} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">↩ Убрать линию</button>
+            <button onClick={resetGame} disabled={!gameEdges.length && !gameMsg} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">🔄 С чистого листа</button>
+            <button onClick={showSolution} disabled={gameWon} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600/80 text-white disabled:opacity-30">💡 Показать решение</button>
+          </div>
+        )}
+      </div>
+
+      {/* Победное дерево в игре */}
+      {phase === "game" && gameTree && (
+        <div className="bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/60">
+          <h4 className="text-sm font-bold text-emerald-300 mb-2">🌳 Твоё дерево (то же самое, что дал бы алгоритм)</h4>
+          <TreeView root={gameTree} subtitle="Слева-направо — сортировка по x; сверху-вниз по y — куча. Другого дерева из этих точек не существует." />
+        </div>
+      )}
+
+      {/* Дерево */}
+      {order === "y-desc" && userTree && (
+        <div className="bg-slate-900/40 rounded-xl p-4 border border-slate-700">
+          <h4 className="text-sm font-bold text-slate-300 mb-2">🌳 То же дерево после алгоритма вставки (по y ↓)</h4>
+          <TreeView root={userTree} subtitle="Слева-направо читается сортировка по x; сверху-вниз по y — куча." />
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ================= РЕЖИМ SPLIT ================= */
+
+const SplitMode: React.FC = () => {
+  const [x0, setX0] = useState(7);
+  const [stepIdx, setStepIdx] = useState(0);
+  const fullTree = useMemo(() => buildTree(POINTS), []);
+  const split = useMemo(() => splitTree(buildTree(POINTS), x0), [x0]);
+  const steps = split.trace;
+  const live = useTreapLive();
+  // Компилятор: x — ключ разреза, i — номер шага спуска.
+  useEffect(() => { if (live.x !== null) setX0(live.x); }, [live.x]);
+  useEffect(() => { if (live.i !== null) setStepIdx(Math.min(live.i, steps.length - 1)); }, [live.i, steps.length]);
+  const idx = Math.min(stepIdx, steps.length - 1);
+  const done = idx >= steps.length - 1;
+
+  const inL = new Set<NodeId>();
+  const inR = new Set<NodeId>();
+  steps.slice(0, idx + 1).forEach((s) => (s.goLeft ? inL : inR).add(s.atId));
+
+  const lTree = split.l;
+  const rTree = split.r;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm text-slate-300">Разрез по x =</span>
+        <select value={x0} onChange={(e) => { setX0(Number(e.target.value)); setStepIdx(0); }} className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white">
+          {[2, 3, 6, 7, 9, 12, 45].map((k) => <option key={k} value={k}>{k}</option>)}
+        </select>
+        <button onClick={() => setStepIdx(Math.max(0, idx - 1))} disabled={idx === 0} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">← Шаг</button>
+        <button onClick={() => setStepIdx(Math.min(steps.length - 1, idx + 1))} disabled={done} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white disabled:opacity-30">Шаг →</button>
+        <span className="text-xs text-slate-400">шаг {idx + 1} из {steps.length}</span>
+      </div>
+
+      <div className="bg-slate-900/40 rounded-xl p-4 border border-slate-700">
+        <h4 className="text-sm font-bold text-slate-300 mb-2">✂️ Исходное дерево: <span className="text-sky-400">синие → L (≤ {x0})</span>, <span className="text-rose-400">розовые → R (&gt; {x0})</span></h4>
+        <TreeView
+          root={fullTree}
+          nodeColor={(id) => (inL.has(id) ? "#1e3a8a" : inR.has(id) ? "#881337" : "#0f172a")}
+          nodeStroke={(id) => (inL.has(id) ? "#60a5fa" : inR.has(id) ? "#fb7185" : "#64748b")}
+          subtitle={done ? "Каждый узел покрашен ровно один раз — O(h). Целые поддеревья уходят целиком." : undefined}
+        />
+      </div>
+
+      <div className="text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">
+        {steps[idx]?.note}
+      </div>
+
+      {done && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-sky-950/20 rounded-xl p-3 border border-sky-500/40">
+            <h5 className="text-sm font-bold text-sky-300 mb-1">L (все x ≤ {x0})</h5>
+            <TreeView root={lTree} width={480} height={240} nodeColor={() => "#1e3a8a"} nodeStroke={() => "#60a5fa"} />
+          </div>
+          <div className="bg-rose-950/20 rounded-xl p-3 border border-rose-500/40">
+            <h5 className="text-sm font-bold text-rose-300 mb-1">R (все x &gt; {x0})</h5>
+            <TreeView root={rTree} width={480} height={240} nodeColor={() => "#881337"} nodeStroke={() => "#fb7185"} />
+          </div>
+        </div>
+      )}
+
+      <div className="text-xs text-slate-400 bg-slate-900/40 rounded-lg px-3 py-2 border border-slate-800">
+        <LiveChip live={live} />{' '}
+        💡 <b>Как это работает на самом деле:</b> идём сверху с двумя корзинами. Узел, целиком помещающийся в корзину (вместе со своим поддеревом), отдаётся <b>вместе с веткой</b> — дальше режется только одна ветка. Поэтому split — O(h), а не O(n).
+      </div>
+    </div>
+  );
+};
+
+/* ================= РЕЖИМ MERGE ================= */
+
+const MergeMode: React.FC = () => {
+  const [stepIdx, setStepIdx] = useState(0);
+  const live = useTreapLive();
+  // Компилятор: i — номер шага слияния.
+  useEffect(() => { if (live.i !== null) setStepIdx(live.i); }, [live.i]);
+  const { l, r } = useMemo(() => splitTree(buildTree(POINTS), 6), []);
+  const merged = useMemo(() => mergeTree(cloneTree(l), cloneTree(r)), [l, r]);
+  const steps = merged.trace;
+  const idx = Math.min(stepIdx, steps.length - 1);
+  const done = idx >= steps.length - 1;
+  const cur = steps[idx];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setStepIdx(Math.max(0, idx - 1))} disabled={idx === 0} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">← Шаг</button>
+        <button onClick={() => setStepIdx(Math.min(steps.length - 1, idx + 1))} disabled={done} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white disabled:opacity-30">Шаг →</button>
+        <span className="text-xs text-slate-400">шаг {idx + 1} из {steps.length}</span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-sky-950/20 rounded-xl p-3 border border-sky-500/40">
+          <h5 className="text-sm font-bold text-sky-300 mb-1">a: L после split по 6 (все x ≤ 6)</h5>
+          <TreeView root={l} width={480} height={220} nodeColor={() => "#1e3a8a"} nodeStroke={() => "#60a5fa"} />
+        </div>
+        <div className="bg-rose-950/20 rounded-xl p-3 border border-rose-500/40">
+          <h5 className="text-sm font-bold text-rose-300 mb-1">b: R после split по 6 (все x &gt; 6)</h5>
+          <TreeView root={r} width={480} height={220} nodeColor={() => "#881337"} nodeStroke={() => "#fb7185"} />
+        </div>
+      </div>
+
+      <div className="text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">
+        <LiveChip live={live} />{' '}
+        {cur?.chosenId ? (
+          <>⚖️ {cur.note}</>
+        ) : (
+          <>Готово: {done ? "деревья склеены обратно в исходное." : "жми «Шаг» — на каждом уровне один вопрос: у какого корня y больше?"}</>
+        )}
+      </div>
+
+      {done && (
+        <div className="bg-emerald-950/20 rounded-xl p-3 border border-emerald-500/40">
+          <h5 className="text-sm font-bold text-emerald-300 mb-1">Результат: снова исходное дерево</h5>
+          <TreeView root={merged.root} subtitle="merge(a, b) требует: все x в a меньше всех x в b. Решает только y корней." />
+        </div>
+      )}
+
+      <div className="text-xs text-slate-400 bg-slate-900/40 rounded-lg px-3 py-2 border border-slate-800">
+        💡 <b>Грамотно про «слияние»:</b> у корней сравнивается только приоритет y — больший становится вершиной, а одно из его поддеревьев (то, что сохраняет порядок x) отправляется дальше на склейку. Никакой магии и никаких «капель»: O(h) сравнений y.
+      </div>
+    </div>
+  );
+};
+
+/* ================= РЕЖИМ ERASE ================= */
+
+const EraseMode: React.FC = () => {
+  const [key, setKey] = useState(9);
+  const [stepIdx, setStepIdx] = useState(0);
+  const fullTree = useMemo(() => buildTree(POINTS), []);
+  const res = useMemo(() => eraseNode(buildTree(POINTS), key), [key]);
+  const steps = res.trace;
+  const live = useTreapLive();
+  // Компилятор: x — ключ удаляемой вершины, i — шаг спуска.
+  useEffect(() => { if (live.x !== null && POINTS.some((p) => p.key === live.x)) setKey(live.x); }, [live.x]);
+  useEffect(() => { if (live.i !== null) setStepIdx(Math.min(live.i, steps.length - 1)); }, [live.i, steps.length]);
+  const idx = Math.min(stepIdx, steps.length - 1);
+  const done = idx >= steps.length - 1;
+
+  const pathIds = useMemo(() => {
+    const ids: NodeId[] = [];
+    for (const s of steps.slice(0, idx + 1)) if (s.atId) ids.push(s.atId);
+    return ids;
+  }, [steps, idx]);
+  const pathSet = new Set(pathIds);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm text-slate-300">Удалить точку с x =</span>
+        <LiveChip live={live} />
+        <select value={key} onChange={(e) => { setKey(Number(e.target.value)); setStepIdx(0); }} className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white">
+          {POINTS.map((p) => <option key={p.key} value={p.key}>{p.key}</option>)}
+        </select>
+        <button onClick={() => setStepIdx(Math.max(0, idx - 1))} disabled={idx === 0} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">← Шаг</button>
+        <button onClick={() => setStepIdx(Math.min(steps.length - 1, idx + 1))} disabled={done} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white disabled:opacity-30">Шаг →</button>
+        <span className="text-xs text-slate-400">шаг {idx + 1} из {steps.length}</span>
+      </div>
+
+      {!done ? (
+        <div className="bg-slate-900/40 rounded-xl p-4 border border-slate-700">
+          <TreeView
+            root={fullTree}
+            nodeColor={(id) => (pathSet.has(id) ? "#78350f" : "#0f172a")}
+            nodeStroke={(id) => (pathSet.has(id) ? "#f59e0b" : "#64748b")}
+            subtitle="Куча сама умеет удалять только вершину. Спуск по x находит любую точку."
+          />
+        </div>
+      ) : (
+        <div className="bg-slate-900/40 rounded-xl p-4 border border-slate-700">
+          <h4 className="text-sm font-bold text-slate-300 mb-2">🕳️ Точка ({key}, …) вырезана, дети сшиты merge</h4>
+          <TreeView root={res.root} subtitle="Валидность проверь по чек-листу: обход по x и высота по y не сломались." />
+          <ul className="mt-2 space-y-1 text-sm">
+            <li>✅ обход слева-направо по-прежнему сортирован (BST цел)</li>
+            <li>✅ каждое ребро вниз по y (куча цела) — сшивку делал merge</li>
+          </ul>
+        </div>
+      )}
+
+      <div className="text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">
+        {steps[idx]?.note}
+      </div>
+
+      <div className="text-xs text-slate-400 bg-slate-900/40 rounded-lg px-3 py-2 border border-slate-800">
+        💡 <b>Ответ на «убрать можно только самый верхний»:</b> это про кучу. Treap — дерево поиска: найти по x умеет за O(h), а дырку затягивает merge двух детей. Удаляется <b>любая</b> точка, не только верхушка.
+      </div>
+    </div>
+  );
+};
+
+/* ================= РЕЖИМ LAYERS (2k/2k+1) ================= */
+
+const LayersMode: React.FC = () => {
+  const [pick, setPick] = useState<"heap" | "treap">("heap");
+  // Полное дерево из 7 узлов (куча): индексы 1..7
+  const heapArr = [0, 98, 45, 90, 32, 21, 76, 12];
+  const full = useMemo(() => buildTree(POINTS), []);
+  // Честная слотовая разметка treap: индексы как в куче (root=1, ребёнок = 2i/2i+1)
+  const slots = useMemo(() => {
+    const arr: (string | null)[] = Array(16).fill(null);
+    const walk = (n: TNode | null, i: number) => {
+      if (!n || i >= 16) return;
+      arr[i] = n.id;
+      walk(n.left, 2 * i);
+      walk(n.right, 2 * i + 1);
+    };
+    walk(full, 1);
+    return arr;
+  }, [full]);
+  const nodeCount = slots.filter(Boolean).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => setPick("heap")} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${pick === "heap" ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300"}`}>Полное дерево (куча в массиве)</button>
+        <button onClick={() => setPick("treap")} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${pick === "treap" ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300"}`}>Тот же трюк на treap</button>
+      </div>
+
+      {pick === "heap" ? (
+        <div className="bg-slate-900/40 rounded-xl p-4 border border-slate-700">
+          <h4 className="text-sm font-bold text-slate-300 mb-2">✅ Куча из 7 узлов: полное дерево — формула детей i → 2i и 2i+1 работает</h4>
+          <div className="flex gap-2 overflow-x-auto mb-3">
+            {heapArr.slice(1).map((v, i) => (
+              <div key={i} className="px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-center font-mono text-xs">
+                <div className="text-slate-500 text-[10px]">i={i + 1}</div>
+                <div className="text-white font-bold">{v}</div>
+                <div className="text-emerald-400 text-[10px]">дети: {2 * (i + 1)}, {2 * (i + 1) + 1}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-slate-400">Полное дерево заполняет слои без дыр — поэтому «адрес» ребёнка вычисляется. Каждая пара i → 2i/2i+1 попадает в узел.</p>
+        </div>
+      ) : (
+        <div className="bg-slate-900/40 rounded-xl p-4 border border-rose-500/40">
+          <h4 className="text-sm font-bold text-rose-300 mb-2">❌ Treap: {nodeCount} узлов, глубина 4 — полное дерево требует 15 слотов</h4>
+          <TreeView root={full} subtitle="Попробуй «посчитать адрес» ребёнка корня 45: 2·1 и 2·1+1 — а правого ребёнка у корня просто НЕТ." />
+          <div className="flex gap-2 overflow-x-auto mt-2">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((i) => {
+              const id = slots[i];
+              return (
+                <div key={i} className={`px-2.5 py-2 rounded-lg border text-center font-mono text-xs min-w-[52px] ${id ? "bg-slate-950 border-slate-700" : "bg-rose-950/40 border-rose-500/60"}`}>
+                  <div className="text-slate-500 text-[10px]">i={i}</div>
+                  {id ? <div className="text-white font-bold">{pairParts(id)[0]}</div> : <div className="text-rose-400">дыра</div>}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-rose-300 mt-2">Смотрите: слот 3 (правый ребёнок корня) — <b>дыра</b>, у корня нет правого ребёнка; зато левая ветка ушла на 4 уровня и заняла дальние слоты. Из 15 слотов занято 8. Адресация по слоям ведёт в дырки — детей ищут указателями (left/right), а не арифметикой.</p>
+        </div>
+      )}
+
+      <div className="text-xs text-slate-400 bg-slate-900/40 rounded-lg px-3 py-2 border border-slate-800">
+        💡 <b>Грабля «дети в массиве по 2k/2k+1»:</b> формула — привилегия <b>полных</b> деревьев (куча, дерево отрезков). Treap растёт кривым: слои дырявые, и «адрес» ребёнка посчитать нельзя.
+      </div>
+    </div>
+  );
+};
+
+/* ================= РЕЖИМ SEARCH (поиск ≠ сортировка) ================= */
+
+const SearchMode: React.FC = () => {
+  // Подобрано так, что бинарный поиск ГАРАНТИРОВАННО промахивается:
+  // mid (индекс 3) = 9 > 7 → уходит влево, а цель лежит справа.
+  const shuffled: Pair[] = [
+    { key: 12, grade: 0 },
+    { key: 3, grade: 6 },
+    { key: 45, grade: 8 },
+    { key: 9, grade: 3 },
+    { key: 6, grade: 5 },
+    { key: 2, grade: 4 },
+    { key: 7, grade: 2 },
+    { key: 1, grade: -4 },
+  ];
+  const target = 7;
+  const sortedByKey = [...shuffled].sort((a, b) => a.key - b.key);
+  const [stage, setStage] = useState<0 | 1 | 2>(0); // 0: ввод, 1: бинарный поиск по неотсортированному (промах), 2: отсортировали, нашли
+  const [bidx, setBidx] = useState(0);
+
+  // шаги бинарного поиска на отсортированном массиве для x=7
+  const bsSteps = useMemo(() => {
+    const steps: { lo: number; hi: number; mid: number; found: boolean; note: string }[] = [];
+    let lo = 0, hi = sortedByKey.length - 1;
+    while (lo <= hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (sortedByKey[mid].key === target) { steps.push({ lo, hi, mid, found: true, note: `arr[${mid}] = ${sortedByKey[mid].key} = цель — нашли за ${steps.length + 1} сравнение(й).` }); break; }
+      if (sortedByKey[mid].key < target) { steps.push({ lo, hi, mid, found: false, note: `arr[${mid}] = ${sortedByKey[mid].key} < ${target} — вся левая половина выброшена.` }); lo = mid + 1; }
+      else { steps.push({ lo, hi, mid, found: false, note: `arr[${mid}] = ${sortedByKey[mid].key} > ${target} — правая половина выброшена.` }); hi = mid - 1; }
+    }
+    return steps;
+  }, [sortedByKey]);
+
+  const wrongMid = Math.floor((shuffled.length - 1) / 2);
+  const comparisons = stage === 2 ? bidx + 1 : 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        {stage < 2 && (
+          <button onClick={() => { setStage(stage === 0 ? 1 : 2); setBidx(0); }} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+            {stage === 0 ? "Найти y для x=7 бинарным поиском" : "Отсортировать и попробовать снова"}
+          </button>
+        )}
+        {stage === 2 && (
+          <button onClick={() => setBidx(Math.min(bsSteps.length - 1, bidx + 1))} disabled={bidx >= bsSteps.length - 1} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white disabled:opacity-30">
+            Шаг поиска →
+          </button>
+        )}
+        <button onClick={() => { setStage(0); setBidx(0); }} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white">Сброс</button>
+      </div>
+
+      <div className="flex gap-1.5 overflow-x-auto">
+        {(stage === 2 ? sortedByKey : shuffled).map((p, i) => {
+          const highlight = stage === 1 && i === wrongMid;
+          const inBs = stage === 2 && (() => { const s = bsSteps[Math.min(bidx, bsSteps.length - 1)]; return i >= s.lo && i <= s.hi; })();
+          const isMid = stage === 2 && (() => { const s = bsSteps[Math.min(bidx, bsSteps.length - 1)]; return i === s.mid; })();
+          const isFound = stage === 2 && bidx >= bsSteps.length - 1 && sortedByKey[bidx]?.key === target && isMid;
+          return (
+            <div key={`${p.key}:${p.grade}-${i}`} className={`px-2.5 py-2 rounded-lg border text-center font-mono text-xs min-w-[64px] transition-all ${highlight ? "border-rose-500 bg-rose-950/50" : isFound ? "border-emerald-500 bg-emerald-950/50" : isMid ? "border-amber-500 bg-amber-950/30" : inBs ? "border-indigo-500/60 bg-slate-950" : "border-slate-700 bg-slate-950"}`}>
+              <div className="text-white font-bold">{p.key}</div>
+              <div className="text-slate-400 text-[10px]">y={p.grade}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[52px]">
+        {stage === 0 && <>Массив пар <b>не отсортирован</b>. Жми кнопку: бинарный поиск предполагает порядок — посмотрим, что он ответит на беспорядок.</>}
+        {stage === 1 && <>❌ Бинарный поиск посмотрел на середину <b>x={shuffled[wrongMid].key}</b>: 9 &gt; 7 → «цель слева», отрезал правую половину… <b>в которой лежала цель</b>. На неотсортированных данных он <b>не ищет, а гадает</b>. И уж точно он ничего не <b>переставил</b>: массив как был в беспорядке, так и остался. Поиск ≠ сортировка.</>}
+        {stage === 2 && bidx < bsSteps.length - 1 && <>🔍 {bsSteps[bidx].note} (сравнений: {comparisons})</>}
+        {stage === 2 && bidx >= bsSteps.length - 1 && <>✅ {bsSteps[bsSteps.length - 1].note} <b>Поиск нашёл один элемент</b> за ~log₂8 ≈ 3 сравнения. Но чтобы поиск вообще заработал, кто-то уже отсортировал все 8 пар: сравнительной сортировке нужно ≥ n·log₂n ≈ 19–22 сравнения на <b>всех</b>. «Отсортирую бинарным поиском» = «разберу весь гардероб, тронув одну полку».</>}
+      </div>
+
+      <div className="text-xs text-slate-400 bg-slate-900/40 rounded-lg px-3 py-2 border border-slate-800">
+        💡 <b>Есть ли разница, чем сортировать?</b> Сравнениями (quicksort/merge/heap) — быстрее n·log₂n <b>нельзя в принципе</b>: это нижняя граница, каждое сравнение даёт 1 бит. Но counting/radix <b>не сравнивает</b>: раскладывает по корзинам значений — O(n + k) для маленьких целых y (вкладка «Собрать», кнопка counting). Оба пути дают <b>одинаковое дерево</b> — сортировка нужна лишь чтобы задать порядок соединения.
+      </div>
+    </div>
+  );
+};
+
+/* ================= РЕЖИМ GAME ================= */
+
+const GameMode: React.FC = () => {
+  const [edges, setEdges] = useState<GEdge[]>([]);
+  const [sel, setSel] = useState<Pair | null>(null);
+  const [hover, setHover] = useState<Pair | null>(null);
+  const [msg, setMsg] = useState<string>("Кликни точку-родитель (громче по «!»), затем точку-ребёнка. Линия сама встанет сверху вниз по y.");
+
+  const v = gameVerdict(edges, POINTS);
+
+  const click = (p: Pair) => {
+    if (!sel) {
+      setSel(p);
+      setMsg(`Выбрана (${p.key}; ${p.grade}). Теперь кликни ребёнка — линия ложно вниз по y.`);
+      return;
+    }
+    if (sameP(sel, p)) {
+      setSel(null);
+      return;
+    }
+    const res = tryConnect(edges, sel, p);
+    if (res.ok) {
+      const parent = sel.grade > p.grade ? sel : p;
+      const child = sel.grade > p.grade ? p : sel;
+      setEdges([...edges, { a: parent, b: child }]);
+      setMsg(`🔗 Линия (${parent.key}; ${parent.grade}) → (${child.key}; ${child.grade}).`);
+      setSel(null);
+    } else {
+      setMsg("✗ " + res.reason);
+      setSel(null);
+    }
+  };
+
+  const win = v.win;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <button onClick={() => { setEdges(edges.slice(0, -1)); setMsg("Линию сняли."); }} disabled={!edges.length} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">↩ Отменить линию</button>
+        <button onClick={() => { setEdges([]); setSel(null); setMsg("Чистая доска. Соединяй!"); }} disabled={!edges.length} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 text-white disabled:opacity-30">🔄 Сброс</button>
+        <button onClick={() => { setEdges(CANON_GAME.map((e) => ({ ...e }))); setSel(null); setMsg("Ответ показан. Сравни со своим ходом."); }} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">👁 Показать ответ</button>
+        <span className="text-xs text-slate-400">линий: {edges.length} из {POINTS.length - 1}</span>
+      </div>
+
+      <div className="bg-emerald-950/20 rounded-xl p-4 border border-emerald-500/40">
+        <svg viewBox={`0 0 ${PL_W} ${PL_H + 20}`} className="w-full">
+          <defs>
+            <pattern id="gm-grid" width="14" height="14" patternUnits="userSpaceOnUse">
+              <path d="M 14 0 L 0 0 0 14" fill="none" stroke="#1e293b" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect x="34" y="16" width={PL_W - 46} height={PL_H - 12} fill="url(#gm-grid)" opacity="0.5" />
+          <line x1="34" y1={PY(0)} x2={PL_W - 12} y2={PY(0)} stroke="#475569" strokeWidth="1.5" />
+          <line x1={PX(1) - 8} y1="16" x2={PX(1) - 8} y2={PL_H + 4} stroke="#475569" strokeWidth="1.5" />
+
+          {edges.map((e, i) => (
+            <line
+              key={`ge-${i}`}
+              x1={PX(e.a.key)} y1={PY(e.a.grade)}
+              x2={PX(e.b.key)} y2={PY(e.b.grade)}
+              stroke={i === edges.length - 1 ? "#34d399" : "#64748b"}
+              strokeWidth={i === edges.length - 1 ? 3.5 : 2.5}
+              className="transition-all duration-300"
+            />
+          ))}
+
+          {POINTS.map((p) => {
+            const isSel = sel && sameP(sel, p);
+            const isHover = hover && sameP(hover, p) && !isSel;
+            return (
+              <g key={`gp-${p.key}:${p.grade}`} onClick={() => click(p)} onMouseEnter={() => setHover(p)} onMouseLeave={() => setHover(null)} className="cursor-pointer">
+                <circle cx={PX(p.key)} cy={PY(p.grade)} r={16} fill="transparent" />
+                <circle cx={PX(p.key)} cy={PY(p.grade)} r={isSel || isHover ? 11 : 9} fill={isSel ? "#4f46e5" : "#0f172a"} stroke={isSel ? "#a5b4fc" : isHover ? "#94a3b8" : "#38bdf8"} strokeWidth={isSel ? 3 : 2} strokeDasharray={isSel ? "4,3" : "none"} className="transition-all duration-200" />
+                <text x={PX(p.key)} y={PY(p.grade) + 3.5} fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="monospace">{p.key}</text>
+                <text x={PX(p.key)} y={PY(p.grade) + 24} fill="#64748b" fontSize="9" textAnchor="middle" fontFamily="monospace">!={p.grade}</text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Судья — условия, как у Ахо—Корасика */}
+      <div className={`rounded-xl p-4 border transition-colors ${win ? "border-emerald-500/60 bg-emerald-950/20" : "border-slate-700 bg-slate-900/40"}`}>
+        <h4 className="text-sm font-bold text-slate-300 mb-2">🧑‍⚖️ Судья (проверяет после каждого хода)</h4>
+        <ul className="space-y-1.5 text-sm">
+          <li>{v.heap ? "✅" : "⏳"} каждое ребро — вниз по y (родитель громче)</li>
+          <li>{v.oneParent ? "✅" : "⏳"} у каждой точки не более одного родителя</li>
+          <li>{v.acyclic ? "✅" : "⏳"} циклов нет</li>
+          <li>{v.bst ? "✅" : "⏳"} обход слева-направо — сортировка по x (BST)</li>
+          <li>{v.complete ? "✅" : "⏳"} линий n−1 = {POINTS.length - 1}, все точки в одном дереве</li>
+        </ul>
+        {win && (
+          <p className="mt-3 text-sm font-bold text-emerald-300">🎉 Дерево собрано! Инварианты определяют его единственно — другого соединения просто не существует.</p>
+        )}
+      </div>
+
+      <div className="text-xs text-slate-300 bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800 min-h-[36px]">{msg}</div>
+    </div>
+  );
+};
+
+/* ================= КОРПУС ================= */
+
+type Tab = "build" | "split" | "merge" | "erase" | "layers" | "search" | "game";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "build", label: "Собрать" },
+  { id: "split", label: "Split ✂️" },
+  { id: "merge", label: "Merge 🧲" },
+  { id: "erase", label: "Erase 🕳️" },
+  { id: "layers", label: "Миф: 2k/2k+1" },
+  { id: "search", label: "Поиск ≠ сортировка" },
+  { id: "game", label: "Игра 🖱️" },
+];
+
+
+/** Значения из Python-компилятора: x — ключ, y — приоритет, i — индекс шага. */
+function useTreapLive(): { x: number | null; y: number | null; i: number | null; linked: boolean } {
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const x = vizNumber(vars?.x);
+  const y = vizNumber(vars?.y);
+  const i = vizNumber(vars?.i);
+  return { x, y, i, linked: x !== null || y !== null || i !== null };
+}
+
+const LiveChip: React.FC<{ live: { x: number | null; y: number | null; i: number | null; linked: boolean } }> = ({ live }) =>
+  live.linked ? (
+    <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-2 py-1 text-[10px] font-mono text-emerald-300">
+      🐍 Python: x={live.x ?? "—"} · y={live.y ?? "—"} · i={live.i ?? "—"}
+    </span>
+  ) : null;
+
+export const TreapBuildViz = () => {
+  const [tab, setTab] = useState<Tab>("build");
+
+  return (
+    <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-5 border-b border-slate-700 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-600/30">
+            <span className="text-2xl">📐</span>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-white">Интерактивный Treap</h3>
+            <p className="text-sm text-emerald-300">Пара (x; y): x — ключ, y — приоритет. Декартова плоскость → дерево</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-5">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${tab === t.id ? "bg-emerald-600 text-white" : "bg-slate-900/60 text-slate-400 hover:text-white border border-slate-700"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "build" && <BuildMode />}
+      {tab === "split" && <SplitMode />}
+      {tab === "merge" && <MergeMode />}
+      {tab === "erase" && <EraseMode />}
+      {tab === "layers" && <LayersMode />}
+      {tab === "search" && <SearchMode />}
+      {tab === "game" && <GameMode />}
+    </div>
+  );
+};

@@ -1,4 +1,12 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  emitVizDemo,
+  useVizRuntime,
+  vizArray,
+  vizNumber,
+  vizRecord,
+  VizChapterContext,
+} from "../../data/vizStepBus";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Play,
@@ -70,7 +78,15 @@ for (let kx = 0; kx <= 3; kx++) {
 }
 
 export const SparseTableViz: React.FC = () => {
-  const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("1d");
+  // Эта страница посвящена именно двумерной таблице: 1D остаётся вводной
+  // вкладкой, но больше не подменяет 2D-визуализацию и её Python-референс.
+  const [tab, setTab] = useState<"1d" | "2d_build" | "2d_query">("2d_build");
+  const chapterId = useContext(VizChapterContext);
+
+  // Каждая вкладка = своё демо с собственным скелетом: компилятор переключает код вслед за вкладкой.
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, tab === "2d_build" ? "2d-build" : tab === "2d_query" ? "2d-query" : "");
+  }, [chapterId, tab]);
 
   return (
     <div className="w-full bg-slate-950 p-3 sm:p-4 md:p-6 rounded-2xl border border-slate-800 shadow-2xl font-sans">
@@ -111,6 +127,24 @@ export const SparseTableViz: React.FC = () => {
 const Viz1D: React.FC = () => {
   const [step, setStep] = useState(0);
   const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
+  const runtime = useVizRuntime();
+  const runtimeVars = runtime?.variables;
+  const liveI = vizNumber(runtimeVars?.i);
+  const liveJ = vizNumber(runtimeVars?.j);
+  const liveSource = vizArray(runtimeVars?.a);
+  const liveRows = vizArray(runtimeVars?.st);
+  const hasLiveSource = !!runtimeVars && Object.prototype.hasOwnProperty.call(runtimeVars, "a");
+  const hasLiveTable = !!runtimeVars && Object.prototype.hasOwnProperty.call(runtimeVars, "st");
+  const compilerLinked = liveI !== null || liveJ !== null || hasLiveSource || hasLiveTable;
+  const shownSource = hasLiveSource
+    ? liveSource?.length
+      ? liveSource
+      : Array.from({ length: N }, () => null)
+    : arr1D;
+  const liveTarget =
+    liveI !== null && liveJ !== null && Number.isInteger(liveI) && Number.isInteger(liveJ)
+      ? { i: liveI, j: liveJ }
+      : null;
 
   // Total steps: we animate computing each element for j=1, j=2, j=3.
   const computeSteps: { i: number; j: number }[] = [];
@@ -121,7 +155,10 @@ const Viz1D: React.FC = () => {
   }
 
   const maxStep = computeSteps.length;
-  const covered = hover ? { from: hover.i, to: hover.i + (1 << hover.j) - 1 } : null;
+  // Эта таблица читает i/j/st напрямую. Не двигаем её по случайному номеру
+  // строки произвольного Python-кода.
+  const pointedCell = hover ?? liveTarget;
+  const covered = pointedCell ? { from: pointedCell.i, to: pointedCell.i + (1 << pointedCell.j) - 1 } : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -161,8 +198,13 @@ const Viz1D: React.FC = () => {
       <div className="bg-slate-900 rounded-xl border border-slate-800 p-3 sm:p-4">
         <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">Исходный массив</div>
         <div className="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1">
-          {arr1D.map((v, idx) => {
+          {shownSource.map((v, idx) => {
             const inCover = !!covered && idx >= covered.from && idx <= covered.to;
+            const display = v === undefined || v === null
+              ? "·"
+              : typeof v === "object"
+                ? JSON.stringify(v)
+                : String(v);
             return (
               <div key={idx} className="flex flex-col items-center shrink-0">
                 <div
@@ -170,7 +212,7 @@ const Viz1D: React.FC = () => {
                     inCover ? "bg-indigo-500 text-white ring-2 ring-indigo-300" : "bg-slate-800 text-slate-300"
                   }`}
                 >
-                  {v}
+                  {display}
                 </div>
                 <span className="text-[9px] text-slate-600 mt-0.5 font-mono">{idx}</span>
               </div>
@@ -228,36 +270,43 @@ const Viz1D: React.FC = () => {
                 </div>
                 {Array.from({ length: LOG }).map((_, j) => {
                   const isValid = i + (1 << j) <= N;
-                  const isVisible =
+                  const liveRow = vizArray(liveRows?.[i]);
+                  const liveValue = liveRow?.[j];
+                  // Уровень j=0 — это исходный a[i], он не является частью
+                  // очищаемого рабочего массива и не должен исчезать при st = [].
+                  const sourceValue = j === 0 ? liveSource?.[i] : undefined;
+                  const runtimeValue = liveValue ?? sourceValue;
+                  const runtimeHasValue = runtimeValue !== undefined && runtimeValue !== null;
+                  const manualVisible =
                     isValid &&
-                    (j === 0 ||
-                      computeSteps.findIndex((s) => s.i === i && s.j === j) <
-                        step);
+                    (j === 0 || computeSteps.findIndex((s) => s.i === i && s.j === j) < step);
+                  const isVisible = compilerLinked ? runtimeHasValue : manualVisible;
 
-                  // Active computing state
-                  let isActive = false;
+                  let isActive = !!liveTarget && liveTarget.i === i && liveTarget.j === j;
                   let isSrc1 = false;
                   let isSrc2 = false;
 
-                  if (step > 0 && step <= maxStep) {
+                  if (compilerLinked && liveTarget && liveTarget.j > 0) {
+                    isSrc1 = i === liveTarget.i && j === liveTarget.j - 1;
+                    isSrc2 = i === liveTarget.i + (1 << (liveTarget.j - 1)) && j === liveTarget.j - 1;
+                  } else if (!compilerLinked && step > 0 && step <= maxStep) {
                     const currentStep = computeSteps[step - 1];
-                    if (currentStep.i === i && currentStep.j === j)
-                      isActive = true;
-                    if (currentStep.j === j + 1 && currentStep.i === i)
-                      isSrc1 = true;
-                    if (
-                      currentStep.j === j + 1 &&
-                      currentStep.i === i - (1 << (currentStep.j - 1))
-                    )
-                      isSrc2 = true; // wait, no. Src2 for ST[i][j] is ST[i + 2^(j-1)][j-1].
-                    // Let's re-eval exact source:
-                    // We are asking if THIS cell [i][j] is a source for current computation
+                    isActive = currentStep.i === i && currentStep.j === j;
                     if (currentStep.j - 1 === j) {
                       if (currentStep.i === i) isSrc1 = true;
-                      if (currentStep.i + (1 << (currentStep.j - 1)) === i)
-                        isSrc2 = true;
+                      if (currentStep.i + (1 << (currentStep.j - 1)) === i) isSrc2 = true;
                     }
                   }
+
+                  // Готовые вычисленные уровни демо не подмешиваем, но базовый
+                  // уровень j=0 всегда берём из уже существующего массива a.
+                  const shownValue = compilerLinked ? runtimeValue : st1D[i][j];
+                  const displayValue =
+                    shownValue === undefined || shownValue === null
+                      ? "·"
+                      : typeof shownValue === "object"
+                        ? JSON.stringify(shownValue)
+                        : String(shownValue);
 
                   return (
                     <div key={j} className="relative flex justify-center">
@@ -265,13 +314,14 @@ const Viz1D: React.FC = () => {
                         <div className="w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)]" />
                       ) : (
                         <motion.div
-                          onMouseEnter={() => isVisible && setHover({ i, j })}
+                          onMouseEnter={() => (compilerLinked || isVisible) && setHover({ i, j })}
                           onMouseLeave={() => setHover(null)}
-                          onClick={() => isVisible && setHover(hover && hover.i === i && hover.j === j ? null : { i, j })}
+                          onClick={() => (compilerLinked || isVisible) && setHover(hover && hover.i === i && hover.j === j ? null : { i, j })}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{
-                            opacity: isVisible ? 1 : 0,
-                            scale: isVisible ? 1 : 0.8,
+                            // При st = [] каркас уже существует: видны пустые квадраты.
+                            opacity: compilerLinked ? 1 : isVisible ? 1 : 0,
+                            scale: compilerLinked || isVisible ? 1 : 0.8,
                           }}
                           className={`w-[clamp(30px,9vw,48px)] h-[clamp(30px,9vw,48px)] flex items-center justify-center rounded-lg text-[clamp(11px,3vw,17px)] font-bold transition-colors cursor-pointer ${
                             hover && hover.i === i && hover.j === j
@@ -284,10 +334,13 @@ const Viz1D: React.FC = () => {
                                   ? "bg-amber-500 text-white ring-2 ring-amber-400 z-10"
                                   : isVisible
                                     ? "bg-slate-800 text-slate-300"
-                                    : "bg-transparent text-transparent"
+                                    : compilerLinked
+                                      ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
+                                      : "bg-transparent text-transparent"
                           }`}
+                          title={compilerLinked ? `st[${i}][${j}] = ${displayValue}` : undefined}
                         >
-                          {st1D[i][j]}
+                          {displayValue}
                         </motion.div>
                       )}
 
@@ -324,7 +377,14 @@ const Viz1D: React.FC = () => {
 
       {/* Formula helper text */}
       <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl min-h-[80px] flex items-center text-center justify-center">
-        {step > 0 && step <= maxStep ? (
+        {compilerLinked && liveTarget ? (
+          <p className="text-base text-slate-300">
+            <span className="text-emerald-400 font-bold">Компилятор → визуализация:</span>{" "}
+            <span className="font-mono text-white">i = {liveTarget.i}, j = {liveTarget.j}</span>{" "}
+            — активна ячейка <span className="font-mono text-indigo-300">st[{liveTarget.i}][{liveTarget.j}]</span>
+            {(hasLiveTable || hasLiveSource) && <> = <span className="font-mono text-amber-300">{String(vizArray(liveRows?.[liveTarget.i])?.[liveTarget.j] ?? (liveTarget.j === 0 ? liveSource?.[liveTarget.i] : undefined) ?? "пусто")}</span></>}.
+          </p>
+        ) : step > 0 && step <= maxStep ? (
           (() => {
             const c = computeSteps[step - 1];
             const half = 1 << (c.j - 1);
@@ -365,11 +425,38 @@ const Viz1D: React.FC = () => {
 
 const Viz2DBuild: React.FC = () => {
   const [k, setK] = useState(1);
+  // Пока пользователь сам не выбрал уровень, вкладки следуют за k из Python;
+  // после клика — локальный выбор главнее (Python не «ворует» клики).
+  const [userPicked, setUserPicked] = useState(false);
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null);
   const [locked, setLocked] = useState<{ r: number; c: number } | null>(null);
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveK = vizNumber(vars?.k);
+  const liveR = vizNumber(vars?.r);
+  const liveC = vizNumber(vars?.c);
+  const liveTable = vizRecord(vars?.st2);
+  const liveA = vizArray(vars?.A);
+  const hasLiveSource = !!vars && Object.prototype.hasOwnProperty.call(vars, "A");
+  const hasLiveTable = !!vars && Object.prototype.hasOwnProperty.call(vars, "st2");
+  const liveTableEmpty = hasLiveTable && Object.keys(liveTable ?? {}).length === 0;
+  const codeCell = liveR !== null && liveC !== null ? { r: liveR, c: liveC } : null;
+  const compilerLinked = codeCell !== null || liveK !== null || hasLiveSource || hasLiveTable;
+  const pythonK = liveK !== null
+    ? Math.max(0, Math.min(3, Math.trunc(liveK)))
+    : hasLiveSource
+      ? 0
+      : k;
+  const shownK = userPicked ? k : pythonK;
 
-  const L = 1 << k;
-  const activeCell = locked || hover;
+  // Уровень и клетка берутся прямо из k/r/c; номер строки трассы не нужен.
+  useEffect(() => {
+    setHover(null);
+    setLocked(null);
+  }, [k]);
+
+  const L = 1 << shownK;
+  const activeCell = codeCell || locked || hover;
 
   return (
     <div className="flex flex-col xl:flex-row gap-6">
@@ -385,19 +472,28 @@ const Viz2DBuild: React.FC = () => {
           {[0, 1, 2, 3].map(step => (
             <button
               key={step}
-              onClick={() => { setK(step); setHover(null); setLocked(null); }}
-              className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${k === step ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+              onClick={() => { setK(step); setUserPicked(true); setHover(null); setLocked(null); }}
+              className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${shownK === step ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
             >
               {step === 0 ? "Оригинал (1x1)" : `Шаг ${step} (${1<<step}x${1<<step})`}
             </button>
           ))}
         </div>
+        {userPicked && (
+          <button
+            onClick={() => { setUserPicked(false); setK(pythonK); }}
+            className="mb-4 text-[11px] font-bold px-3 py-1 rounded-lg bg-slate-800/70 border border-slate-700 text-slate-400 hover:text-white hover:border-indigo-500 transition-colors"
+            title="Снова следовать за переменной k из Python-кода"
+          >
+            ↩ снова вести уровень из Python (k = {pythonK})
+          </button>
+        )}
 
         <div className="flex flex-col items-center gap-4 w-full max-h-[70vh] sm:h-[600px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
-          {[...Array(k + 1)].map((_, i) => k - i).map((step, idx) => {
+          {[...Array(shownK + 1)].map((_, i) => shownK - i).map((step, idx) => {
              const stepL = 1 << step;
              const stepSize = 8 - stepL + 1;
-             const isCurr = step === k;
+             const isCurr = step === shownK;
 
              return (
                <React.Fragment key={step}>
@@ -408,33 +504,51 @@ const Viz2DBuild: React.FC = () => {
                      <span className={`text-[10px] font-mono font-normal mt-1 border px-1.5 py-0.5 rounded ${isCurr ? 'bg-indigo-900/40 border-indigo-800/40 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>ST[][][{step}][{step}]</span>
                    </h4>
                    <div className="max-w-full overflow-x-auto">
-                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 shadow-[0_0_25px_rgba(99,102,241,0.05)] relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
+                     <div className={`grid gap-[2px] p-2 rounded-lg border shadow-inner w-max mx-auto ${isCurr ? 'bg-[#0a0f1e] border-indigo-900/40 relative' : 'bg-slate-950 border-slate-800 relative'}`} style={{ gridTemplateColumns: `repeat(${stepSize}, max-content)`}}>
                      {Array.from({length: stepSize * stepSize}).map((_, idx) => {
                         const r = Math.floor(idx / stepSize);
                         const c = idx % stepSize;
                         
-                        let highlightClass = isCurr ? 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white border-slate-700/50 cursor-pointer' : 'bg-slate-800/50 text-slate-600 border-transparent';
+                        const liveValue = liveTable?.[`(${r}, ${c}, ${step}, ${step})`];
+                        // Базовый слой (k = 0) — это сама матрица A: пока st2 пуст,
+                        // 1×1-клетки честно рисуем из A (она уже определена в init),
+                        // а старшие уровни остаются пустым каркасом до заполнения st2.
+                        const aRow = step === 0 && liveA && Array.isArray(liveA[r]) ? (liveA[r] as unknown[]) : null;
+                        const aCell = aRow && typeof aRow[c] === "number" ? (aRow[c] as number) : null;
+                        const shownValue = !compilerLinked
+                          ? ST2D[r][c][step][step]
+                          : liveValue !== undefined && liveValue !== null
+                            ? liveValue
+                            : aCell !== null
+                              ? aCell
+                              : undefined;
+                        const isBlank = shownValue === undefined || shownValue === null;
+                        let highlightClass = isBlank
+                          ? 'bg-slate-950 text-slate-600 border-dashed border-slate-700 cursor-pointer'
+                          : isCurr
+                            ? 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white border-slate-700/50 cursor-pointer'
+                            : 'bg-slate-800/50 text-slate-600 border-transparent';
                         let zIndex = 'z-0';
 
                         const isActive = !!activeCell && (r >= activeCell.r && r < activeCell.r + L) && (c >= activeCell.c && c < activeCell.c + L) && ((r - activeCell.r) % (1 << step) === 0) && ((c - activeCell.c) % (1 << step) === 0);
 
                         if (isActive) {
                           if (isCurr) {
-                            highlightClass = `bg-indigo-500 text-white font-bold scale-[1.12] shadow-xl border-indigo-300 transition-all ${locked && locked.r === r && locked.c === c ? 'ring-[3px] ring-white ring-offset-2 ring-offset-[#0a0f1e]' : ''}`;
+                            highlightClass = `bg-indigo-500 text-white font-bold border-indigo-200 ring-2 ring-indigo-300/60 transition-colors ${locked && locked.r === r && locked.c === c ? 'ring-[3px] ring-white ring-offset-2 ring-offset-[#0a0f1e]' : ''}`;
                             zIndex = 'z-10';
                           } else {
-                            const prevL = 1 << (k - 1);
+                            const prevL = 1 << (shownK - 1);
                             const isTop = r < activeCell.r + prevL;
                             const isLeft = c < activeCell.c + prevL;
                             
                             if (isTop && isLeft) {
-                               highlightClass = 'bg-rose-500/90 text-white font-bold border-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-rose-500/90 text-white font-bold border-rose-300 border-rose-200/70';
                             } else if (isTop && !isLeft) {
-                               highlightClass = 'bg-blue-500/90 text-white font-bold border-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-blue-500/90 text-white font-bold border-blue-300 border-blue-200/70';
                             } else if (!isTop && isLeft) {
-                               highlightClass = 'bg-emerald-500/90 text-white font-bold border-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-emerald-500/90 text-white font-bold border-emerald-300 border-emerald-200/70';
                             } else {
-                               highlightClass = 'bg-amber-500/90 text-white font-bold border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)] md:scale-[1.08]';
+                               highlightClass = 'bg-amber-500/90 text-white font-bold border-amber-300 border-amber-200/70';
                             }
                             zIndex = 'z-10';
                           }
@@ -452,8 +566,9 @@ const Viz2DBuild: React.FC = () => {
                                }
                             }}
                             className={`flex items-center justify-center font-mono rounded border shrink-0 ${highlightClass} ${zIndex} ${isCurr ? 'w-[clamp(24px,6.5vw,38px)] h-[clamp(24px,6.5vw,38px)] text-[clamp(9px,2.4vw,13px)]' : 'w-[clamp(20px,5.2vw,30px)] h-[clamp(20px,5.2vw,30px)] text-[clamp(8px,2vw,11px)]'}`}
+                            title={hasLiveTable ? `st2[${r}, ${c}, ${step}, ${step}]` : undefined}
                           >
-                            {ST2D[r][c][step][step]}
+                            {isBlank ? "·" : String(shownValue)}
                           </div>
                         );
                      })}
@@ -469,16 +584,30 @@ const Viz2DBuild: React.FC = () => {
       <div className="flex-1 min-w-0 flex flex-col gap-4">
         <div className="bg-slate-900 p-4 sm:p-6 rounded-xl border border-slate-800 h-full flex flex-col">
           <h3 className="text-lg font-bold text-slate-300 mb-6 flex items-center gap-2">Код построения и формула</h3>
-          {k === 0 ? (
+          {shownK === 0 ? (
              <div className="text-slate-400 text-sm leading-relaxed font-sans mt-4">
-               <p className="mb-4">При <span className="font-mono text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">k = 0</span> квадраты имеют размер <span className="font-bold text-white">1×1</span>.</p>
-               <div className="bg-[#0a0f1e] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner">
-                 <span className="text-slate-500">// Базовый случай: квадрат размера 1x1 это сама ячейка</span><br/>
-                 <span className="text-indigo-400">ST</span>[r][c][0][0] = matrix[r][c];
-               </div>
-               <p className="mt-6 italic text-indigo-400 flex items-center gap-2">
-                 <Play size={14} className="fill-indigo-400" /> Выберите шаг 1, чтобы увидеть как собираются квадраты бóльшего размера.
-               </p>
+               {liveTableEmpty ? (
+                 <div className="rounded-xl border border-dashed border-amber-500/50 bg-amber-500/5 p-4">
+                   <p className="font-bold text-amber-300">st2 = {'{}'} — рабочая таблица действительно пуста</p>
+                   <p className="mt-2 text-xs text-slate-400">
+                     Матрица <span className="font-mono text-slate-200">A</span> существует отдельно. Ячейки появятся только после явной записи базового слоя:
+                   </p>
+                   <div className="mt-3 rounded-lg bg-[#0a0f1e] p-3 font-mono text-xs text-slate-300">
+                     <span className="text-indigo-400">st2</span>[(r, c, 0, 0)] = <span className="text-emerald-300">A</span>[r][c]
+                   </div>
+                 </div>
+               ) : (
+                 <>
+                   <p className="mb-4">При <span className="font-mono text-indigo-300 bg-slate-950 px-1.5 py-0.5 rounded">k = 0</span> квадраты имеют размер <span className="font-bold text-white">1×1</span>.</p>
+                   <div className="bg-[#0a0f1e] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner">
+                     <span className="text-slate-500">// Базовый случай: квадрат размера 1×1 — сама ячейка</span><br/>
+                     <span className="text-indigo-400">st2</span>[(r, c, 0, 0)] = <span className="text-emerald-300">A</span>[r][c]
+                   </div>
+                   <p className="mt-6 italic text-indigo-400 flex items-center gap-2">
+                     <Play size={14} className="fill-indigo-400" /> Выберите шаг 1, чтобы увидеть, как собираются квадраты бóльшего размера.
+                   </p>
+                 </>
+               )}
              </div>
           ) : (
              <div className="flex flex-col gap-4 animate-in fade-in duration-300">
@@ -501,30 +630,30 @@ const Viz2DBuild: React.FC = () => {
                        {locked && <span className="text-rose-400 flex items-center gap-1 font-sans font-bold bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20"><Lock size={12}/> Зафиксировано</span>}
                     </p>
                     <p className="text-indigo-300 border-b border-slate-800 pb-3 flex flex-wrap items-center gap-1.5">
-                      <span className="font-bold text-white bg-indigo-600/80 px-2 py-0.5 rounded text-xs">ST[{activeCell.r}][{activeCell.c}][{k}][{k}]</span> 
+                      <span className="font-bold text-white bg-indigo-600/80 px-2 py-0.5 rounded text-xs">ST[{activeCell.r}][{activeCell.c}][{shownK}][{shownK}]</span>
                       <span className="text-slate-400">= min(</span>
                     </p>
                     
                     <div className="space-y-2 pt-3 pl-2 text-[11px] sm:text-xs">
                         {(() => {
-                           const prevL = 1 << (k - 1);
+                           const prevL = 1 << (shownK - 1);
                            return (
                              <>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-rose-300"><div className="w-2 h-2 rounded-sm bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div> ST[{activeCell.r}][{activeCell.c}] (ЛВ)</span>
-                                  <span className="text-rose-400 font-bold bg-rose-950/40 px-2 rounded border border-rose-900/50">{ST2D[activeCell.r][activeCell.c][k-1][k-1]}</span>
+                                  <span className="text-rose-400 font-bold bg-rose-950/40 px-2 rounded border border-rose-900/50">{ST2D[activeCell.r][activeCell.c][shownK-1][shownK-1]}</span>
                                </div>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-blue-300"><div className="w-2 h-2 rounded-sm bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div> ST[{activeCell.r}][{activeCell.c + prevL}] (ПВ)</span>
-                                  <span className="text-blue-400 font-bold bg-blue-950/40 px-2 rounded border border-blue-900/50">{ST2D[activeCell.r][activeCell.c + prevL][k-1][k-1]}</span>
+                                  <span className="text-blue-400 font-bold bg-blue-950/40 px-2 rounded border border-blue-900/50">{ST2D[activeCell.r][activeCell.c + prevL][shownK-1][shownK-1]}</span>
                                </div>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-emerald-300"><div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-[0_0_8px_#10b981]"></div> ST[{activeCell.r + prevL}][{activeCell.c}] (ЛН)</span>
-                                  <span className="text-emerald-400 font-bold bg-emerald-950/40 px-2 rounded border border-emerald-900/50">{ST2D[activeCell.r + prevL][activeCell.c][k-1][k-1]}</span>
+                                  <span className="text-emerald-400 font-bold bg-emerald-950/40 px-2 rounded border border-emerald-900/50">{ST2D[activeCell.r + prevL][activeCell.c][shownK-1][shownK-1]}</span>
                                </div>
                                <div className="flex items-center justify-between">
                                   <span className="flex items-center gap-2 text-amber-300"><div className="w-2 h-2 rounded-sm bg-amber-500 shadow-[0_0_8px_#f59e0b]"></div> ST[{activeCell.r + prevL}][{activeCell.c + prevL}] (ПН)</span>
-                                  <span className="text-amber-400 font-bold bg-amber-950/40 px-2 rounded border border-amber-900/50">{ST2D[activeCell.r + prevL][activeCell.c + prevL][k-1][k-1]}</span>
+                                  <span className="text-amber-400 font-bold bg-amber-950/40 px-2 rounded border border-amber-900/50">{ST2D[activeCell.r + prevL][activeCell.c + prevL][shownK-1][shownK-1]}</span>
                                </div>
                              </>
                            )
@@ -532,7 +661,7 @@ const Viz2DBuild: React.FC = () => {
                     </div>
                     
                     <div className="pt-3 mt-3 border-t border-slate-800 text-center text-slate-400 text-sm">
-                       ) = <span className="text-white font-bold text-base bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">{ST2D[activeCell.r][activeCell.c][k][k]}</span>
+                       ) = <span className="text-white font-bold text-base bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">{ST2D[activeCell.r][activeCell.c][shownK][shownK]}</span>
                     </div>
                     <p className="mt-4 text-[12px] font-sans text-indigo-200/70 border-t border-slate-800 pt-3 text-center">👇 Прокрутите список матриц (слева) вниз, чтобы увидеть, из каких под-блоков собираются эти минимумы.</p>
                  </div>
@@ -554,9 +683,23 @@ const Viz2DQuery: React.FC = () => {
     const [c1, setC1] = useState(1);
     const [r2, setR2] = useState(5);
     const [c2, setC2] = useState(6);
+    const runtime = useVizRuntime();
 
-    const H = r2 - r1 + 1;
-    const W = c2 - c1 + 1;
+    // Координаты запроса — те же захардкоженные имена, что в Python.
+    useEffect(() => {
+      const vars = runtime?.variables;
+      const nr1 = vizNumber(vars?.r1);
+      const nc1 = vizNumber(vars?.c1);
+      const nr2 = vizNumber(vars?.r2);
+      const nc2 = vizNumber(vars?.c2);
+      if (nr1 !== null) setR1(Math.max(0, Math.min(7, Math.trunc(nr1))));
+      if (nc1 !== null) setC1(Math.max(0, Math.min(7, Math.trunc(nc1))));
+      if (nr2 !== null) setR2(Math.max(0, Math.min(7, Math.trunc(nr2))));
+      if (nc2 !== null) setC2(Math.max(0, Math.min(7, Math.trunc(nc2))));
+    }, [runtime]);
+
+    const H = Math.max(1, r2 - r1 + 1);
+    const W = Math.max(1, c2 - c1 + 1);
     const kx = Math.floor(Math.log2(H));
     const ky = Math.floor(Math.log2(W));
     const Lx = 1 << kx;
@@ -693,11 +836,11 @@ const Viz2DQuery: React.FC = () => {
                <div className="mt-auto bg-slate-950 font-mono p-5 rounded-xl border border-indigo-900/60 shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
                   <div className="text-center font-bold text-white text-[13px] sm:text-base overflow-x-auto custom-scrollbar whitespace-nowrap bg-[#0a0f1e] py-3 px-2 rounded-lg border border-slate-800">
                     <span className="text-slate-400 font-normal">min(</span>&nbsp;
-                       <span className="text-rose-400">{ST2D[r1][c1][kx][ky]}</span> <span className="text-slate-600">,</span> 
-                       <span className="text-blue-400 ml-1">{ST2D[r1][c2 - Ly + 1][kx][ky]}</span> <span className="text-slate-600">,</span> 
-                       <span className="text-emerald-400 ml-1">{ST2D[r2 - Lx + 1][c1][kx][ky]}</span> <span className="text-slate-600">,</span> 
+                       <span className="text-rose-400">{ST2D[r1][c1][kx][ky]}</span> <span className="text-slate-600">,</span>
+                       <span className="text-blue-400 ml-1">{ST2D[r1][c2 - Ly + 1][kx][ky]}</span> <span className="text-slate-600">,</span>
+                       <span className="text-emerald-400 ml-1">{ST2D[r2 - Lx + 1][c1][kx][ky]}</span> <span className="text-slate-600">,</span>
                        <span className="text-amber-400 ml-1">{ST2D[r2 - Lx + 1][c2 - Ly + 1][kx][ky]}</span>
-                    &nbsp;<span className="text-slate-400 font-normal">)</span> 
+                    &nbsp;<span className="text-slate-400 font-normal">)</span>
                     <span className="ml-3 text-emerald-400">= {Math.min(ST2D[r1][c1][kx][ky], ST2D[r1][c2 - Ly + 1][kx][ky], ST2D[r2 - Lx + 1][c1][kx][ky], ST2D[r2 - Lx + 1][c2 - Ly + 1][kx][ky])}</span>
                   </div>
                </div>

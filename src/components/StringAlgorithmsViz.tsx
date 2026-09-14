@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useVizRuntime, vizArray, vizNumber, vizString } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from "lucide-react";
 
 function generateKmpSteps(pattern: string, text: string) {
@@ -92,10 +93,21 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
     const safePattern = pattern || " ";
     const safeText = text || " ";
 
-    const { s, steps, patternLength } = useMemo(() => {
+    const { s: demoString, steps, patternLength: demoPatternLength } = useMemo(() => {
        if (mode === "kmp") return generateKmpSteps(safePattern, safeText);
        else return generateZSteps(safePattern, safeText);
     }, [mode, safePattern, safeText]);
+    const runtime = useVizRuntime();
+    const runtimeString = vizString(runtime?.variables?.s);
+    const runtimePattern = vizString(runtime?.variables?.pattern);
+    const s = runtimeString ?? demoString;
+    // Длина образца: приоритет — переменная pattern из Python; иначе всё до
+    // разделителя "#" в склейке pattern#text; иначе вся строка (нет текста).
+    const patternLength = runtimePattern
+        ? runtimePattern.length
+        : runtimeString
+          ? (runtimeString.includes("#") ? runtimeString.indexOf("#") : runtimeString.length)
+          : demoPatternLength;
 
     const [autoPlay, setAutoPlay] = useState(false);
     const [stepIdx, setStepIdx] = useState(0);
@@ -125,7 +137,26 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
     const prevStep = () => { setAutoPlay(false); setStepIdx(i => Math.max(0, i - 1)); };
     const reset = () => { setAutoPlay(false); setStepIdx(0); };
 
-    const step = steps[stepIdx] || steps[0];
+    const baseStep = steps[stepIdx] || steps[0];
+    const vars = runtime?.variables;
+    const liveValues = vizArray(mode === "kmp" ? vars?.pi : vars?.z);
+    const hasLiveValues = !!vars && Object.prototype.hasOwnProperty.call(vars, mode === "kmp" ? "pi" : "z");
+    const liveI = vizNumber(vars?.i);
+    const liveJ = vizNumber(vars?.j);
+    const liveL = vizNumber(vars?.l);
+    const liveR = vizNumber(vars?.r);
+    const compilerLinked = liveI !== null || hasLiveValues;
+    const step = compilerLinked
+      ? {
+          ...baseStep,
+          i: liveI ?? baseStep.i,
+          j: liveJ ?? baseStep.j,
+          l: liveL ?? baseStep.l,
+          r: liveR ?? baseStep.r,
+          [mode === "kmp" ? "pi" : "z"]: hasLiveValues ? liveValues ?? [] : baseStep[mode === "kmp" ? "pi" : "z"],
+          desc: `Компилятор: i=${liveI ?? "—"}${mode === "kmp" ? `, j=${liveJ ?? "—"}` : `, [l,r]=[${liveL ?? "—"},${liveR ?? "—"}]`}.`,
+        }
+      : baseStep;
 
     return (
         <div className="space-y-4">
@@ -203,7 +234,7 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
 
                                 {/* Value array box */}
                                 <div className="text-[10px] bg-slate-800 text-amber-300 w-full text-center py-[2px] rounded border border-slate-700/50 font-mono font-bold">
-                                    {mode === "kmp" ? step.pi[index] : step.z[index]}
+                                    {(mode === "kmp" ? step.pi?.[index] : step.z?.[index]) ?? "·"}
                                 </div>
 
                                 {/* KMP fingers */}
