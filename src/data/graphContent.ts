@@ -145,7 +145,14 @@ def go(graph, start, tank):        # tank: список-стек или deque-о
 
     <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-indigo-500 scroll-mt-10">
         <h3 class="text-xl font-bold text-indigo-400 mb-4">Куда идти дальше</h3>
-        <p class="text-slate-300 text-sm leading-relaxed">База закрыта — теперь ею пользуются остальные билеты. Обзоры кратчайших путей живут в билетах 14–16 (Дейкстра, Форд-Беллман, Флойд), остовные деревья — в билетах 18–20, обходы и связность — в билетах 6–13, строки — в 21–23. Начинать удобно с билета 6: там DFS и BFS из пункта 7 работают на живом графе.</p>
+        <p class="text-slate-300 text-sm leading-relaxed">
+          База закрыта — теперь ею пользуются остальные билеты.
+          Кратчайшие пути живут в билетах 14–16 (<a data-goto="dijkstra" href="?topic=dijkstra" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Дейкстра</a>, <a data-goto="bellman-ford" href="?topic=bellman-ford" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Форд-Беллман</a>, <a data-goto="floyd" href="?topic=floyd" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Флойд</a>),
+          остовные деревья — в билетах 18–20 (<a data-goto="mst" href="?topic=mst" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Краскал, Прим, Борувка</a>),
+          обходы и связность — в билетах 6–13 (<a data-goto="graph-dfs-bfs" href="?topic=graph-dfs-bfs" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">DFS/BFS</a>, <a data-goto="scc-kosaraju" href="?topic=scc-kosaraju" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Косарайю</a>, <a data-goto="bridges-code" href="?topic=bridges-code" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Мосты</a>),
+          строки — в билетах 21–23 (<a data-goto="string-kmp" href="?topic=string-kmp" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">КМП</a>, <a data-goto="string-z-func" href="?topic=string-z-func" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Z-функция</a>, <a data-goto="aho-corasick" href="?topic=aho-corasick" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer">Ахо-Корасик</a>).
+          Начинать удобно с <a data-goto="graph-dfs-bfs" href="?topic=graph-dfs-bfs" class="text-indigo-300 hover:text-white underline font-semibold cursor-pointer font-bold">билета 6</a>: там DFS и BFS из пункта 7 работают на живом графе.
+        </p>
     </div>
 
     </div>

@@ -1170,8 +1170,12 @@ for (int i = 1; i < n; i++) {
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-purple-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-purple-400 mb-4">Границы невозможного</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-purple-500/30">
-                <p class="text-lg text-purple-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">P: Можно решить быстро (полином).<br>NP: Можно БЫСТРО ПРОВЕРИТЬ готовый ответ.<br>Сведение (Reduction) A->B: Если я умею решать B, я могу конвертнуть решение в A без потери времени.</p>
+                <p class="text-lg text-purple-300 italic mb-2">Строгое определение / Формула:</p>
+                <p class="text-base sm:text-lg font-mono text-white">
+                  <b>P</b>: класс decision-задач, решаемых за время O(n<sup>k</sup>).<br>
+                  <b>NP</b>: класс decision-задач с сертификатом полиномиальной длины, проверяемым за O(n<sup>k</sup>) (или НМТ за полином).<br>
+                  <b>Сведение (Reduction) A ≤<sub>p</sub> B</b>: трансформатор входа за O(n<sup>k</sup>). Если B ∈ P, то и A ∈ P.
+                </p>
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <!-- Аналогия 1 -->

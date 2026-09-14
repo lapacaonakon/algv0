@@ -19,7 +19,7 @@ export const tickets6to13: Chapter[] = [
             <h3 class="text-xl font-bold text-slate-300 mb-4">Матрица vs Списки смежности</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-slate-500/30">
                 <p class="text-lg text-slate-300 italic mb-2">Сложность хранения и обхода:</p>
-                <p class="text-xl font-mono text-white">Матрица: O(V^2) памяти. Обход за O(V^2).<br>Списки смежности: O(V + E). Обход за O(V + E).</p>
+                <p class="text-xl font-mono text-white">Матрица: O(V²) памяти. Обход за O(V²).<br>Списки смежности: O(V + E). Обход за O(V + E).</p>
             </div>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
@@ -45,17 +45,17 @@ export const tickets6to13: Chapter[] = [
                 <!-- Аналогия DFS -->
                 <div class="bg-slate-800 p-6 rounded-lg border border-indigo-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-indigo-900 text-indigo-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-indigo-500 shadow-md">
-                        🕵️‍♂️ DFS (Поиск в глубину) = Жадный лабиринт
+                        🕵️‍♂️ DFS (Поиск в глубину) = Обход с возвратом (Backtracking)
                     </div>
                     <p class="text-slate-300 text-sm mb-4">
-                        <b>Что делает:</b> Жадный алгоритм. Он прёт вперёд (вглубь) до упора. Берёт первую попавшуюся связанную непосещённую вершину (например, минимальную по номеру или по алфавиту) и идёт туда. Как только тупик — делает шаг назад по своим следам (рекурсивно) и пробует другой путь.
+                        <b>Что делает:</b> Поиск в глубину с возвратом (backtracking). Идёт вглубь по неисследованным рёбрам до упора. Когда попадает в тупик — делает шаг назад по стеку вызовов и пробует следующую ветку.
                     </p>
                     <ul class="text-xs text-indigo-300 list-disc list-inside space-y-1">
                         <li><b>Где используется:</b></li>
                         <li>Топологическая сортировка (Билет 9)</li>
-                        <li>Поиск мостов и точек сочленения (Билет 11, 12)</li>
-                        <li>Сильно связные компоненты Косарайю (Билет 10)</li>
-                        <li>Поиск циклов и просто проверка связности.</li>
+                        <li>Поиск мостов и точек сочленения (Билеты 11, 12)</li>
+                        <li>Компоненты сильной связности Косарайю (Билет 10)</li>
+                        <li>Детектирование циклов (через 3 цвета) и проверка связности.</li>
                     </ul>
                 </div>
                 
@@ -65,14 +65,14 @@ export const tickets6to13: Chapter[] = [
                         🌊 BFS (Поиск в ширину) = Волна
                     </div>
                     <p class="text-slate-300 text-sm mb-4">
-                        <b>Что делает:</b> Концентрические круги (слои). За один «ход» посещает ВСЕХ соседей. Потом всех соседей соседей. Работает через Очередь (FIFO). Продвигается медленно и ровно во все стороны, как круги по воде или лесной пожар.
+                        <b>Что делает:</b> Распространение волнами по слоям расстояния. За один шаг открывает всех соседей, затем соседей соседей. Работает через Очередь (FIFO). Гарантирует кратчайший путь по числу рёбер.
                     </p>
                     <ul class="text-xs text-emerald-300 list-disc list-inside space-y-1">
                         <li><b>Где используется:</b></li>
-                        <li>Кратчайший путь в Невзвешенном графе (лабиринт)</li>
-                        <li>Алгоритм Ахо-Корасик (сборка автоматов)</li>
-                        <li>Алгоритм Форда-Фалкерсона / Диница (Сложная теория)</li>
-                        <li>Двунаправленный поиск для ускорения Дейкстры.</li>
+                        <li>Кратчайший путь в Невзвешенном графе (лабиринт, граф ходов)</li>
+                        <li>Проверка двудольности графа (2-раскрашиваемость)</li>
+                        <li>Алгоритм Ахо-Корасик (построение суффиксных ссылок в боре)</li>
+                        <li>Двунаправленный BFS для ускорения поиска в невзвешенных графах (для взвешенных используется двунаправленная Дейкстра).</li>
                     </ul>
                 </div>
             </div>
@@ -83,7 +83,7 @@ export const tickets6to13: Chapter[] = [
                 </summary>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 text-xs font-mono text-slate-300">
                     <pre class="bg-slate-950 p-3 rounded overflow-x-auto border border-indigo-900/50">
-// DFS (Рекурсия)
+// DFS (Рекурсия с возвратом)
 vector&lt;bool&gt; vis;
 vector&lt;vector&lt;int&gt;&gt; adj;
 
@@ -94,12 +94,12 @@ void dfs(int v) {
     }
 }</pre>
                     <pre class="bg-slate-950 p-3 rounded overflow-x-auto border border-emerald-900/50">
-// BFS (Очередь)
+// BFS (Очередь FIFO)
 queue&lt;int&gt; q;
 q.push(start_node);
 vis[start_node] = true;
 
-while(!q.empty()) {
+while (!q.empty()) {
     int v = q.front(); q.pop();
     for (int u : adj[v]) {
         if (!vis[u]) {
@@ -118,7 +118,7 @@ while(!q.empty()) {
     id: "graph-planar-colors",
     title: "7. Графы. Планарные. Покраска",
     type: "html",
-    description: "Формула Эйлера и теорема о 4 красках.",
+    description: "Планарные графы: формула Эйлера, K5 и K3,3, оценки рёбер, раскраска вершин и Теорема о 4 красках.",
     category: "Графы. Теория",
     content: `
 <section id="graph-planar-colors" class="mb-12 scroll-mt-10">
@@ -128,18 +128,56 @@ while(!q.empty()) {
     </div>
     <div class="space-y-8">
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-blue-400 mb-4">Формула Эйлера</h3>
+            <h3 class="text-xl font-bold text-blue-400 mb-4">7.1 Планарность и формула Эйлера</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
-                <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">V - E + F = 2 (Вершины - Рёбра + Грани = 2).<br>Теорема о 4 красках: любой планарный граф можно раскрасить 4 цветами.</p>
+                <p class="text-lg text-blue-300 italic mb-2">Формула Эйлера (для связного плоского графа):</p>
+                <p class="text-2xl font-mono text-white">V − E + F = 2</p>
+                <p class="text-xs text-slate-400 mt-1">(V — вершины, E — рёбра, F — грани, включая внешнюю бесконечную грань)</p>
             </div>
-            <div class="grid grid-cols-1 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🗺️ Аналогия 1: Карта мира
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">Планарный граф — это обычная политическая карта мира на глобусе. Страны — грани. Границы не пересекаются в одной точке по-дурацки, они лежат на плоскости. И раскрасить такую карту, чтобы две соседние страны не сливались цветами, Всегда можно всего ТРЕМЯ-ЧЕТЫРЬМЯ банками краски!</p>
+
+            <div class="space-y-4 text-slate-300 text-sm">
+                <p><b>Главные неравенства на число рёбер:</b></p>
+                <ul class="list-disc list-inside space-y-2 ml-2">
+                    <li><b>Для простого планарного графа (при V ≥ 3):</b> <span class="font-mono text-emerald-300">E ≤ 3V − 6</span>.<br>
+                    <i>Доказательство:</i> Каждая грань ограничена хотя бы 3 рёбрами, поэтому <span class="font-mono">2E ≥ 3F ⇒ F ≤ 2E/3</span>. Подставляя в формулу Эйлера: <span class="font-mono">V − E + 2E/3 ≥ 2 ⇒ E ≤ 3V − 6</span>.
+                    </li>
+                    <li><b>Для простого двудольного планарного графа (при V ≥ 3):</b> <span class="font-mono text-emerald-300">E ≤ 2V − 4</span>.<br>
+                    <i>Доказательство:</i> В двудольном графе нет нечётных циклов, значит каждая грань ограничена хотя бы 4 рёбрами: <span class="font-mono">2E ≥ 4F ⇒ F ≤ E/2</span>. Из Эйлера: <span class="font-mono">V − E + E/2 ≥ 2 ⇒ E ≤ 2V − 4</span>.
+                    </li>
+                </ul>
+
+                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 my-4">
+                    <p class="text-amber-300 font-bold text-sm mb-2">🚨 Анализ двух критериев непланарности на экзамене:</p>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                      1. <b>K₅ (полный граф на 5 вершинах):</b> V = 5, E = 10. Проверяем <span class="font-mono">E ≤ 3V − 6</span>: <span class="font-mono">10 ≤ 3(5) − 6 = 9</span> — <b>НЕВЕРНО!</b> Следовательно K₅ непланарен.<br>
+                      2. <b>K₃,₃ (полный двудольный 3×3):</b> V = 6, E = 9. Проверяем <span class="font-mono">E ≤ 3V − 6</span>: <span class="font-mono">9 ≤ 12</span> — формально проходит! НО K₃,₃ — <i>двудольный</i>, поэтому проверяем <span class="font-mono">E ≤ 2V − 4</span>: <span class="font-mono">9 ≤ 2(6) − 4 = 8</span> — <b>НЕВЕРНО!</b> Следовательно K₃,₃ непланарен.
+                    </p>
                 </div>
+
+                <p><b>Теорема Куратовского (1930) / Вагнера:</b> Граф является планарным тогда и только тогда, когда он не содержит подграфа, являющегося <b>подразделением (subdivision) K₅ или K₃,₃</b> (или эквивалентно: не содержит K₅ или K₃,₃ в качестве минора).</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-purple-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-purple-400 mb-4">7.2 Раскраска вершин (Graph Coloring)</h3>
+            <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-purple-500/30">
+                <p class="text-lg text-purple-300 italic mb-2">Хроматическое число χ(G):</p>
+                <p class="text-xl font-mono text-white">минимальное число цветов для раскраски вершин без одноцветных ребер</p>
+            </div>
+
+            <div class="space-y-3 text-slate-300 text-sm">
+                <p><b>Сложность задачи раскраски:</b></p>
+                <ul class="list-disc list-inside space-y-2 ml-2">
+                    <li><b>k = 2 (2-раскрашиваемость):</b> задача проверки двудольности графа, решается за <b>полиномиальное время O(V + E)</b> обычным BFS/DFS обходом.</li>
+                    <li><b>k ≥ 3 (k-colorability):</b> задача является <b>NP-полной</b> (decision-задача: можно ли раскрасить в k цветов).</li>
+                </ul>
+
+                <p class="mt-3"><b>Теоремы о раскраске:</b></p>
+                <ul class="list-disc list-inside space-y-2 ml-2">
+                    <li><b>Жадная раскраска:</b> дает верхнюю оценку <span class="font-mono text-emerald-300">χ(G) ≤ Δ + 1</span>, где Δ — максимальная степень вершины.</li>
+                    <li><b>Теорема Брукса:</b> <span class="font-mono text-emerald-300">χ(G) ≤ Δ</span> для всех связных графов, кроме полных графов Kₙ и нечётных циклов C₂ₖ₊₁.</li>
+                    <li><b>Теорема о 4 красках:</b> Любой планарный граф можно раскрасить максимум <b>4 красками</b> (<span class="font-mono text-emerald-300">χ(G) ≤ 4</span>).</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -202,84 +240,6 @@ while(!q.empty()) {
                 </table>
             </div>
             <p class="text-slate-400 text-xs mt-3">Классическая ошибка: запустить BFS по орграфу «как по неориентированному» и назвать результат SCC. Обход из s даёт только вершины, достижимые <b>из</b> s; для SCC нужна достижимость в обе стороны.</p>
-
-            <h3 class="text-lg font-bold text-white mt-6 mb-3">8.3 Что с этим делают</h3>
-            <p class="text-slate-300 text-sm mb-3">Проверка связности сети («до всех ли серверов дойдёт обновление»), <b>flood fill</b> и разметка связных областей на изображении (пиксель = вершина, соседство 4 или 8 = рёбра), кластеризация по графу сходства, подсчёт «островов» в матрице 0/1, поиск частей электрической цепи, компонентный анализ в соцсетях, динамическая связность при добавлении рёбер (DSU), а в обратной стороне — при удалении рёбер (offline: разворачиваем время и добавляем удалённые рёбра в обратном порядке). Мосты (билет 11) и точки сочленения (билет 12) — это ровно про то, <b>удаление чего увеличивает число компонент</b>.</p>
-
-            <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-4">
-                <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
-                <p class="text-slate-400 text-sm mb-1">· <b>Компоненты связности и SCC</b>: первые — для неориентированных графов (или для «слабой» связности орграфа), вторые — только для ориентированных.</p>
-                <p class="text-slate-400 text-sm mb-1">· <b>DSU не умеет удалять рёбра</b>: union необратим. Нужны удаления — иди в offline-реверс времени или в динамическую связность (link-cut tree).</p>
-                <p class="text-slate-400 text-sm mb-1">· <b>Рекурсивный DFS на длинной цепочке</b> (V = 2·10⁵ в линию) роняет стек: нужен явный стек или увеличение лимита рекурсии.</p>
-                <p class="text-slate-400 text-sm">· <b>Число рёбер в связной компоненте из k вершин ≥ k − 1</b>: ровно k − 1 — это дерево; меньше быть не может, иначе компонента распадётся.</p>
-            </div>
-
-            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> обходами <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(V + E)</code>, DSU с эвристиками (сжатие пути + union by rank) — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(α(n))</code> на операцию, где α — обратная функция Аккермана (меньше 5 для всех практических n), то есть <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(E · α(V))</code> на все рёбра. Память <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(V)</code>.</p>
-
-            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
-                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Код: обходы и DSU (Скрыто)
-                </summary>
-                <div class="p-5 text-sm text-slate-300 space-y-4">
-                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800"># 1) Компоненты обходом в глубину: comp[v] = номер компоненты
-comp = [-1] * n
-c = 0
-for start in range(n):
-    if comp[start] != -1:
-        continue                       # уже покрашена — компонент не новый
-    c += 1                             # новый «прыжок через океан»
-    stack = [start]
-    comp[start] = c
-    while stack:                       # явный стек: не боимся длинных цепочек
-        v = stack.pop()
-        for to in graph[v]:
-            if comp[to] == -1:
-                comp[to] = c
-                stack.append(to)
-print("компонент:", c)
-
-# 2) То же BFS (удобно, когда нужен ещё и кратчайший «диаметр» компоненты)
-from collections import deque
-def bfs_component(start, color):
-    used[start] = True
-    comp[start] = color
-    dq = deque([start])
-    while dq:
-        v = dq.popleft()
-        for to in graph[v]:
-            if not used[to]:
-                used[to] = True
-                comp[to] = color
-                dq.append(to)
-
-# 3) DSU: компоненты при динамическом добавлении рёбер
-parent = list(range(n))
-rank = [0] * n
-comps = n                              # сколько компонент сейчас
-def find(v):
-    while parent[v] != v:
-        parent[v] = parent[parent[v]]  # сжатие пути
-        v = parent[v]
-    return v
-def union(a, b):
-    global comps
-    ra, rb = find(a), find(b)
-    if ra == rb:
-        return False                   # уже в одной компоненте (цикл!)
-    if rank[ra] &lt; rank[rb]:
-        ra, rb = rb, ra
-    parent[rb] = ra
-    if rank[ra] == rank[rb]:
-        rank[ra] += 1
-    comps -= 1
-    return True
-
-for u, v in edges:
-    union(u, v)
-print("компонент после всех рёбер:", comps)</pre>
-                    <p class="text-slate-400 text-xs">Тот же find/union — сердце Краскала (билет 18): ребро идёт в остов, только если union вернул True.</p>
-                </div>
-            </details>
         </div>
     </div>
 </section>`,
@@ -288,7 +248,7 @@ print("компонент после всех рёбер:", comps)</pre>
     id: "top-sort",
     title: "9. Графы. Топологическая сортировка",
     type: "html",
-    description: "Разложение задач по порядку выполнения",
+    description: "Топологическая сортировка ДАГ и детекция циклов через 3 цвета.",
     category: "Графы",
     content: `
 <section id="top-sort" class="mb-12 scroll-mt-10">
@@ -298,7 +258,7 @@ print("компонент после всех рёбер:", comps)</pre>
     </div>
     <div class="space-y-8">
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-blue-400 mb-4">Квест-цепочка</h3>
+            <h3 class="text-xl font-bold text-blue-400 mb-4">Упорядочивание ДАГ</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
                 <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
                 <p class="text-xl font-mono text-white">DFS с сохранением вершин в стек В МОМЕНТ ВЫХОДА (post-order). Вывод: стек задом-наперед.</p>
@@ -318,35 +278,56 @@ print("компонент после всех рёбер:", comps)</pre>
                 </div>
             </div>
 
-            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
+            <div class="bg-rose-950/40 p-4 rounded-lg border border-rose-500/50 my-6">
+                <p class="text-rose-300 font-bold text-sm mb-1">🚨 ОПАСНОСТЬ НА ЭКЗАМЕНЕ: Простой bool visited НЕ ЛОВИТ циклы!</p>
+                <p class="text-slate-300 text-xs leading-relaxed">
+                  Обычный массив <span class="font-mono text-amber-300">bool visited[N]</span> отличает лишь «был ли в вершине вообще». Если в графе есть ориентированный цикл, код с bool visited молча выдаст некорректный ответ, не заметив проблему!<br>
+                  <b>Правильно:</b> используем раскраску в 3 цвета:
+                  <br>• <span class="font-mono text-slate-400">0 (белый)</span> — еще не посещали;
+                  <br>• <span class="font-mono text-amber-300">1 (серый)</span> — зашли, вершина прямо сейчас лежит в стеке рекурсии DFS;
+                  <br>• <span class="font-mono text-emerald-300">2 (чёрный)</span> — полностью обработали и вышли.
+                  <br>Если во время обхода из серы вершины мы встречаем рёбрышко в <b>серую</b> вершину (color == 1) — это обратное ребро и <b>гарантированный цикл</b>!
+                </p>
+            </div>
+
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-4">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Душный мод: Код на C++ (Скрыто)
+                    🔍 Корректный код C++ с детекцией цикла (Скрыто)
                 </summary>
-                <div class="p-5 text-sm text-slate-300 space-y-4" onClick="event.stopPropagation()">
-                    <p class="text-indigo-400 font-bold">Обход в глубину с разворотом списка:</p>
-                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 overflow-x-auto">
-                        <pre class="text-xs font-mono text-emerald-400 whitespace-pre">
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-emerald-400 whitespace-pre">
 vector&lt;int&gt; adj[MAXN];
-bool visited[MAXN];
+int color[MAXN]; // 0=белый, 1=серый (в стеке), 2=чёрный
 vector&lt;int&gt; ans;
+bool has_cycle = false;
 
 void dfs(int v) {
-    visited[v] = true;
+    color[v] = 1; // Зашли — вершина серая
     for (int to : adj[v]) {
-        if (!visited[to]) {
+        if (color[to] == 0) {
             dfs(to);
+            if (has_cycle) return;
+        } else if (color[to] == 1) {
+            // Переход в серую вершину = НАЙДЕН ЦИКЛ!
+            has_cycle = true;
+            return;
         }
     }
-    ans.push_back(v); // Добавляем в момент ВЫХОДА (post-order)
+    color[v] = 2; // Вышли — вершина чёрная
+    ans.push_back(v); // Сохраняем в момент ВЫХОДА (post-order)
 }
 
-void topological_sort(int n) {
-    for (int i = 0; i &lt; n; ++i) {
-        if (!visited[i]) dfs(i);
+bool topological_sort(int n) {
+    fill(color, color + n + 1, 0);
+    has_cycle = false;
+    ans.clear();
+    for (int i = 1; i &lt;= n; ++i) {
+        if (color[i] == 0) dfs(i);
     }
-    reverse(ans.begin(), ans.end()); // Разворачиваем стек
+    if (has_cycle) return false; // Граф содержит цикл!
+    reverse(ans.begin(), ans.end()); // Разворачиваем post-order
+    return true;
 }</pre>
-                    </div>
                 </div>
             </details>
         </div>
@@ -380,44 +361,18 @@ void topological_sort(int n) {
             <p class="text-slate-300 text-sm mb-4">
                 <strong>«Это просто цикл?» — Нет!</strong> SCC — это <em>максимальная</em> группа, где каждый может дойти до каждого.
             </p>
-            <ul class="list-disc list-inside text-sm text-slate-300 space-y-2 mb-6">
-                <li>Если у тебя есть цикл <code>А ➔ Б ➔ В ➔ А</code>, это одна SCC.</li>
-                <li>Если ты добавишь вершину <strong>Г</strong> и стрелки <code>В ➔ Г</code> и <code>Г ➔ А</code>, то теперь <strong>все четыре вершины — одна большая SCC</strong>.</li>
-                <li>Правило: <b>Если два цикла имеют хоть одну общую вершину — они сливаются в одну огромную SCC!</b></li>
-            </ul>
-
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🏙️ Аналогия: Интриги в офисе
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        Сильная связность — это "клуб сплетников". Если Алиса расскажет секрет Бобу, Боб — Виктору, а Виктор — Алисе, то они в одной SCC. Добавить курьера Гошу, который слышит от Виктора, а сливает Алисе — и Гоша тоже в клубе. Из клуба инфа может уйти наружу (к директору), но обратно в клуб уже не вернется (иначе директор стал бы частью клуба).
-                    </p>
-                </div>
-
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🔗 Связь с Билетом 12
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        <b>SCC (Билет 10)</b> склеивает <em>орграфы</em> в большие "монолитные комки", превращая весь граф в DAG (пользу).</br><br>
-                        <b>Точки сочленения (Билет 12)</b>, наоборот, живут в <em>неориентированных графах</em> и показывают <strong>хрупкость</strong> монолита. Вырвешь точку сочленения — и "комната" распадется на разрозненные куски (разрыв связности).
-                    </p>
-                </div>
-            </div>
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Душный мод: Код Алгоритм Косарайю (Скрыто)
+                    🔍 Код: Алгоритм Косарайю (Скрыто)
                 </summary>
-                <div class="p-5 text-sm text-slate-300 space-y-4 cursor-default" onClick="event.stopPropagation()">
+                <div class="p-5 text-sm text-slate-300 space-y-4">
                     <p class="text-emerald-400 font-bold">Два прохода DFS:</p>
                     <ol class="list-decimal list-inside space-y-2">
                         <li>Запускаем DFS на исходном графе. По выходу из вершины (post-order) добавляем её в список <code>order</code>.</li>
-                        <li>Разворачиваем этот список (Topological Sort).</li>
-                        <li>Переворачиваем все ребра в графе (Транспонированный граф).</li>
-                        <li>Идем по <code>order</code>: если вершина не посещена, запускаем от неё DFS. Все, до кого дойдем — это одна SCC!</li>
+                        <li>Разворачиваем этот список (получаем порядок убывания времени выхода — reverse postorder). <i>Замечание:</i> Это <b>не</b> топологическая сортировка самого графа (поскольку граф содержит циклы!), но этот порядок является топосортом для DAG конденсации.</li>
+                        <li>Переворачиваем все ребра в графе (Транспонированный граф Gᵀ).</li>
+                        <li>Идем по <code>order</code>: если вершина не посещена в Gᵀ, запускаем от неё DFS. Все вершины, достигнутые за этот запуск — образуют очередную SCC!</li>
                     </ol>
                 </div>
             </details>
@@ -429,7 +384,7 @@ void topological_sort(int n) {
     id: "graph-bridges",
     title: "11. Графы. Мосты",
     type: "html",
-    description: "Рёбра, удаление которых расхреначивает граф.",
+    description: "Рёбра, удаление которых увеличивает число компонент связности.",
     category: "Графы. Продвинутые",
     content: `
 <section id="graph-bridges" class="mb-12 scroll-mt-10">
@@ -441,17 +396,46 @@ void topological_sort(int n) {
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-rose-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-rose-400 mb-4">Критические связи</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-rose-500/30">
-                <p class="text-lg text-rose-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Используем tin и fup (время входа и минимальное достижимое). Ребро (u,v) мост, если fup[v] > tin[u].</p>
+                <p class="text-lg text-rose-300 italic mb-2">Строгое правило / Условие Тарьяна:</p>
+                <p class="text-xl font-mono text-white">Ребро (u, v) — мост ⇔ low[v] &gt; tin[u]</p>
+                <p class="text-xs text-slate-400 mt-1">(Из поддерева v нельзя подняться в u или выше по обратным рёбрам)</p>
             </div>
-            <div class="grid grid-cols-1 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🌉 Аналогия 1: Единственный мост
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">Представь два острова с единственным мостом между ними. Если террористы взорвут этот мост, экономикой обоих кусков придет хана, связи нет. Алгоритм ищет именно такие "Слабые звенья" в сети!</p>
+
+            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 my-4">
+                <p class="text-amber-300 font-bold text-sm mb-1">🚨 Мультиграфы с параллельными рёбрами:</p>
+                <p class="text-slate-300 text-xs leading-relaxed">
+                  Проверка <span class="font-mono text-rose-400">if (to == p) continue;</span> правильна только для простых графов! В мультиграфе между u и p может быть 2 параллельных ребра. Игнорируя все переходы в p, код посчитает эти рёбра мостами, хотя они образуют цикл длиной 2.<br>
+                  <b>Решение:</b> передавать в DFS не вершину-родителя <span class="font-mono">p</span>, а <span class="font-mono text-emerald-300">p_edge_id</span> (индекс ребра, по которому пришли) и пропускать ТОЛЬКО это единственное ребро.
+                </p>
+            </div>
+
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-4">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🔍 Код поиска мостов C++ (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-emerald-400 whitespace-pre">
+// Для мультиграфа с edge_id:
+vector&lt;pair&lt;int, int&gt;&gt; adj[MAXN]; // {to, edge_id}
+int tin[MAXN], low[MAXN], timer;
+
+void dfs_bridges(int v, int p_edge_id = -1) {
+    tin[v] = low[v] = ++timer;
+    for (auto [to, edge_id] : adj[v]) {
+        if (edge_id == p_edge_id) continue; // Пропускаем только РОВНО то ребро, по которому пришли!
+        if (tin[to]) {
+            low[v] = min(low[v], tin[to]); // Обратное ребро
+        } else {
+            dfs_bridges(to, edge_id);
+            low[v] = min(low[v], low[to]);
+            if (low[to] &gt; tin[v]) {
+                // Ребро (v, to) с номером edge_id является МОСТОМ!
+            }
+        }
+    }
+}</pre>
                 </div>
-            </div>
+            </details>
         </div>
     </div>
 </section>`,
@@ -460,13 +444,13 @@ void topological_sort(int n) {
     id: "graph-articulation",
     title: "12. Графы. Точки сочленения",
     type: "html",
-    description: "Вершины, удаление которых убивает связь.",
+    description: "Вершины, удаление которых увеличивает число компонент связности.",
     category: "Графы. Продвинутые",
     content: `
 <section id="graph-articulation" class="mb-12 scroll-mt-10">
     <div class="flex items-center mb-6 flex-wrap gap-3">
         <span class="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Билет 12</span>
-        <h2 class="text-2xl sm:text-3xl font-bold text-white">Точки сочленения (Хрупкость)</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">Точки сочленения</h2>
     </div>
     
     <div class="space-y-8">
@@ -474,118 +458,116 @@ void topological_sort(int n) {
             <h3 class="text-xl font-bold text-rose-400 mb-4">12.1 Бутылочное горлышко графа</h3>
             
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-rose-500/30">
-                <p class="text-lg text-rose-300 italic mb-2">Строгое правило (через DFS Тарьяна):</p>
+                <p class="text-lg text-rose-300 italic mb-2">Условие Тарьяна (в неориентированном графе):</p>
                 <div class="text-left font-mono text-sm text-slate-300 space-y-3 max-w-xl mx-auto">
                     <p><strong class="text-white">Точка сочленения (Cut Vertex)</strong> — вершина неориентированного графа, удаление которой увеличивает число компонент связности.</p>
                     <div class="p-3 bg-slate-950 rounded border border-rose-500/30 text-center">
-                        <span class="text-rose-400 font-bold">УСЛОВИЕ (не для корня DFS):</span>
-                        <p class="text-xl font-bold text-white mt-1">low[to] >= tin[v]</p>
-                        <p class="text-xs text-slate-400 mt-1">(Из сына "to" нельзя подняться СТРОГО выше "v")</p>
+                        <span class="text-rose-400 font-bold">Для вершины v (не являющейся корнем DFS):</span>
+                        <p class="text-xl font-bold text-white mt-1">low[to] ≥ tin[v]</p>
+                        <p class="text-xs text-slate-400 mt-1">(Из сына to нельзя подняться СТРОГО выше v)</p>
                     </div>
                 </div>
             </div>
             
             <p class="text-slate-300 text-sm">
-                <strong>Важно:</strong> Это работает только в неориентированных грахах! Если мосты рвут связи между островами, то мосты крепятся к точкам сочленения. То есть, <strong>все точки вокруг мостов — это точки сочленения</strong> (кроме случаев, когда берег - это тупик со степенью 1).
+                <b>Особый случай:</b> Корень дерева DFS является точкой сочленения тогда и только тогда, когда у него <b>больше 1 независимого ребёнка</b> в дереве DFS.
             </p>
-        </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                <div class="absolute -top-3 left-4 bg-slate-700 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                    🚦 Аналогия: Главный перекресток
-                </div>
-                <p class="text-slate-300 text-sm mb-4">
-                    Представь город, где два района соединены только одной площадью (перекрестком). Если на этой площади случится авария и её перекроют (удалят вершину) — районы будут полностью отрезаны друг от друга. Эта площадь — точка сочленения. Это про <strong>хрупкость</strong> системы.
-                </p>
-            </div>
-            
-            <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-emerald-500/50 relative pt-8">
-                <div class="absolute -top-3 left-4 bg-emerald-900 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                    🔌 Телеком: Центральный свитч
-                </div>
-                <p class="text-slate-300 text-sm mb-4">
-                    У тебя несколько компьютеров в одном кабинете подключены к свитчу А, а в другом — к свитчу Б. И эти свитчи соединены кабелем (мостом). Сами свитчи — это точки сочленения. Сгорел свитч А — весь кабинет номер один выпал из сети, граф распался!
-                </p>
-            </div>
-        </div>
-
-        <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
-            <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                🔍 Душный мод: Код и корень DFS (Скрыто)
-            </summary>
-            <div class="p-5 text-sm text-slate-300 space-y-4 cursor-default" onClick="event.stopPropagation()">
-                <p class="text-blue-400 font-bold">Особый случай: Корень дерева DFS.</p>
-                <p>
-                    Для стартовой вершины обхода правило <code class="text-rose-400">low[to] >= tin[v]</code> выполняется ВСЕГДА (потому что выше неё прыгать некуда). Поэтому для неё отдельное правило: корень является точкой сочленения тогда и только тогда, когда у него <strong>больше 1 независимого ребенка</strong> в дереве DFS.
-                </p>
-                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 overflow-x-auto">
-                    <pre class="text-xs font-mono text-emerald-400 whitespace-pre">
-void dfs(int v, int p = -1) {
-    visited[v] = true;
-    tin[v] = low[v] = timer++;
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🔍 Код поиска точек сочленения (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-emerald-400 whitespace-pre">
+void dfs_cutpoints(int v, int p = -1) {
+    tin[v] = low[v] = ++timer;
     int children = 0;
-    
     for (int to : adj[v]) {
         if (to == p) continue;
-        if (visited[to]) {
+        if (tin[to]) {
             low[v] = min(low[v], tin[to]);
         } else {
-            dfs(to, v);
+            dfs_cutpoints(to, v);
             low[v] = min(low[v], low[to]);
-            if (low[to] >= tin[v] && p != -1)
-                IS_CUTPOINT(v);
+            if (low[to] &gt;= tin[v] && p != -1) {
+                is_cutpoint[v] = true;
+            }
             ++children;
         }
     }
-    if (p == -1 && children > 1)
-        IS_CUTPOINT(v);
+    if (p == -1 && children &gt; 1) {
+        is_cutpoint[v] = true;
+    }
 }</pre>
                 </div>
-            </div>
-        </details>
-
-        <div class="bg-indigo-950/60 p-6 rounded-xl border-l-4 border-indigo-500 mt-6">
-            <h4 class="text-lg font-bold text-indigo-400 mb-2">🧠 Взаимосвязь с Компонентами сильной связности (SCC) из Билета 10</h4>
-            <p class="text-slate-300 text-sm mb-4">
-                Это глубокий дуальный мост между ориентированными и неориентированными графами:
-            </p>
-            <ul class="list-disc list-inside text-sm text-slate-300 space-y-2">
-                <li><strong class="text-rose-400">Точки сочленения (Билет 12)</strong> определены на <strong>неориентированных графах</strong> и показывают физическую уязвимость связей — вынь одну вершину, и весь континент распадется на изолированные осколки.</li>
-                <li><strong class="text-emerald-400">SCC (Билет 10)</strong> склеивают <strong>ориентированные циклы</strong> в единые независимые "конгломераты".</li>
-                <li><strong>Как точка сочленения рушит SCC? (Конденсация графа)</strong> Если любой орграф максимально сжать по алгоритму Косарайю, свернув каждую SCC в одну супер-вершину, мы получим ациклический граф (DAG). Если мы снимем направление с его ребер (сделаем неориентированным), то любая <strong class="text-indigo-400">точка сочленения</strong> в этом полученном скелете — это и есть критическая SCC! Если удалить эту супер-вершину, то рухнет глобальный маршрут между другими клубами сильной связности. Одно слабое звено изолирует целые касты SCC навсегда.</li>
-            </ul>
+            </details>
         </div>
     </div>
 </section>`,
   },
   {
     id: "graph-euler",
-    title: "13. Графы. Эйлеров цикл",
+    title: "13. Графы. Эйлеров путь и цикл",
     type: "html",
-    description: "Пройти по всем ребрам ровно 1 раз.",
+    description: "Условия существования и построение Эйлерова пути/цикла в неориентированных и ориентированных графах.",
     category: "Графы",
     content: `
 <section id="graph-euler" class="mb-12 scroll-mt-10">
     <div class="flex items-center mb-6 flex-wrap gap-3">
         <span class="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold">Билет 13</span>
-        <h2 class="text-2xl sm:text-3xl font-bold text-white">Эйлеров цикл</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">Эйлеров путь и цикл</h2>
     </div>
     <div class="space-y-8">
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-indigo-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-indigo-400 mb-4">Кругосветка без повторений</h3>
+            <h3 class="text-xl font-bold text-indigo-400 mb-4">13.1 Критерии существования (ОБЯЗАТЕЛЬНО со связностью!)</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-indigo-500/30">
-                <p class="text-lg text-indigo-300 italic mb-2">Строгое правило / Формула (Неорграф):</p>
-                <p class="text-xl font-mono text-white">Связный, все вершины четной степени. Цикл: 0 нечетных. Путь: ровно 2 нечетных.</p>
+                <p class="text-lg text-indigo-300 italic mb-2">Главное базовое условие:</p>
+                <p class="text-base sm:text-lg font-mono text-white">Все вершины со степенями &gt; 0 должны лежать в ОДНОЙ компоненте связности!</p>
             </div>
-            <div class="grid grid-cols-1 gap-6">
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🎨 Аналогия 1: Рисование не отрывая руки
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">Классическая детская задача "нарисуй домик, не отрывая карандаш". Если в вершине сходится нечетное число линий, значит, из неё можно или только выйти, или только войти так, чтобы застрять навечно. Для цикла везде должно быть четное число (зашел-вышел).</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-300 text-sm">
+                <!-- Неориентированные графы -->
+                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700">
+                    <p class="text-indigo-300 font-bold text-base mb-2">Неориентированный граф</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><b>Эйлеров цикл:</b> связен (для deg &gt; 0) и степеням <b>всех</b> вершин ЧЁТНЫЕ (<span class="font-mono text-emerald-300">deg[v] % 2 == 0</span>).</li>
+                        <li><b>Эйлеров путь:</b> связен (для deg &gt; 0) и ровно <b>0 или 2 вершины</b> имеют НЕЧЁТНУЮ степень. (Если ровно 2 — путь начинается в одной нечётной и заканчивается в другой).</li>
+                    </ul>
+                </div>
+
+                <!-- Ориентированные графы -->
+                <div class="bg-slate-800 p-5 rounded-lg border border-slate-700">
+                    <p class="text-indigo-300 font-bold text-base mb-2">Ориентированный граф</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><b>Эйлеров цикл:</b> слабосвязен (для in+out &gt; 0) и для <b>всех</b> вершин <span class="font-mono text-emerald-300">in[v] == out[v]</span>.</li>
+                        <li><b>Эйлеров путь:</b> слабосвязен и ровно у одной вершины <span class="font-mono text-emerald-300">out[s] − in[s] = 1</span> (старт), у одной <span class="font-mono text-emerald-300">in[f] − out[f] = 1</span> (финиш), а для остальных <span class="font-mono text-emerald-300">in[v] == out[v]</span>.</li>
+                    </ul>
                 </div>
             </div>
+
+            <h3 class="text-lg font-bold text-white mt-8 mb-3">13.2 Алгоритм построения (Hierholzer)</h3>
+            <p class="text-slate-300 text-sm mb-3">Используем рекурсивный DFS с удалением пройденных рёбер. Вход в вершину → удаляем ребро → рекурсивный переход. При возврате (на выходе) добавляем вершину в стек. В конце стек содержит Эйлеров путь/цикл. Время работы: <span class="font-mono text-emerald-300">O(V + E)</span>.</p>
+
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-4">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🔍 Код построения Эйлерова цикла C++ (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-emerald-400 whitespace-pre">
+vector&lt;unordered_multiset&lt;int&gt;&gt; adj;
+vector&lt;int&gt; path;
+
+void find_euler(int v) {
+    while (!adj[v].empty()) {
+        int u = *adj[v].begin();
+        adj[v].erase(adj[v].find(u));
+        adj[u].erase(adj[u].find(v)); // Убираем ребро из обоих списков!
+        find_euler(u);
+    }
+    path.push_back(v); // Добавляем в путь на выходе!
+}</pre>
+                </div>
+            </details>
         </div>
     </div>
 </section>`,

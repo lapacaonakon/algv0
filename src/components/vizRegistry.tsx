@@ -15,7 +15,6 @@ import { HeapViz } from "./HeapViz";
 import { JohnsonViz } from "./JohnsonViz";
 import { KosarajuViz } from "./KosarajuViz";
 import { KruskalSimulator } from "./KruskalSimulator";
-import MnemonicCards from "./MnemonicCards";
 import { PlanarColoringViz } from "./PlanarColoringViz";
 import { QueueViz } from "./QueueViz";
 import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
@@ -25,7 +24,6 @@ import { StackViz } from "./StackViz";
 import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
 import { WaterfallAnimationWidget } from "./WaterfallAnimationWidget";
-import ChapterImage from "./ChapterImage";
 import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
@@ -92,7 +90,7 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
   },
   "splay-tree": {
     title: "Splay: механика → большое дерево → собери сам",
-    hint: "Три вкладки: покадровая механика поворотов в своём темпе, те же случаи на большом дереве (каждый одиночный поворот — кадры), и песочница «подними узел сам» с проверкой порядка.",
+    hint: "Три вкладки: покадровая механика поворотов в своём темпе, те же случаи на большим дереве (каждый одиночный поворот — кадры), и песочница «подними узел сам» с проверкой порядка.",
     Component: SplayPlayground,
   },
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
@@ -109,30 +107,15 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
   dijkstra: {
     title: "Дейкстра",
     hint: "Жадно забираем ближайшую вершину и релаксируем её рёбра.",
-    Component: () => (
-      <>
-        <ChapterImage vizType="dijkstra" />
-        <DijkstraViz />
-      </>
-    ),
+    Component: DijkstraViz,
   },
   "bellman-ford": {
     title: "Форд—Беллман",
-    Component: () => (
-      <>
-        <ChapterImage vizType="bellman-ford" />
-        <BellmanFordViz />
-      </>
-    ),
+    Component: BellmanFordViz,
   },
   floyd: {
     title: "Флойд—Уоршелл",
-    Component: () => (
-      <>
-        <ChapterImage vizType="floyd" />
-        <FloydViz />
-      </>
-    ),
+    Component: FloydViz,
   },
   "johnson-algo": { title: "Алгоритм Джонсона", Component: JohnsonViz },
   mst: {
@@ -162,7 +145,11 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
       </div>
     ),
   },
-  intro: { title: "Мнемокарточки", Component: MnemonicCards },
+  intro: {
+    title: "Интерактивный симулятор базовых структур: стек, очередь, куча",
+    hint: "Проверь LIFO, FIFO и приоритетную очередь на живых примерах.",
+    Component: Simulator,
+  },
   "everyday-basics": {
     title: "Бытовой тренажёр: стек, очередь, куча",
     hint: "Тарелки, очередь в столовой и мешок гипотез — три базовые структуры на житейских примерах.",

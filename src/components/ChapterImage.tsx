@@ -5,8 +5,8 @@ import floydImg from '../assets/floyd-network.jpg';
 const imageMap: Record<string, { src: string; alt: string; caption: string; borderColor: string; captionColor: string }> = {
   dijkstra: {
     src: dijkstraImg,
-    alt: 'Добрый Дейкстра',
-    caption: '😇 Добрый — только позитив!',
+    alt: 'Фриказоид (Декстер Дуглас)',
+    caption: '⚡ Фриказоид (Декстер Дуглас) — работает только с неотрицательными весами!',
     borderColor: 'border-blue-500/30',
     captionColor: 'text-blue-400',
   },
