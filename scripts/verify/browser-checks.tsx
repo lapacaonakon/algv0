@@ -1031,6 +1031,20 @@ export async function runSuite({ py }: { py: Py }): Promise<TestResult[]> {
     return `${txt.length} знаков, ссылок в lite ${liteLinks.length}, блиц напечатан, навигации и компилятора нет`;
   });
 
+  await test("G. lite-режим", "HTML-книга: оглавление, якоря всех глав и словарик", async () => {
+    const { buildBookHtml } = await import("../../src/utils/exportHtml");
+    const html = await buildBookHtml(chapters);
+    if (!html.includes('<nav id="toc"')) throw new Error("в книге нет оглавления");
+    const missing = chapters.filter((c) => !html.includes(`id="ch-${c.id}"`));
+    if (missing.length) throw new Error(`в книге потерялись главы: ${missing.map((c) => c.id).join(", ")}`);
+    const tocLinks = (html.match(/href="#ch-/g) ?? []).length;
+    if (tocLinks < chapters.length) throw new Error(`ссылок оглавления ${tocLinks} меньше числа глав ${chapters.length}`);
+    if (!/Словарик терминов пособия/.test(html)) throw new Error("в книге нет сквозного словарика");
+    if (!/↑ к оглавлению/.test(html)) throw new Error("у глав нет возврата к оглавлению");
+    if (html.length < 200_000) throw new Error(`книга подозрительно мала: ${html.length} знаков`);
+    return `${(html.length / 1024).toFixed(0)} КБ, глав ${chapters.length}, ссылок оглавления ${tocLinks}`;
+  });
+
   console.error = realConsoleError;
   return results;
 }

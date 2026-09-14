@@ -107,6 +107,13 @@ for (const id of ids) {
   }
 }
 
+const manifest = fs
+  .readdirSync(OUT_DIR)
+  .filter((f) => /\.(png|jpe?g)$/i.test(f))
+  .sort()
+  .map((f) => ({ file: f, name: f.replace(/\.(png|jpe?g)$/i, "").split("--")[1] ?? "" }));
+fs.writeFileSync(path.join(OUT_DIR, "manifest.json"), JSON.stringify(manifest, null, 1));
+
 await browser.close();
 console.log(`[export:shots] снимков: ${done}, пропусков: ${failed} → ${path.relative(ROOT, OUT_DIR)}`);
 // Пропущенные страницы не повод ронять пайплайн: PDF для них печатает

@@ -53,6 +53,14 @@ a.term-hint { text-decoration: none; }
 .export-term .formal { color: #94a3b8; font-size: .8rem; }
 .export-term .cx { color: #6ee7b7; font-size: .78rem; font-family: ui-monospace, monospace; }
 .export-foot { margin-top: 3rem; border-top: 1px solid #1e293b; padding-top: 1rem; font-size: .72rem; color: #475569; }
+body { font-size: 15px; line-height: 1.6; }
+.export-shell p, .export-shell li { line-height: 1.65; }
+.export-shell pre { font-size: 12px; line-height: 1.5; }
+.export-figs { margin: 0 0 1.6rem; }
+.export-figs-title { color: #e2e8f0; font-size: .95rem; font-weight: 700; margin: 0 0 .6rem; }
+.export-fig { margin: 0 0 .9rem; }
+.export-fig img { width: 100%; border: 1px solid #1e293b; border-radius: .5rem; background: #020617; }
+.export-fig figcaption { color: #94a3b8; font-size: .75rem; margin-top: .3rem; }
 @media print {
   body { background: #fff; color: #0f172a; }
   .export-note, details { break-inside: avoid; }
@@ -118,7 +126,7 @@ function prepareBody(html: string, opts: { selfId?: string; ticketAnchors?: bool
   return { body: host.innerHTML, termIds: ids };
 }
 
-function glossarySection(termIds: string[]): string {
+function glossarySection(termIds: string[], book = false): string {
   if (!termIds.length) return "";
   const items = termIds
     .map((id) => {
@@ -134,7 +142,7 @@ function glossarySection(termIds: string[]): string {
     .join("\n");
 
   return `<section class="export-gloss">
-  <h2>Словарик терминов из этой темы</h2>
+  <h2>${book ? "Словарик терминов пособия" : "Словарик терминов из этой темы"}</h2>
   <p style="font-size:.8rem;color:#94a3b8;margin:0 0 1rem">В приложении эти слова всплывают по наведению курсора. В офлайн-файле они собраны сюда.</p>
   ${items}
 </section>`;
@@ -209,6 +217,45 @@ async function inlineImages(html: string): Promise<string> {
   return doc.body.innerHTML;
 }
 
+/**
+ * Кадры визуализаций: книга встраивает снимки демонстраций, чтобы автономный
+ * файл показывал, что крутилось в приложении. Снимки делает CI
+ * (capture-viz-shots.mjs) и публикует в /export/viz-shots/ вместе с манифестом;
+ * без них (офлайн-сборка, локальный дев) книга остаётся текстовой — это
+ * нормально и молча пропускается.
+ */
+async function vizFigures(chapterId: string): Promise<string> {
+  try {
+    const base = import.meta.env.BASE_URL || "/";
+    const manifestRes = await fetch(`${base}export/viz-shots/manifest.json`);
+    if (!manifestRes.ok) return "";
+    const manifest = (await manifestRes.json()) as { file: string; name: string }[];
+    const mine = manifest.filter((m) => m.file === `${chapterId}.png` || m.file.startsWith(`${chapterId}--`));
+    const figures: string[] = [];
+    for (const m of mine.slice(0, 4)) {
+      const res = await fetch(`${base}export/viz-shots/${m.file}`);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      if (blob.size > 3_000_000) continue;
+      const data = await new Promise<string>((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(String(fr.result));
+        fr.onerror = () => reject(fr.error);
+        fr.readAsDataURL(blob);
+      });
+      figures.push(
+        `<figure class="export-fig"><img src="${data}" alt="${escapeHtml(m.name || chapterId)}" />` +
+          `<figcaption>${m.name ? `Режим «${escapeHtml(m.name)}»` : "Визуализация темы"}</figcaption></figure>`
+      );
+    }
+    return figures.length
+      ? `<div class="export-figs"><h3 class="export-figs-title">Как выглядит демонстрация</h3>${figures.join("")}</div>`
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 function triggerDownload(html: string, filename: string) {
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -228,12 +275,12 @@ function safeName(title: string, id: string): string {
   return `${num ? String(num).padStart(2, "0") + "-" : ""}${base}.html`;
 }
 
-/** Выгрузить одну главу. */
-export async function downloadChapterHtml(chapter: Chapter): Promise<void> {
+/** Собрать автономный HTML одной главы. */
+export async function buildChapterHtml(chapter: Chapter): Promise<string> {
   const css = await collectCss();
   const { body: rawBody, termIds } = prepareBody(chapter.content);
-  const body = await inlineImages(rawBody);
-  const html = wrap({
+  const body = (await vizFigures(chapter.id)) + (await inlineImages(rawBody));
+  return wrap({
     title: chapter.title,
     subtitle: chapter.category || "Универсальное пособие",
     css,
@@ -241,11 +288,15 @@ export async function downloadChapterHtml(chapter: Chapter): Promise<void> {
     gloss: glossarySection(termIds),
     origin: window.location.origin,
   });
-  triggerDownload(html, safeName(chapter.title, chapter.id));
 }
 
-/** Выгрузить всё пособие одним файлом со сквозным оглавлением. */
-export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
+/** Выгрузить одну главу. */
+export async function downloadChapterHtml(chapter: Chapter): Promise<void> {
+  triggerDownload(await buildChapterHtml(chapter), safeName(chapter.title, chapter.id));
+}
+
+/** Собрать книгу: всё пособие одним файлом со сквозным оглавлением. */
+export async function buildBookHtml(chapters: Chapter[]): Promise<string> {
   const css = await collectCss();
   const allTerms: string[] = [];
   const bodies: string[] = [];
@@ -256,8 +307,9 @@ export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
 
   for (const c of chapters) {
     const { body: rawBody, termIds } = prepareBody(c.content, { selfId: c.id, ticketAnchors: true });
-    // картинки глав встраиваются сразу: книга одна, ассеты снаружи не выживут
-    const body = await inlineImages(rawBody);
+    // картинки глав встраиваются сразу: книга одна, ассеты снаружи не выживут;
+    // снимки демонстраций подтягиваются из /export/viz-shots/ (их сделал CI)
+    const body = (await vizFigures(c.id)) + (await inlineImages(rawBody));
     termIds.forEach((t) => {
       if (!allTerms.includes(t)) allTerms.push(t);
     });
@@ -276,8 +328,13 @@ ${bodies.join("\n")}`;
     subtitle: `Все темы, ${chapters.length} шт.`,
     css,
     body,
-    gloss: glossarySection(allTerms),
+    gloss: glossarySection(allTerms, true),
     origin: window.location.origin,
   });
-  triggerDownload(html, "posobie-vse-temy.html");
+  return html;
+}
+
+/** Выгрузить всё пособие одним файлом. */
+export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
+  triggerDownload(await buildBookHtml(chapters), "posobie-vse-temy.html");
 }

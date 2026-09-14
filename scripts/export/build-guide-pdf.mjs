@@ -272,7 +272,7 @@ class Renderer {
   }
 
   /** Абзац: режем по высоте страницы сами — автоперенос pdfkit не используем. */
-  para(rawText, { size = 9.6, indent = 0, color = "#1f2937", italic = false, mono = false, lineGap = 1.1, gapAfter = 3 } = {}) {
+  para(rawText, { size = 10.3, indent = 0, color = "#1f2937", italic = false, mono = false, lineGap = 1.3, gapAfter = 4 } = {}) {
     const text = plain(rawText);
     if (!text) return;
     const font = mono ? this.fonts.mono : italic && this.fonts.oblique ? this.fonts.oblique : this.fonts.regular;
@@ -290,7 +290,7 @@ class Renderer {
     });
   }
 
-  bullet(rawText, { ordinal = null, depth = 0, size = 9.5 } = {}) {
+  bullet(rawText, { ordinal = null, depth = 0, size = 10.1 } = {}) {
     const text = plain(rawText);
     if (!text) return;
     const indent = 16 + depth * 14;

@@ -98,7 +98,12 @@ jobs:
         continue-on-error: true
 
       - name: Step 6 — PDF-конспект со снимками
-        run: npm run export:guide
+        run: |
+          npm run export:guide
+          # снимки публикуются вместе с приложением: HTML-книга встраивает их
+          # в автономный файл прямо из /export/viz-shots/
+          mkdir -p public/export/viz-shots
+          cp tmp/viz-shots/*.png tmp/viz-shots/manifest.json public/export/viz-shots/ 2>/dev/null || true
 
       - name: Type-check приложения
         run: npx tsc --noEmit
@@ -140,7 +145,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf public/export/guide_lite.pdf
+          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf public/export/guide_lite.pdf public/export/viz-shots
           if git diff --cached --quiet; then
             echo "Экспорт не изменился — коммит не нужен."
             exit 0
