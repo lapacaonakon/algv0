@@ -694,6 +694,24 @@ export async function runSuite({ py }: { py: Py }): Promise<TestResult[]> {
   /* ── 7. Текстовый режим для PDF/парсеров ─────────────────────── */
   /* ── 9. Ссылки между билетами, разделы содержания, блиц, факты ─────── */
 
+  await test("H. доступность", "содержание сжимается в три состояния, а не только прячется", async () => {
+    await mountApp("bridges-code");
+    const root = () => document.querySelector<HTMLElement>("#sidebar-root");
+    const toggle = () => findButton(/Сжать содержание|Скрыть содержание|Развернуть содержание/);
+    if (!root()) throw new Error("нет сайдбара");
+    if (!/lg:w-56/.test(root()!.className)) throw new Error(`по умолчанию содержание не широкое: ${root()!.className.slice(0, 80)}`);
+    await click(toggle(), "сжать");
+    if (!/lg:w-44/.test(root()!.className)) throw new Error(`после «Сжать» содержание не узкое: ${root()!.className.slice(0, 80)}`);
+    const items = Array.from(root()!.querySelectorAll("button")).filter((b) => (b.textContent ?? "").trim().length > 0);
+    if (items.length < chapters.length) throw new Error(`в узком содержании потерялись темы: ${items.length} из ${chapters.length}`);
+    if (root()!.querySelector("input")) throw new Error("в узком содержании осталась коробка поиска — место не сэкономлено");
+    await click(toggle(), "скрыть");
+    if (!/lg:w-0/.test(root()!.className)) throw new Error(`после «Скрыть» содержание не скрыто: ${root()!.className.slice(0, 80)}`);
+    await click(toggle(), "развернуть");
+    if (!/lg:w-56/.test(root()!.className)) throw new Error("из скрытого состояния содержание не вернулось широким");
+    return "широкое → узкое (темы на месте, поиска нет) → скрытое → широкое";
+  });
+
   await test("J. шапка", "кнопки выгрузки не прячутся и ведут на существующие файлы", async () => {
     await mountApp("segment-trees");
     const menu = document.querySelector("#download-menu");

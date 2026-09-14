@@ -46,18 +46,28 @@ export default function App() {
   useEffect(() => {
     if (compilerHeight !== null) window.localStorage.setItem("compilerHeight", String(compilerHeight));
   }, [compilerHeight]);
-  /** Содержание свернуто (по умолчанию сворачиваем само, если места мало). */
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    const cached = typeof window !== "undefined" ? window.localStorage.getItem("sidebarCollapsed") : null;
-    if (cached !== null) return cached === "1";
-    return typeof window !== "undefined" && window.innerWidth < 1440;
+  /**
+   * Три состояния содержания: широкое → узкое → скрытое.
+   * Раньше было только «открыто/скрыто», и на экране 1280px с открытым
+   * компилятором оставалось лишь прятать список целиком: три колонки не
+   * помещались. Узкий режим (номер билета + название в одну строку) оставляет
+   * навигацию видимой, не съедая место у теории.
+   */
+  const [sidebarMode, setSidebarMode] = useState<"wide" | "compact" | "hidden">(() => {
+    const cached = typeof window !== "undefined" ? window.localStorage.getItem("sidebarMode") : null;
+    if (cached === "wide" || cached === "compact" || cached === "hidden") return cached;
+    const legacy = typeof window !== "undefined" ? window.localStorage.getItem("sidebarCollapsed") : null;
+    if (legacy !== null) return legacy === "1" ? "hidden" : "wide";
+    return typeof window !== "undefined" && window.innerWidth < 1440 ? "compact" : "wide";
   });
   const toggleSidebar = useCallback(() => {
-    setSidebarCollapsed((c) => {
-      window.localStorage.setItem("sidebarCollapsed", c ? "0" : "1");
-      return !c;
+    setSidebarMode((m) => {
+      const next = m === "wide" ? "compact" : m === "compact" ? "hidden" : "wide";
+      window.localStorage.setItem("sidebarMode", next);
+      return next;
     });
   }, []);
+  const sidebarCollapsed = sidebarMode === "hidden";
 
   // Десктопный отступ контента = ширине панели компилятора; следим и за ресайзом окна.
   const contentRef = useRef<HTMLDivElement>(null);
@@ -131,25 +141,27 @@ export default function App() {
           {/* Сайдбар только на десктопе — на мобильном он в шторке; сворачивается, когда тесно */}
           <div
             id="sidebar-root"
-            className={`hidden lg:block shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] relative transition-all duration-200 print:hidden ${sidebarCollapsed ? "lg:w-0 overflow-hidden border-r-0" : "lg:w-64"}`}
+            className={`hidden lg:block shrink-0 border-r border-slate-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] relative transition-all duration-200 print:hidden ${sidebarCollapsed ? "lg:w-0 overflow-hidden border-r-0" : sidebarMode === "compact" ? "lg:w-44" : "lg:w-56"}`}
           >
-            {!sidebarCollapsed && <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} />}
+            {!sidebarCollapsed && (
+              <Sidebar selectedChapterId={activeChapterId} setSelectedChapterId={goTo} compact={sidebarMode === "compact"} />
+            )}
           </div>
           {/* Вкладка-переключатель содержания у левого края */}
           <button
             type="button"
             onClick={toggleSidebar}
             className="hidden lg:flex items-center gap-1 sticky top-20 self-start -ml-0 mr-2 z-30 shrink-0 rounded-r-lg border border-l-0 border-slate-700 bg-slate-900/90 px-1 py-3 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors print:hidden"
-            aria-label={sidebarCollapsed ? "Развернуть содержание" : "Свернуть содержание"}
-            title={sidebarCollapsed ? "Развернуть содержание" : "Свернуть содержание"}
+            aria-label={sidebarMode === "wide" ? "Сжать содержание" : sidebarMode === "compact" ? "Скрыть содержание" : "Развернуть содержание"}
+            title={sidebarMode === "wide" ? "Сжать содержание" : sidebarMode === "compact" ? "Скрыть содержание" : "Развернуть содержание"}
           >
             {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
             <span className="text-[10px] font-bold [writing-mode:vertical-rl] rotate-180">содержание</span>
           </button>
 
-          <main id="main-content" className="flex-1 min-w-0 w-full max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4 lg:py-6">
+          <main id="main-content" className="flex-1 min-w-0 w-full max-w-none mx-auto px-2 sm:px-3 lg:px-4 py-3 lg:py-4">
             {/* Шапка главы с быстрыми переходами */}
-            <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800 print:hidden">
+            <div className="flex items-center justify-between gap-3 mb-2 pb-2 border-b border-slate-800 print:hidden">
               <div className="min-w-0">
                 <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
                   {activeChapter.category || "Универсальное пособие"}
@@ -161,7 +173,7 @@ export default function App() {
               <ChapterNav prev={prev} next={next} index={index} total={chapters.length} onGo={goTo} compact />
             </div>
 
-            <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-4 print:hidden">
+            <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mb-3 print:hidden">
               <div
                 className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
                 style={{ width: `${progress}%` }}

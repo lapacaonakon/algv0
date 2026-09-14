@@ -80,6 +80,26 @@ jobs:
       - name: Step 3 — png → pdf
         run: npm run export:pdf
 
+      - name: Step 4 — собрать приложение и поднять preview для снимков
+        run: |
+          # headless-браузер для снимков: chrome ставится вместе с puppeteer,
+          # этот вызов — страховка, если кэш оказался пустым
+          npx puppeteer browsers install chrome || true
+          npm run build
+          mkdir -p tmp
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > tmp/preview.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -sf http://127.0.0.1:4173/ > /dev/null; then echo "preview готов"; break; fi
+            sleep 1
+          done
+
+      - name: Step 5 — снимки визуализаций (headless-браузер)
+        run: npm run export:shots
+        continue-on-error: true
+
+      - name: Step 6 — PDF-конспект со снимками
+        run: npm run export:guide
+
       - name: Type-check приложения
         run: npx tsc --noEmit
         continue-on-error: true
@@ -93,6 +113,8 @@ jobs:
             echo "| --- | --- |"
             echo "| \`public/export/full_code_all_pages.txt\` | $(du -h public/export/full_code_all_pages.txt | cut -f1) |"
             echo "| \`public/export/full_code_all_pages.pdf\` | $(du -h public/export/full_code_all_pages.pdf | cut -f1) |"
+            echo "| \`public/export/guide_lite.pdf\` | $(du -h public/export/guide_lite.pdf | cut -f1) |"
+            echo "| Снимков визуализаций | $(ls tmp/viz-shots/*.png 2>/dev/null | wc -l) |"
             echo "| PNG-страниц | $(ls tmp/export-pages/*.png | wc -l) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -118,10 +140,10 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf
+          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf public/export/guide_lite.pdf
           if git diff --cached --quiet; then
             echo "Экспорт не изменился — коммит не нужен."
             exit 0
           fi
-          git commit -m "chore(export): пересборка full_code_all_pages.pdf/.txt [skip ci]"
+          git commit -m "chore(export): пересборка full_code_all_pages.pdf/.txt и guide_lite.pdf [skip ci]"
           git push origin "HEAD:${GITHUB_REF_NAME}"

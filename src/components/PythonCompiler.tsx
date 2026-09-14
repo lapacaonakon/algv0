@@ -659,7 +659,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
   return (
     <aside
       aria-label="Python-компилятор"
-      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-auto lg:h-[calc(100dvh-4rem)] lg:w-[520px] xl:w-[600px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
+      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-auto lg:h-[calc(100dvh-4rem)] lg:w-[440px] xl:w-[520px] 2xl:w-[600px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
       style={typeof window !== "undefined" ? {
         ...(width && window.innerWidth >= 1024 ? { width } : {}),
         ...(height ? { height: Math.min(height, window.innerHeight - (window.innerWidth >= 1024 ? 64 : 0)) } : {}),
