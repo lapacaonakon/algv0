@@ -33,7 +33,7 @@ export interface DebugResult {
 }
 
 /** Лимит шагов трассы — защита от бесконечных циклов и O(n³)-развёрток. */
-export const DEBUG_STEP_CAP = 500;
+export const DEBUG_STEP_CAP = 1200;
 
 /**
  * Строит самодостаточный python-скрипт: выполняет userSrc под трейсером

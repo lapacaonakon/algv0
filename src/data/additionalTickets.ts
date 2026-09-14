@@ -48,6 +48,55 @@ int minimum = min(ans1, ans2);</pre>
                 </div>
             </details>
         </div>
+
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-amber-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-amber-400 mb-4">⚖️ Префиксная vs Разреженная: это НЕ конкуренты</h3>
+            <p class="text-slate-300 text-sm mb-4">Частая ошибка: «разреженная таблица — это как префиксные суммы, только чуть меньше памяти за ту же скорость». <b class="text-rose-300">Наоборот. Ровно наоборот.</b> Разреженная таблица прожорливее в десятки раз — и платит она не зря, потому что умеет то, чего префиксные суммы не умеют никак.</p>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-emerald-600/40 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-emerald-700 text-emerald-100 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
+                        🪶 Префиксная матрица сумм (билет 5)
+                    </div>
+                    <ul class="text-slate-300 text-sm space-y-1.5">
+                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">N × M</code> — одна копия матрицы, и всё</li>
+                        <li>· Запрос суммы на прямоугольнике: <b>O(1)</b></li>
+                        <li>· Умеет <b>только сумму</b> — у суммы есть вычитание (обратная операция)</li>
+                        <li>· Менять элементы нельзя — пересчитается вся матрица</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
+                        🐘 2D Sparse table минимумов (этот билет)
+                    </div>
+                    <ul class="text-slate-300 text-sm space-y-1.5">
+                        <li>· Размер: <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-rose-300 border border-slate-800">N × M × log N × log M</code> — жирнее в десятки раз</li>
+                        <li>· Запрос минимума на прямоугольнике: <b>O(1)</b></li>
+                        <li>· Умеет <b>min, max, gcd</b> — операции, где перекрытие не мешает (x O x = x)</li>
+                        <li>· Менять элементы тоже нельзя</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-amber-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-amber-500 shadow-md">
+                        🎂 Аналогия 3: Слоёный тортик
+                    </div>
+                    <p class="text-slate-300 text-sm">Почему «тортик» жирный: на каждом уровне хранится почти полная копия матрицы. Уровней по каждой оси — log (для 1000×1000 это 10 × 10). Итого ≈ <b class="text-amber-300">100 копий матрицы вместо одной</b>. Вот цена O(1) для минимума: запекли все возможные вопросы заранее.</p>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-slate-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-slate-700 text-sky-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-sky-500 shadow-md">
+                        🔋 Аналогия 4: Аккумулятор
+                    </div>
+                    <p class="text-slate-300 text-sm">Почему префиксная «тонкая»: сумма аккумулирует — каждая клетка уже несёт в себе весь прямоугольник от угла (0,0), и лишнее можно <b>вычесть</b>. У минимума обратной операции нет: зная min двух кусков, ты не развернёшь его назад. Поэтому для минимума и нужен тортик.</p>
+                </div>
+            </div>
+            <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-5">
+                <p class="text-slate-300 text-sm mb-1">💀 <b>Ты путаешь:</b></p>
+                <p class="text-slate-400 text-sm mb-1">· «Сумму посчитаю через sparse table» — нельзя: перекрывающиеся линейки посчитают клетки дважды. Сумма ≠ идемпотентна.</p>
+                <p class="text-slate-400 text-sm mb-1">· «Минимум посчитаю префиксными суммами» — нельзя: нет вычитания, нет обратной операции.</p>
+                <p class="text-slate-400 text-sm">· Они решают <b class="text-slate-200">разные задачи</b>: маленькая сумма против огромного минимума. Выбирай не «какая круче», а «какой запрос у тебя на входе».</p>
+            </div>
+        </div>
     </div>
 </section>`,
   },  {

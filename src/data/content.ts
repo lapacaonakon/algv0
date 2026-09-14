@@ -68,11 +68,23 @@ merged.forEach((c) => {
   dedup.set(c.id, c);
 });
 
-// Нормализуем названия по каноническому списку тем.
+// Нормализуем названия по каноническому списку тем, а разделы оглавления —
+// по учебным блокам: блоки идут строго в порядке чтения, внутри блока — по
+// номерам билетов. Близкие темы (1–5, 14–17, 18–20, 21–23) стоят рядом.
+const BLOCKS: [number, number, string][] = [
+  [1, 5, "Билеты 1–5 · Структуры и матрицы"],
+  [6, 13, "Билеты 6–13 · Графы: обходы и связность"],
+  [14, 17, "Билеты 14–17 · Кратчайшие пути"],
+  [18, 20, "Билеты 18–20 · Остовные деревья"],
+  [21, 23, "Билеты 21–23 · Строки"],
+  [24, 24, "Билет 24 · Теория сложности"],
+];
+const blockOf = (num: number): string => BLOCKS.find(([lo, hi]) => num >= lo && num <= hi)?.[2] ?? "Билеты 1–24";
+
 const withCanon = Array.from(dedup.values()).map((c) => {
   const canon = CANON[c.id];
-  if (canon) return { ...c, title: canon.title, category: c.category || "Билеты 1–24" };
-  return c;
+  if (canon) return { ...c, title: canon.title, category: blockOf(canon.num) };
+  return { ...c, category: "Введение" }; // страницы вне списка билетов — в начало
 });
 
 // Сначала вводная страница, затем билеты 1–24 по порядку.
@@ -83,3 +95,34 @@ const extras = withCanon
   .sort((a, b) => a.title.localeCompare(b.title, "ru"));
 
 export const chapters: Chapter[] = [...extras, ...numbered];
+
+/**
+ * «Читать рядом»: связанные билеты, которые логично открыть следом
+ * (блок рисуется внизу страницы). Ссылки кликабельны и ведут на страницу.
+ */
+export const RELATED: Record<string, string[]> = {
+  "segment-trees": ["sparse-table", "prefix-sums-2d"],
+  "sparse-table": ["prefix-sums-2d", "segment-trees"],
+  "prefix-sums-2d": ["sparse-table", "segment-trees"],
+  treap: ["splay-tree", "segment-trees"],
+  "splay-tree": ["treap", "segment-trees"],
+  "graph-dfs-bfs": ["graph-components", "top-sort"],
+  "planarity-euler-formula": ["euler-path-vs-cycle", "graph-dfs-bfs"],
+  "graph-components": ["graph-dfs-bfs", "scc-kosaraju"],
+  "top-sort": ["scc-kosaraju", "graph-dfs-bfs"],
+  "scc-kosaraju": ["top-sort", "graph-components"],
+  "bridges-code": ["graph-articulation", "graph-dfs-bfs"],
+  "graph-articulation": ["bridges-code", "graph-components"],
+  "euler-path-vs-cycle": ["planarity-euler-formula", "graph-dfs-bfs"],
+  dijkstra: ["bellman-ford", "floyd"],
+  "bellman-ford": ["dijkstra", "johnson-algo"],
+  floyd: ["dijkstra", "johnson-algo"],
+  "johnson-algo": ["bellman-ford", "dijkstra"],
+  "mst-kruskal": ["mst-prima", "mst-boruvka"],
+  "mst-prima": ["mst-kruskal", "mst-boruvka"],
+  "mst-boruvka": ["mst-kruskal", "mst-prima"],
+  "string-kmp": ["string-z-func", "aho-corasick"],
+  "string-z-func": ["string-kmp", "aho-corasick"],
+  "aho-corasick": ["string-kmp", "string-z-func"],
+  "complexity-classes": [],
+};

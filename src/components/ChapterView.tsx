@@ -6,6 +6,32 @@ import { TermPopover, type HintAnchor } from "./hints/TermPopover";
 import { getViz } from "./vizRegistry";
 import { VizChapterContext } from "../data/vizStepBus";
 import { ChapterNav } from "./ChapterNav";
+import { RELATED, chapters as allChapters } from "../data/content";
+
+/** «Читать рядом»: кликабельные ссылки на связанные билеты (внизу страницы). */
+const RelatedTickets: React.FC<{ chapterId: string; onGo: (id: string) => void }> = ({ chapterId, onGo }) => {
+  const related = (RELATED[chapterId] ?? []).filter((id) => id !== chapterId);
+  if (related.length === 0) return null;
+  const getTitle = (id: string): string => allChapters.find((c) => c.id === id)?.title ?? id;
+  return (
+    <nav className="mt-10 mb-2 p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-300/80 mb-2 flex items-center gap-1.5">
+        <MousePointerClick className="w-3.5 h-3.5" /> Читать рядом — темы решают смежные задачи
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {related.map((id) => (
+          <button
+            key={id}
+            onClick={() => onGo(id)}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-200 hover:text-white hover:border-indigo-500 transition-colors"
+          >
+            {getTitle(id)}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+};
 import { downloadChapterHtml } from "../utils/exportHtml";
 
 interface Props {
@@ -174,6 +200,8 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
             </VizChapterContext.Provider>
           </section>
         )}
+
+        <RelatedTickets chapterId={chapter.id} onGo={onGo} />
 
         <ChapterNav prev={prev} next={next} index={index} total={total} onGo={onGo} />
       </article>

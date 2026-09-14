@@ -14,7 +14,7 @@
     "export:pdf": "node scripts/export/build-pdf.mjs",
     "export": "npm run export:txt && npm run export:png && npm run export:pdf",
     "export:guide": "node scripts/export/build-guide-pdf.mjs",
-    "selftest": "npx esbuild scripts/selftest/bundle.ts --bundle --platform=node --format=cjs --outfile=/tmp/bundle-selftest.cjs --log-level=error && node /tmp/bundle-selftest.cjs && npx esbuild scripts/selftest/lazy.ts --bundle --platform=node --format=cjs --outfile=/tmp/lazy-selftest.cjs --jsx=automatic --loader:.css=empty --log-level=error && node /tmp/lazy-selftest.cjs"
+    "selftest": "npx esbuild scripts/selftest/bundle.ts --bundle --platform=node --format=cjs --outfile=/tmp/bundle-selftest.cjs --log-level=error --loader:.jpg=file && node /tmp/bundle-selftest.cjs && npx esbuild scripts/selftest/lazy.ts --bundle --platform=node --format=cjs --outfile=/tmp/lazy-selftest.cjs --jsx=automatic --loader:.css=empty --log-level=error && node /tmp/lazy-selftest.cjs && npx esbuild scripts/selftest/harness-entry.ts --bundle --platform=node --format=cjs --outfile=/tmp/harness.cjs --log-level=error && python3 scripts/selftest/harness_check.py"
   },
   "dependencies": {
     "clsx": "2.1.1",
