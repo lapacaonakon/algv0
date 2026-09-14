@@ -1,6 +1,5 @@
 import { Chapter } from '../../types';
 import waffleImg from "../../assets/waffle-grid.jpg";
-import cakeImg from "../../assets/sparse-cake.jpg";
 
 export const tickets1to5: Chapter[] = [
   {
@@ -122,11 +121,28 @@ int minimum = min(st[L][k], st[R - (1 << k) + 1][k]);</pre>
                 </div>
                 <div class="bg-slate-900 p-5 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-9">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🎂 Слоёный тортик — sparse table (этот билет)
+                        🎂 Торт уровней — sparse table (этот билет)
                     </div>
-                    <img src="${cakeImg}" alt="Толстый многослойный тортик: уровень = копия матрицы" class="w-full max-w-[420px] mx-auto rounded-lg border border-slate-700 my-3" />
-                    <p class="text-slate-300 text-sm mb-2">Каждый слой тортика — почти полная копия матрицы (ответы на квадраты 1×1, 2×2, 4×4, 8×8…). Слоёв log N × log M: для 1000×1000 это ≈ <b class="text-rose-300">100 копий матрицы</b>. Жирный — потому что печём все ответы заранее, зато запрос O(1).</p>
-                    <p class="text-slate-300 text-sm">А главное — <b class="text-rose-300">крем обратно не запихнёшь</b>: зная min двух кусков, минимум «на reversal» не развернёшь. Обратной операции нет — вот для таких случаев тортик и нужен.</p>
+                    <div class="flex flex-col items-center gap-1.5 my-3 font-mono">
+                    <div class="flex flex-col items-center gap-1">
+                        <div class="flex gap-1"><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-rose-500 border border-rose-300 text-white text-[11px] sm:text-xs font-bold shadow-sm">1</div></div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 font-sans">j=3 · куски длины 8 · таких кусков 8−8+1 = 1</div>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <div class="flex gap-1"><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">2</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">3</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">3</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">1</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">1</div></div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 font-sans">j=2 · куски длины 4 · таких кусков 8−4+1 = 5</div>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <div class="flex gap-1"><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">2</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">3</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">5</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">3</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">3</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">1</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">1</div></div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 font-sans">j=1 · куски длины 2 · таких кусков 8−2+1 = 7</div>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <div class="flex gap-1"><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">2</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">3</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">5</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">62</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">3</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">21</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">1</div><div class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded bg-amber-100/90 border border-rose-400/60 text-slate-900 text-[11px] sm:text-xs font-bold shadow-sm">4</div></div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 font-sans">j=0 · куски длины 1 · их ровно 8 — сам массив</div>
+                    </div>
+                    </div>
+                    <p class="text-slate-300 text-sm mb-2">Каждый слой — строка <span class="font-mono text-rose-300">st[·][j]</span> из демо 1D выше (массив 2, 3, 5, 62, 3, 21, 1, 4): слой j отвечает «минимум на куске длины 2^j, начинающемся в позиции i». Кусков длины 2^j в массиве из 8 элементов ровно 8−2^j+1, поэтому торт сужается: <b class="text-rose-300">8 → 7 → 5 → 1</b> клеток, всего 21 против 8 в исходном массиве. В 2D уровни заводятся по обеим осям: N·M·log N·log M клеток — для 1000×1000 это ≈ в 100 раз больше исходной матрицы.</p>
+                    <p class="text-slate-300 text-sm">А вот главное отличие от вафель. Сумма умеет вычитание: <b class="text-emerald-300 font-mono">2 − 2 = 0</b> — прибавил кусок, вычел кусок, вернул исход. У минимума обратной операции нет: <span class="font-mono text-rose-300">min(2, 2) = 2</span> — а сколько кусков склеили и что в них было, назад не узнать. Поэтому торт нельзя «разлепить» — его печём заранее и целиком.</p>
                 </div>
             </div>
             <div class="overflow-x-auto mt-6">
@@ -342,7 +358,7 @@ function rotate(x) {
                         🧇 Аналогия 2: Сетка из вафельных трубочек (аккумулятор)
                     </div>
                     <img src="${waffleImg}" alt="Сетка вафельных трубочек: прямоугольник вынимается по включениям-исключениям" class="w-full max-w-[380px] mx-auto rounded-lg border border-slate-700 my-3" />
-                    <p class="text-slate-300 text-sm mb-3">Каждая трубочка «аккумулирует» — несёт сумму всего прямоугольника от угла (0,0). Любой кусок <b>вынимается</b> по включениям-исключениям (пунктирные слоты на картинке), а главное — палочки можно <b class="text-emerald-300">вставлять обратно</b>: у суммы есть вычитание. У минимума обратной операции нет, поэтому там (билет 2) печут слоёный тортик: N·M·log N·log M ≈ 100 копий матрицы против одной сетки O(N·M).</p>
+                    <p class="text-slate-300 text-sm mb-3">Каждая трубочка «аккумулирует» — несёт сумму всего прямоугольника от угла (0,0). Любой кусок <b>вынимается</b> по включениям-исключениям (пунктирные слоты на картинке), а главное — палочки можно <b class="text-emerald-300">вставлять обратно</b>: у суммы есть вычитание. У минимума обратной операции нет (min(2, 2) = 2 — назад не развернёшь), поэтому там (билет 2) печут торт уровней: в 2D это N·M·log N·log M клеток — для 1000×1000 ≈ в 100 раз больше одной сетки O(N·M).</p>
                     <p class="text-xs font-mono text-slate-400 border-t border-slate-700/60 pt-2">память O(N·M) · построение O(N·M) · запрос O(1) · только сумма</p>
                 </div>
             </div>
