@@ -3,9 +3,9 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            14.09.2026, 22:43:30
+Дата генерации:            14.09.2026, 22:52:26
 Файлов исходного кода:     111
-Суммарный объём кода:      1.95 MB
+Суммарный объём кода:      1.96 MB
 Глав/билетов в пособии:    36
 
 ==========================================================================================================================================
@@ -31774,7 +31774,7 @@ export function cn(...inputs: ClassValue[]) {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 88/111: src/utils/exportHtml.ts
-КАТЕГОРИЯ: Утилиты | СТРОК: 284 | РАЗМЕР: 12.4 KB
+КАТЕГОРИЯ: Утилиты | СТРОК: 341 | РАЗМЕР: 15.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import type { Chapter } from "../types";
@@ -31832,6 +31832,14 @@ a.term-hint { text-decoration: none; }
 .export-term .formal { color: #94a3b8; font-size: .8rem; }
 .export-term .cx { color: #6ee7b7; font-size: .78rem; font-family: ui-monospace, monospace; }
 .export-foot { margin-top: 3rem; border-top: 1px solid #1e293b; padding-top: 1rem; font-size: .72rem; color: #475569; }
+body { font-size: 15px; line-height: 1.6; }
+.export-shell p, .export-shell li { line-height: 1.65; }
+.export-shell pre { font-size: 12px; line-height: 1.5; }
+.export-figs { margin: 0 0 1.6rem; }
+.export-figs-title { color: #e2e8f0; font-size: .95rem; font-weight: 700; margin: 0 0 .6rem; }
+.export-fig { margin: 0 0 .9rem; }
+.export-fig img { width: 100%; border: 1px solid #1e293b; border-radius: .5rem; background: #020617; }
+.export-fig figcaption { color: #94a3b8; font-size: .75rem; margin-top: .3rem; }
 @media print {
   body { background: #fff; color: #0f172a; }
   .export-note, details { break-inside: avoid; }
@@ -31897,7 +31905,7 @@ function prepareBody(html: string, opts: { selfId?: string; ticketAnchors?: bool
   return { body: host.innerHTML, termIds: ids };
 }
 
-function glossarySection(termIds: string[]): string {
+function glossarySection(termIds: string[], book = false): string {
   if (!termIds.length) return "";
   const items = termIds
     .map((id) => {
@@ -31913,7 +31921,7 @@ function glossarySection(termIds: string[]): string {
     .join("\n");
 
   return `<section class="export-gloss">
-  <h2>Словарик терминов из этой темы</h2>
+  <h2>${book ? "Словарик терминов пособия" : "Словарик терминов из этой темы"}</h2>
   <p style="font-size:.8rem;color:#94a3b8;margin:0 0 1rem">В приложении эти слова всплывают по наведению курсора. В офлайн-файле они собраны сюда.</p>
   ${items}
 </section>`;
@@ -31988,6 +31996,45 @@ async function inlineImages(html: string): Promise<string> {
   return doc.body.innerHTML;
 }
 
+/**
+ * Кадры визуализаций: книга встраивает снимки демонстраций, чтобы автономный
+ * файл показывал, что крутилось в приложении. Снимки делает CI
+ * (capture-viz-shots.mjs) и публикует в /export/viz-shots/ вместе с манифестом;
+ * без них (офлайн-сборка, локальный дев) книга остаётся текстовой — это
+ * нормально и молча пропускается.
+ */
+async function vizFigures(chapterId: string): Promise<string> {
+  try {
+    const base = import.meta.env.BASE_URL || "/";
+    const manifestRes = await fetch(`${base}export/viz-shots/manifest.json`);
+    if (!manifestRes.ok) return "";
+    const manifest = (await manifestRes.json()) as { file: string; name: string }[];
+    const mine = manifest.filter((m) => m.file === `${chapterId}.png` || m.file.startsWith(`${chapterId}--`));
+    const figures: string[] = [];
+    for (const m of mine.slice(0, 4)) {
+      const res = await fetch(`${base}export/viz-shots/${m.file}`);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      if (blob.size > 3_000_000) continue;
+      const data = await new Promise<string>((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(String(fr.result));
+        fr.onerror = () => reject(fr.error);
+        fr.readAsDataURL(blob);
+      });
+      figures.push(
+        `<figure class="export-fig"><img src="${data}" alt="${escapeHtml(m.name || chapterId)}" />` +
+          `<figcaption>${m.name ? `Режим «${escapeHtml(m.name)}»` : "Визуализация темы"}</figcaption></figure>`
+      );
+    }
+    return figures.length
+      ? `<div class="export-figs"><h3 class="export-figs-title">Как выглядит демонстрация</h3>${figures.join("")}</div>`
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 function triggerDownload(html: string, filename: string) {
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -32007,12 +32054,12 @@ function safeName(title: string, id: string): string {
   return `${num ? String(num).padStart(2, "0") + "-" : ""}${base}.html`;
 }
 
-/** Выгрузить одну главу. */
-export async function downloadChapterHtml(chapter: Chapter): Promise<void> {
+/** Собрать автономный HTML одной главы. */
+export async function buildChapterHtml(chapter: Chapter): Promise<string> {
   const css = await collectCss();
   const { body: rawBody, termIds } = prepareBody(chapter.content);
-  const body = await inlineImages(rawBody);
-  const html = wrap({
+  const body = (await vizFigures(chapter.id)) + (await inlineImages(rawBody));
+  return wrap({
     title: chapter.title,
     subtitle: chapter.category || "Универсальное пособие",
     css,
@@ -32020,11 +32067,15 @@ export async function downloadChapterHtml(chapter: Chapter): Promise<void> {
     gloss: glossarySection(termIds),
     origin: window.location.origin,
   });
-  triggerDownload(html, safeName(chapter.title, chapter.id));
 }
 
-/** Выгрузить всё пособие одним файлом со сквозным оглавлением. */
-export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
+/** Выгрузить одну главу. */
+export async function downloadChapterHtml(chapter: Chapter): Promise<void> {
+  triggerDownload(await buildChapterHtml(chapter), safeName(chapter.title, chapter.id));
+}
+
+/** Собрать книгу: всё пособие одним файлом со сквозным оглавлением. */
+export async function buildBookHtml(chapters: Chapter[]): Promise<string> {
   const css = await collectCss();
   const allTerms: string[] = [];
   const bodies: string[] = [];
@@ -32035,8 +32086,9 @@ export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
 
   for (const c of chapters) {
     const { body: rawBody, termIds } = prepareBody(c.content, { selfId: c.id, ticketAnchors: true });
-    // картинки глав встраиваются сразу: книга одна, ассеты снаружи не выживут
-    const body = await inlineImages(rawBody);
+    // картинки глав встраиваются сразу: книга одна, ассеты снаружи не выживут;
+    // снимки демонстраций подтягиваются из /export/viz-shots/ (их сделал CI)
+    const body = (await vizFigures(c.id)) + (await inlineImages(rawBody));
     termIds.forEach((t) => {
       if (!allTerms.includes(t)) allTerms.push(t);
     });
@@ -32055,10 +32107,15 @@ ${bodies.join("\n")}`;
     subtitle: `Все темы, ${chapters.length} шт.`,
     css,
     body,
-    gloss: glossarySection(allTerms),
+    gloss: glossarySection(allTerms, true),
     origin: window.location.origin,
   });
-  triggerDownload(html, "posobie-vse-temy.html");
+  return html;
+}
+
+/** Выгрузить всё пособие одним файлом. */
+export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
+  triggerDownload(await buildBookHtml(chapters), "posobie-vse-temy.html");
 }
 
 
@@ -32679,7 +32736,7 @@ class Renderer {
   }
 
   /** Абзац: режем по высоте страницы сами — автоперенос pdfkit не используем. */
-  para(rawText, { size = 9.6, indent = 0, color = "#1f2937", italic = false, mono = false, lineGap = 1.1, gapAfter = 3 } = {}) {
+  para(rawText, { size = 10.0, indent = 0, color = "#1f2937", italic = false, mono = false, lineGap = 1.2, gapAfter = 4 } = {}) {
     const text = plain(rawText);
     if (!text) return;
     const font = mono ? this.fonts.mono : italic && this.fonts.oblique ? this.fonts.oblique : this.fonts.regular;
@@ -32697,7 +32754,7 @@ class Renderer {
     });
   }
 
-  bullet(rawText, { ordinal = null, depth = 0, size = 9.5 } = {}) {
+  bullet(rawText, { ordinal = null, depth = 0, size = 9.9 } = {}) {
     const text = plain(rawText);
     if (!text) return;
     const indent = 16 + depth * 14;
@@ -33014,7 +33071,7 @@ async function main() {
       shotsTotal += shots.length;
       for (const shot of shots) {
         R.image(shot.file, {
-          maxHeight: 330,
+          maxHeight: 300,
           caption: shot.name ? `${viz?.title ?? chapter.id} · режим «${shot.name}»` : viz?.title ?? chapter.id,
         });
       }
@@ -33155,7 +33212,7 @@ main().catch((err) => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 94/111: scripts/export/capture-viz-shots.mjs
-КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 115 | РАЗМЕР: 4.8 KB
+КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 122 | РАЗМЕР: 5.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -33266,6 +33323,13 @@ for (const id of ids) {
     console.log(`[export:shots] FAIL ${id}: ${String(error.message ?? error).slice(0, 120)}`);
   }
 }
+
+const manifest = fs
+  .readdirSync(OUT_DIR)
+  .filter((f) => /\.(png|jpe?g)$/i.test(f))
+  .sort()
+  .map((f) => ({ file: f, name: f.replace(/\.(png|jpe?g)$/i, "").split("--")[1] ?? "" }));
+fs.writeFileSync(path.join(OUT_DIR, "manifest.json"), JSON.stringify(manifest, null, 1));
 
 await browser.close();
 console.log(`[export:shots] снимков: ${done}, пропусков: ${failed} → ${path.relative(ROOT, OUT_DIR)}`);
@@ -33945,7 +34009,7 @@ main().catch((err) => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 99/111: scripts/verify/browser-checks.tsx
-КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 1051 | РАЗМЕР: 74.8 KB
+КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 1065 | РАЗМЕР: 76.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -34981,6 +35045,20 @@ export async function runSuite({ py }: { py: Py }): Promise<TestResult[]> {
     return `${txt.length} знаков, ссылок в lite ${liteLinks.length}, блиц напечатан, навигации и компилятора нет`;
   });
 
+  await test("G. lite-режим", "HTML-книга: оглавление, якоря всех глав и словарик", async () => {
+    const { buildBookHtml } = await import("../../src/utils/exportHtml");
+    const html = await buildBookHtml(chapters);
+    if (!html.includes('<nav id="toc"')) throw new Error("в книге нет оглавления");
+    const missing = chapters.filter((c) => !html.includes(`id="ch-${c.id}"`));
+    if (missing.length) throw new Error(`в книге потерялись главы: ${missing.map((c) => c.id).join(", ")}`);
+    const tocLinks = (html.match(/href="#ch-/g) ?? []).length;
+    if (tocLinks < chapters.length) throw new Error(`ссылок оглавления ${tocLinks} меньше числа глав ${chapters.length}`);
+    if (!/Словарик терминов пособия/.test(html)) throw new Error("в книге нет сквозного словарика");
+    if (!/↑ к оглавлению/.test(html)) throw new Error("у глав нет возврата к оглавлению");
+    if (html.length < 200_000) throw new Error(`книга подозрительно мала: ${html.length} знаков`);
+    return `${(html.length / 1024).toFixed(0)} КБ, глав ${chapters.length}, ссылок оглавления ${tocLinks}`;
+  });
+
   console.error = realConsoleError;
   return results;
 }
@@ -36011,7 +36089,7 @@ jobs:
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 109/111: .github/workflows/rebuild-pdf.yml
-КАТЕГОРИЯ: CI / автоматизация | СТРОК: 150 | РАЗМЕР: 5.8 KB
+КАТЕГОРИЯ: CI / автоматизация | СТРОК: 155 | РАЗМЕР: 6.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 name: Rebuild code PDF
@@ -36114,7 +36192,12 @@ jobs:
         continue-on-error: true
 
       - name: Step 6 — PDF-конспект со снимками
-        run: npm run export:guide
+        run: |
+          npm run export:guide
+          # снимки публикуются вместе с приложением: HTML-книга встраивает их
+          # в автономный файл прямо из /export/viz-shots/
+          mkdir -p public/export/viz-shots
+          cp tmp/viz-shots/*.png tmp/viz-shots/manifest.json public/export/viz-shots/ 2>/dev/null || true
 
       - name: Type-check приложения
         run: npx tsc --noEmit
@@ -36156,7 +36239,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf public/export/guide_lite.pdf
+          git add -- public/export/full_code_all_pages.txt public/export/full_code_all_pages.pdf public/export/guide_lite.pdf public/export/viz-shots
           if git diff --cached --quiet; then
             echo "Экспорт не изменился — коммит не нужен."
             exit 0
@@ -36505,5 +36588,5 @@ export const myChapters: Chapter[] = [
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 14.09.2026, 22:43:30
+КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 14.09.2026, 22:52:26
 ==========================================================================================================================================

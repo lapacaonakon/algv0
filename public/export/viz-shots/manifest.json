@@ -1,0 +1,122 @@
+[
+ {
+  "file": "aho-corasick.png",
+  "name": ""
+ },
+ {
+  "file": "bellman-ford.png",
+  "name": ""
+ },
+ {
+  "file": "bridges-code.png",
+  "name": ""
+ },
+ {
+  "file": "complexity-classes.png",
+  "name": ""
+ },
+ {
+  "file": "dijkstra.png",
+  "name": ""
+ },
+ {
+  "file": "dynamic-programming.png",
+  "name": ""
+ },
+ {
+  "file": "euler-path-vs-cycle.png",
+  "name": ""
+ },
+ {
+  "file": "floyd.png",
+  "name": ""
+ },
+ {
+  "file": "graph-articulation.png",
+  "name": ""
+ },
+ {
+  "file": "graph-components.png",
+  "name": ""
+ },
+ {
+  "file": "graph-dfs-bfs.png",
+  "name": ""
+ },
+ {
+  "file": "heap-beam-search.png",
+  "name": ""
+ },
+ {
+  "file": "johnson-algo.png",
+  "name": ""
+ },
+ {
+  "file": "mst--борувка.png",
+  "name": "борувка"
+ },
+ {
+  "file": "mst--краскал.png",
+  "name": "краскал"
+ },
+ {
+  "file": "mst--прим.png",
+  "name": "прим"
+ },
+ {
+  "file": "mst.png",
+  "name": ""
+ },
+ {
+  "file": "planarity-euler-formula.png",
+  "name": ""
+ },
+ {
+  "file": "prefix-sums-2d.png",
+  "name": ""
+ },
+ {
+  "file": "queue-bfs.png",
+  "name": ""
+ },
+ {
+  "file": "segment-trees.png",
+  "name": ""
+ },
+ {
+  "file": "sparse-table.png",
+  "name": ""
+ },
+ {
+  "file": "splay-tree.png",
+  "name": ""
+ },
+ {
+  "file": "stack-dfs.png",
+  "name": ""
+ },
+ {
+  "file": "string-kmp.png",
+  "name": ""
+ },
+ {
+  "file": "string-z-func.png",
+  "name": ""
+ },
+ {
+  "file": "treap--merge.png",
+  "name": "merge"
+ },
+ {
+  "file": "treap--split.png",
+  "name": "split"
+ },
+ {
+  "file": "treap--собрать.png",
+  "name": "собрать"
+ },
+ {
+  "file": "treap.png",
+  "name": ""
+ }
+]
