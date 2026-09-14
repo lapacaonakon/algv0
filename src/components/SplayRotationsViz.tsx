@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Gauge, Pause, Play, RotateCcw } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Gauge, Pause, Play, RotateCcw, Terminal } from "lucide-react";
+import { useVizRuntime, vizNumber, vizString } from "../data/vizStepBus";
 
 /**
  * Разбор трёх случаев операции Splay: Zig, Zig-Zig, Zig-Zag.
@@ -148,8 +149,8 @@ const ZIGZIG: Case = {
       pos: { x: [100, 45], A: [45, 118], p: [188, 118], B: [140, 190], g: [265, 190], C: [220, 258], D: [318, 258] },
       edges: [["x", "A"], ["x", "p"], ["p", "B"], ["p", "g"], ["g", "C"], ["g", "D"]],
       kind: "result",
-      title: "Стало: 20 в корне, бамбук стал кустом",
-      text: "Сравни с первым кадром: A и B были на глубине 3, стали на глубине 2 и 3, а вся левая ветка укоротилась вдвое. Так splay чинит дерево, а не только достаёт ключ.",
+      title: "Стало: 20 в корне, ветка x подтянулась",
+      text: "Сравни с первым кадром: A было на глубине 3 — стало 1, B: 3 → 2. Платят за это g и D (0 → 2 и 1 → 3): общая высота не изменилась. Splay не «уменьшает высоту вообще», он подтягивает к корню ту ветку, по которой только что ходили, — выигрыш накапливается в сумме запросов (амортизация).",
       moved: ["x", "p", "A", "B"],
       ms: RESULT_MS,
     },
@@ -336,11 +337,45 @@ const Tree: React.FC<{ frame: Frame; prev: Pos; keys: Case["keys"] }> = ({ frame
   );
 };
 
+/** Имя случая из кода пользователя → вкладка демонстрации. */
+const CASE_BY_NAME: Record<string, number> = {
+  zig: 0, "zig-zig": 1, zigzig: 1, "zig zig": 1, "zig-zag": 2, zigzag: 2, "zig zag": 2,
+};
+
 export const SplayRotationsViz: React.FC = () => {
   const [caseIdx, setCaseIdx] = useState(0);
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [slow, setSlow] = useState(false);
+
+  /* ── связь с Python-компилятором: case переключает вкладку, step листает кадры ── */
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveCase = vars ? vizString(vars.case) ?? vizString(vars.kind) ?? vizString(vars.typ) : null;
+  const liveStep = vars ? vizNumber(vars.step) ?? vizNumber(vars.i) : null;
+  const liveX = vars ? vizNumber(vars.xk) ?? vizNumber(vars.x) : null;
+  const liveP = vars ? vizNumber(vars.pk) ?? vizNumber(vars.p) : null;
+  const liveG = vars ? vizNumber(vars.gk) ?? vizNumber(vars.g) : null;
+  const lastSig = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!liveCase && liveStep === null) return;
+    const norm = (liveCase ?? "").trim().toLowerCase().replace(/[\s_]/g, "-");
+    const idx = CASE_BY_NAME[norm] ?? caseIdx;
+    const sig = `${idx}:${liveStep ?? ""}`;
+    if (sig === lastSig.current) return;
+    const first = lastSig.current === null;
+    lastSig.current = sig;
+    setPlaying(false);
+    if (first || idx !== caseIdx) {
+      setCaseIdx(idx);   // новый случай — начинаем его кадры с начала
+      setFrame(0);
+    } else {
+      // тот же случай, следующий шаг кода — пролистываем пару кадров (прицел → поворот)
+      setFrame((f) => Math.min(CASES[idx].frames.length - 1, f + 2));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveCase, liveStep]);
 
   const active = CASES[caseIdx];
   const total = active.frames.length;
@@ -495,6 +530,31 @@ export const SplayRotationsViz: React.FC = () => {
             )
           )}
         </div>
+      </div>
+
+      {/* что сейчас сообщил компилятор */}
+      <div className="mt-3 pt-3 border-t border-slate-800 flex flex-wrap items-center gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+          <Terminal className="w-3.5 h-3.5" /> из компилятора:
+        </span>
+        {liveCase || liveX !== null || liveStep !== null ? (
+          <>
+            {liveCase && (
+              <span className="text-[11px] font-mono bg-slate-900 border border-indigo-600/40 text-indigo-300 rounded-md px-2 py-1">
+                case = {liveCase}
+              </span>
+            )}
+            {liveX !== null && <span className="text-[11px] font-mono bg-slate-900 border border-slate-700 text-slate-300 rounded-md px-2 py-1">x = {liveX}</span>}
+            {liveP !== null && <span className="text-[11px] font-mono bg-slate-900 border border-slate-700 text-slate-300 rounded-md px-2 py-1">p = {liveP}</span>}
+            {liveG !== null && <span className="text-[11px] font-mono bg-slate-900 border border-slate-700 text-slate-300 rounded-md px-2 py-1">g = {liveG || "нет (Zig)"}</span>}
+            {liveStep !== null && <span className="text-[11px] font-mono bg-slate-900 border border-slate-700 text-slate-300 rounded-md px-2 py-1">step = {liveStep}</span>}
+          </>
+        ) : (
+          <span className="text-[11px] text-slate-500">
+            запусти код из панели Python: переменная <code className="font-mono text-indigo-300">case</code> переключит вкладку на нужный случай,
+            а <code className="font-mono text-indigo-300">step</code> пролистает кадры поворота
+          </span>
+        )}
       </div>
 
       <p className="mt-2 text-[11px] text-slate-500">

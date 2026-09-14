@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useVizRuntime, vizNumber, vizRecord, vizString } from '../data/vizStepBus';
+import { LiveDistTable } from './LiveDistTable';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -12,10 +14,14 @@ interface Step {
   activeCodeLine: number;
 }
 
+/** Подсказка для кнопок, когда шаги ведёт компилятор. */
+const HINT_TEXT = "Шаги сейчас ведёт панель Python: ← → — шаг, пробел — автопроход. Снимите связь (Esc в панели или пустой редактор), чтобы листать вручную.";
+
 export default function BellmanFordViz() {
   const [hasCycle, setHasCycle] = useState(false);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodes: Node[] = [
@@ -156,8 +162,24 @@ export default function BellmanFordViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  if (!currentStep) return <div>Загрузка...</div>;
+  const baseStep = steps[currentStepIndex] || null;
+  if (!baseStep) return <div>Загрузка...</div>;
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveU = vizString(vars?.u);
+  const liveV = vizString(vars?.v);
+  const liveW = vizNumber(vars?.w);
+  const liveDist = vizRecord(vars?.dist);
+  const compilerLinked = liveI !== null || liveU !== null || liveV !== null || !!liveDist;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        iteration: liveI ?? 0,
+        checkingEdge: liveU && liveV ? { u: liveU, v: liveV, w: liveW ?? 0 } : null,
+        distances: Object.fromEntries(nodes.map((node) => [node.id, vizNumber(liveDist?.[node.id]) ?? 999])),
+        log: `Компилятор: i=${liveI ?? "—"}, ребро ${liveU ?? "—"} → ${liveV ?? "—"}; dist взят из Python.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -177,11 +199,17 @@ export default function BellmanFordViz() {
             <button onClick={() => setHasCycle(false)} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${!hasCycle ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>Обычный</button>
             <button onClick={() => setHasCycle(true)} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${hasCycle ? 'bg-rose-600 text-white' : 'text-slate-400'}`}>⚠️ С циклом</button>
           </div>
-          <button onClick={() => { setIsPlaying(false); setCurrentStepIndex(0); }} className="flex items-center gap-1 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm transition-colors">🔄 Сброс</button>
-          <button onClick={() => setIsPlaying(!isPlaying)} className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-bold transition-colors text-white ${isPlaying ? 'bg-amber-600' : 'bg-emerald-600'}`}>{isPlaying ? '⏸️ Пауза' : '▶️ Пуск'}</button>
-          <button onClick={() => { setIsPlaying(false); if (currentStepIndex < steps.length - 1) setCurrentStepIndex(currentStepIndex + 1); }} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-sm transition-colors">Шаг ⏭️</button>
+          <button onClick={() => { setIsPlaying(false); setCurrentStepIndex(0); }} disabled={compilerLinked} title={compilerLinked ? HINT_TEXT : "Вернуться к первому шагу"} className="flex items-center gap-1 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg text-sm transition-colors">Сброс</button>
+          <button onClick={() => setIsPlaying(!isPlaying)} disabled={compilerLinked} title={compilerLinked ? HINT_TEXT : "Проиграть встроенную демонстрацию"} className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-bold transition-colors text-white disabled:opacity-40 disabled:cursor-not-allowed ${isPlaying ? 'bg-amber-600' : 'bg-emerald-600'}`}>{isPlaying ? 'Пауза' : 'Пуск'}</button>
+          <button onClick={() => { setIsPlaying(false); if (currentStepIndex < steps.length - 1) setCurrentStepIndex(currentStepIndex + 1); }} disabled={compilerLinked} title={compilerLinked ? HINT_TEXT : "Следующий шаг демонстрации"} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg text-sm transition-colors">Шаг</button>
         </div>
       </div>
+
+      <LiveDistTable
+        dist={liveDist}
+        demoIds={nodes.map((node) => node.id)}
+        title="Ваши расстояния из кода (Форд—Беллман)"
+      />
 
       <div className="flex flex-col lg:flex-row gap-6 mb-6">
         {/* Граф */}

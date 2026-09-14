@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { getViz } from "../vizRegistry";
+import { VizChapterContext } from "../../data/vizStepBus";
+import { VizLiveStatus } from "../VizLiveStatus";
 
 interface Props {
   vizId: string | null;
@@ -28,13 +30,14 @@ export const SimulatorModal: React.FC<Props> = ({ vizId, onClose }) => {
   const Component = viz.Component;
 
   return createPortal(
-    <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center sm:p-4">
+    <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center sm:p-4 print:hidden">
       <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full sm:max-w-5xl max-h-[92vh] sm:max-h-[88vh] bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800 shrink-0">
           <div className="min-w-0 flex-1">
             <h3 className="font-bold text-white text-sm sm:text-base truncate">{viz.title}</h3>
             {viz.hint && <p className="text-[11px] text-slate-400 truncate">{viz.hint}</p>}
+            <VizLiveStatus demoTitle={viz.title} className="mt-1" />
           </div>
           <button
             onClick={onClose}
@@ -45,7 +48,10 @@ export const SimulatorModal: React.FC<Props> = ({ vizId, onClose }) => {
           </button>
         </div>
         <div className="overflow-y-auto overscroll-contain p-3 sm:p-5">
-          <Component />
+          {/* Тот же id главы: развёрнутая демонстрация читает те же переменные компилятора. */}
+          <VizChapterContext.Provider value={vizId}>
+            <Component />
+          </VizChapterContext.Provider>
         </div>
       </div>
     </div>,

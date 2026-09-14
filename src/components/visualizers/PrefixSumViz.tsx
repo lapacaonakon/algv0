@@ -1,4 +1,13 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import {
+  emitVizDemo,
+  liveMatrix,
+  pickLiveVar,
+  useVizRuntime,
+  vizArray,
+  vizNumber,
+  VizChapterContext,
+} from "../../data/vizStepBus";
 
 /**
  * Префиксные суммы: 1D и 2D.
@@ -25,6 +34,13 @@ const cellBase =
 
 export const PrefixSumViz: React.FC = () => {
   const [mode, setMode] = useState<"1d" | "2d">("1d");
+  const chapterId = useContext(VizChapterContext);
+
+  // Вкладка 2D = своё демо (свой скелет): компилятор подхватывает переключение.
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, mode === "2d" ? "2d" : "");
+  }, [chapterId, mode]);
+
   return (
     <div className="w-full bg-slate-950 rounded-2xl border border-slate-800 p-3 sm:p-5 shadow-xl">
       <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
@@ -60,6 +76,19 @@ const Prefix1D: React.FC = () => {
   /** Что сейчас под курсором: префикс P[i] или элемент a[i]. */
   const [hover, setHover] = useState<{ kind: "pref" | "a"; i: number } | null>(null);
   const [range, setRange] = useState<{ l: number; r: number }>({ l: 2, r: 5 });
+  /** Снимок i/P из автоматически выполненного Python-кода. */
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveP = vizArray(vars?.P);
+  const hasLiveP = !!vars && Object.prototype.hasOwnProperty.call(vars, "P");
+  const compilerLinked = liveI !== null || hasLiveP;
+  // i/P управляют ячейками напрямую; индекс Python-строки здесь ничего не значит.
+  const shownDriven = compilerLinked
+    ? liveI !== null
+      ? Math.max(0, Math.min(A1.length, Math.trunc(liveI)))
+      : Math.max(0, Math.min(A1.length, (liveP?.length ?? 1) - 1))
+    : null;
 
   const covered =
     hover?.kind === "pref"
@@ -89,6 +118,7 @@ const Prefix1D: React.FC = () => {
             {A1.map((v, i) => {
               const inCover = covered && i >= covered.from && i <= covered.to;
               const inRange = i >= range.l && i <= range.r;
+              const isDrivenAdd = shownDriven !== null && shownDriven >= 1 && i === shownDriven - 1; // a[i] сейчас прибавляем к P
               return (
                 <div
                   key={i}
@@ -96,11 +126,13 @@ const Prefix1D: React.FC = () => {
                   onMouseLeave={() => setHover(null)}
                   onClick={() => setRange((r) => (i < r.l ? { l: i, r: r.r } : { l: r.l, r: i }))}
                   className={`${cellBase} cursor-pointer ${
-                    inCover
-                      ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
-                      : inRange
-                        ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
-                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    isDrivenAdd
+                      ? "bg-amber-500 text-black ring-2 ring-amber-300 font-extrabold"
+                      : inCover
+                        ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
+                        : inRange
+                          ? "bg-indigo-900/70 text-indigo-200 ring-1 ring-indigo-600"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                   }`}
                   title={`a[${i}] = ${v}`}
                 >
@@ -117,23 +149,34 @@ const Prefix1D: React.FC = () => {
               const active = hover?.kind === "pref" && hover.i === i;
               const isL = i === range.l;
               const isR = i === range.r + 1;
+              const liveValue = liveP?.[i];
+              const blank = hasLiveP && (liveValue === undefined || liveValue === null);
+              const masked = !hasLiveP && shownDriven !== null && i > shownDriven;
+              const isDrivenCur = shownDriven !== null && i === shownDriven && (compilerLinked || shownDriven >= 1);
+              const shownValue = hasLiveP ? liveValue : v;
               return (
                 <div
                   key={i}
                   onMouseEnter={() => setHover({ kind: "pref", i })}
                   onMouseLeave={() => setHover(null)}
                   className={`${cellBase} cursor-help ${
-                    active
-                      ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
-                      : isR
-                        ? "bg-emerald-700 text-white"
-                        : isL
-                          ? "bg-rose-700 text-white"
-                          : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                    isDrivenCur
+                      ? "bg-emerald-600 text-white ring-2 ring-emerald-300 font-extrabold scale-110 shadow-lg shadow-emerald-500/30"
+                      : blank
+                        ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
+                      : masked
+                        ? "bg-slate-800/50 text-slate-700 border border-dashed border-slate-700"
+                        : active
+                          ? "bg-emerald-500 text-white ring-2 ring-emerald-300"
+                          : isR
+                            ? "bg-emerald-700 text-white"
+                            : isL
+                              ? "bg-rose-700 text-white"
+                              : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
                   }`}
-                  title={`P[${i}] = сумма a[0..${i - 1}]`}
+                  title={blank || masked ? `P[${i}] — пустая ячейка` : `P[${i}] = ${String(shownValue)}`}
                 >
-                  {v}
+                  {blank || masked ? "·" : String(shownValue)}
                 </div>
               );
             })}
@@ -143,7 +186,15 @@ const Prefix1D: React.FC = () => {
 
       {/* Пояснение под курсором */}
       <div className="min-h-[62px] bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm">
-        {hover?.kind === "pref" ? (
+        {shownDriven !== null && !hover ? (
+          <p className="text-slate-300">
+            <b className="text-emerald-400">Компилятор → визуализация:</b>{" "}
+            <span className="font-mono text-white">i = {shownDriven}</span>, активна ячейка{" "}
+            <span className="font-mono text-emerald-300">P[{shownDriven}]</span>
+            {hasLiveP && <> = <span className="font-mono text-amber-300">{String(liveP?.[shownDriven] ?? "пусто")}</span></>}.
+            <span className="ml-1 text-slate-500">Пустой P всё равно рисуется каркасом квадратов.</span>
+          </p>
+        ) : hover?.kind === "pref" ? (
           hover.i === 0 ? (
             <p className="text-slate-300">
               <b className="text-emerald-400">P[0] = 0</b> — «пустой» префикс. Он нужен, чтобы формула работала и для
@@ -200,6 +251,10 @@ const Prefix1D: React.FC = () => {
 const Prefix2D: React.FC = () => {
   const n = A2.length;
   const m = A2[0].length;
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+  const liveI = vizNumber(vars?.i);
+  const liveJ = vizNumber(vars?.j);
 
   const P = useMemo(() => {
     const p = Array.from({ length: n + 1 }, () => Array<number>(m + 1).fill(0));
@@ -214,44 +269,110 @@ const Prefix2D: React.FC = () => {
   const [hover, setHover] = useState<{ i: number; j: number } | null>(null);
   const [rect, setRect] = useState({ r1: 1, c1: 1, r2: 2, c2: 2 });
 
-  const D = P[rect.r1][rect.c1];
-  const B = P[rect.r1][rect.c2 + 1];
-  const Cc = P[rect.r2 + 1][rect.c1];
-  const Aa = P[rect.r2 + 1][rect.c2 + 1];
-  const total = Aa - B - Cc + D;
+  /**
+   * Матрицы из кода пользователя рисуются В СВОЕЙ размерности.
+   *
+   * Раньше значения S[i][j] протискивались в демо-сетку (n+1)×(m+1): при другом
+   * размере матрицы часть ячеек становилась «пустыми», а лишние отбрасывались —
+   * шаги компилятора не совпадали с картинкой.
+   */
+  const livePrefSource = pickLiveVar(vars, ["S", "P", "pref", "ps"]);
+  const liveS = liveMatrix(livePrefSource?.value);
+  const hasLiveS = liveS !== null;
+
+  const liveArrSource = pickLiveVar(vars, ["a", "A", "grid", "arr", "mat", "matrix"]);
+  const liveA = liveMatrix(liveArrSource?.value);
+
+  const prefRows = liveS?.rows ?? P.length;
+  const prefCols = liveS?.cols ?? (P[0]?.length ?? 0);
+  const grid: (number | null)[][] = liveS
+    ? Array.from({ length: prefRows }, (_, i) =>
+        Array.from({ length: prefCols }, (_, j) => liveS.at(i, j))
+      )
+    : P;
+
+  const srcRows = liveA?.rows ?? n;
+  const srcCols = liveA?.cols ?? m;
+  const srcGrid: (number | null)[][] = liveA
+    ? Array.from({ length: srcRows }, (_, i) => Array.from({ length: srcCols }, (_, j) => liveA.at(i, j)))
+    : A2;
+
+  const cellAt = (i: number, j: number): number | null =>
+    i >= 0 && j >= 0 && i < prefRows && j < prefCols ? grid[i][j] : null;
+
+  const sizeMismatch =
+    hasLiveS && liveS && (liveS.rows !== P.length || liveS.cols !== (P[0]?.length ?? 0))
+      ? `Демо построено на матрице ${n}×${m} (сетка префиксов ${P.length}×${P[0].length}), а в вашем коде ${livePrefSource?.name ?? "S"} имеет размер ${liveS.sizeLabel}. Ниже нарисована ВАША размерность — углы A, B, C, D ищутся в ней же.`
+      : null;
+
+  useEffect(() => {
+    const r1 = vizNumber(vars?.r1);
+    const c1 = vizNumber(vars?.c1);
+    const r2 = vizNumber(vars?.r2);
+    const c2 = vizNumber(vars?.c2);
+    if (r1 === null || c1 === null || r2 === null || c2 === null) return;
+    setRect({
+      r1: Math.max(0, Math.min(srcRows - 1, Math.trunc(r1))),
+      c1: Math.max(0, Math.min(srcCols - 1, Math.trunc(c1))),
+      r2: Math.max(0, Math.min(srcRows - 1, Math.trunc(r2))),
+      c2: Math.max(0, Math.min(srcCols - 1, Math.trunc(c2))),
+    });
+  }, [vars, srcRows, srcCols]);
+
+  // Границы запроса держим внутри реальной сетки (у пользователя она может быть меньше демо).
+  const r1 = Math.max(0, Math.min(rect.r1, prefRows - 1));
+  const c1 = Math.max(0, Math.min(rect.c1, prefCols - 1));
+  const r2 = Math.max(r1, Math.min(rect.r2, prefRows - 1));
+  const c2 = Math.max(c1, Math.min(rect.c2, prefCols - 1));
+
+  const D = cellAt(r1, c1);
+  const B = cellAt(r1, c2 + 1);
+  const Cc = cellAt(r2 + 1, c1);
+  const Aa = cellAt(r2 + 1, c2 + 1);
+  const total = Aa !== null && B !== null && Cc !== null && D !== null ? Aa - B - Cc + D : null;
+  const fmt = (v: number | null) => (v === null ? "—" : String(v));
 
   const cornerOf = (i: number, j: number) => {
-    if (i === rect.r2 + 1 && j === rect.c2 + 1) return "A";
-    if (i === rect.r1 && j === rect.c2 + 1) return "B";
-    if (i === rect.r2 + 1 && j === rect.c1) return "C";
-    if (i === rect.r1 && j === rect.c1) return "D";
+    if (i === r2 + 1 && j === c2 + 1) return "A";
+    if (i === r1 && j === c2 + 1) return "B";
+    if (i === r2 + 1 && j === c1) return "C";
+    if (i === r1 && j === c1) return "D";
     return null;
   };
 
   return (
     <div className="space-y-5">
+      {sizeMismatch ? (
+        <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200">
+          {sizeMismatch}
+        </p>
+      ) : null}
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Исходная матрица */}
         <div className="overflow-x-auto">
-          <div className="text-xs text-slate-400 mb-2">Исходная матрица (кликайте, чтобы задать прямоугольник)</div>
+          <div className="text-xs text-slate-400 mb-2">
+            Исходная матрица {liveA ? `${liveArrSource?.name ?? "a"} ${liveA.sizeLabel} из компилятора` : `(${n}×${m}, демо)`}: кликайте, чтобы задать прямоугольник
+          </div>
           <div className="inline-block">
-            {A2.map((row, i) => (
+            {srcGrid.map((row, i) => (
               <div key={i} className="flex gap-1.5 mb-1.5">
                 {row.map((v, j) => {
-                  const inRect = i >= rect.r1 && i <= rect.r2 && j >= rect.c1 && j <= rect.c2;
+                  const inRect = i >= r1 && i <= r2 && j >= c1 && j <= c2;
                   return (
                     <div
                       key={j}
                       onClick={() =>
                         setRect((r) =>
-                          i < r.r1 || j < r.c1 ? { r1: i, c1: j, r2: r.r2, c2: r.c2 } : { ...r, r2: i, c2: j }
+                          i < r.r1 || j < r.c1
+                            ? { r1: i, c1: j, r2: Math.max(r.r2, i), c2: Math.max(r.c2, j) }
+                            : { ...r, r2: i, c2: j }
                         )
                       }
                       className={`${cellBase} cursor-pointer ${
                         inRect ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                       }`}
                     >
-                      {v}
+                      {v === null ? "·" : v}
                     </div>
                   );
                 })}
@@ -262,13 +383,18 @@ const Prefix2D: React.FC = () => {
 
         {/* Матрица префиксных сумм */}
         <div className="overflow-x-auto">
-          <div className="text-xs text-slate-400 mb-2">Префиксные суммы P (наведите на число)</div>
+          <div className="text-xs text-slate-400 mb-2">
+            Префиксные суммы {liveS ? `${livePrefSource?.name ?? "S"} ${liveS.sizeLabel} из компилятора` : "P (демо)"} — наведите на число
+          </div>
           <div className="inline-block">
-            {P.map((row, i) => (
+            {grid.map((row, i) => (
               <div key={i} className="flex gap-1.5 mb-1.5">
                 {row.map((v, j) => {
+                  const blank = v === null || v === undefined;
+                  const shownValue = v;
                   const corner = cornerOf(i, j);
                   const isHover = hover?.i === i && hover?.j === j;
+                  const isCompilerCell = liveI === i && liveJ === j;
                   const cornerColor =
                     corner === "A"
                       ? "bg-emerald-600 text-white"
@@ -283,10 +409,17 @@ const Prefix2D: React.FC = () => {
                       onMouseEnter={() => setHover({ i, j })}
                       onMouseLeave={() => setHover(null)}
                       className={`${cellBase} cursor-help relative ${
-                        isHover ? "bg-amber-500 text-white ring-2 ring-amber-300" : cornerColor
+                        isCompilerCell
+                          ? "bg-emerald-600 text-white ring-2 ring-emerald-300 scale-110"
+                          : isHover
+                            ? "bg-amber-500 text-white ring-2 ring-amber-300"
+                            : blank
+                              ? "bg-slate-950 text-slate-600 border border-dashed border-slate-700"
+                              : cornerColor
                       }`}
+                      title={hasLiveS ? `${livePrefSource?.name ?? "S"}[${i}][${j}] = ${String(shownValue ?? "пусто")}` : undefined}
                     >
-                      {v}
+                      {blank ? "·" : String(shownValue)}
                       {corner && !isHover && (
                         <span className="absolute -top-1 -right-1 text-[9px] bg-slate-950 border border-slate-600 rounded px-1 leading-tight">
                           {corner}
@@ -305,7 +438,7 @@ const Prefix2D: React.FC = () => {
         {hover ? (
           <p className="text-slate-300">
             <b className="text-amber-400">
-              P[{hover.i}][{hover.j}] = {P[hover.i][hover.j]}
+              {liveS ? livePrefSource?.name ?? "S" : "P"}[{hover.i}][{hover.j}] = {fmt(cellAt(hover.i, hover.j))}
             </b>{" "}
             — сумма всего прямоугольника от левого верхнего угла до клетки ({hover.i - 1}, {hover.j - 1}) включительно.
           </p>
@@ -317,8 +450,11 @@ const Prefix2D: React.FC = () => {
       <div className="bg-slate-900 border border-indigo-900/60 rounded-xl p-3 sm:p-4">
         <p className="font-mono text-sm sm:text-base text-white break-words">
           сумма = <span className="text-emerald-400">A</span> − <span className="text-rose-400">B</span> −{" "}
-          <span className="text-rose-400">C</span> + <span className="text-sky-400">D</span> = {Aa} − {B} − {Cc} + {D} ={" "}
-          <span className="text-indigo-300 font-bold">{total}</span>
+          <span className="text-rose-400">C</span> + <span className="text-sky-400">D</span> = {fmt(Aa)} − {fmt(B)} − {fmt(Cc)} + {fmt(D)} ={" "}
+          <span className="text-indigo-300 font-bold">{fmt(total)}</span>
+        </p>
+        <p className="font-mono text-[11px] text-slate-400 mt-1">
+          прямоугольник ({r1}, {c1}) … ({r2}, {c2}) · сетка {prefRows}×{prefCols}
         </p>
         <p className="text-[11px] text-slate-500 mt-1">
           Вычли два «хвоста» и вернули дважды вычтенный угол — это и есть включения-исключения.

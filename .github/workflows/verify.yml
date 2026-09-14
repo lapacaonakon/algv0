@@ -1,0 +1,70 @@
+name: Verify
+
+# Проверки приложения на каждом пуше и PR:
+#
+#   verify:unit  — разбор «живых» данных компилятора (liveMatrix/pickLiveVar/clampIndex)
+#   verify:code  — все эталонные Python-коды страниц выполняются настоящим CPython
+#                  под трейсером панели и создают обещанные странице переменные
+#   verify:dom   — приложение монтируется в jsdom: страницы, панель Python,
+#                  матрицы чужих размерностей, кнопки, бейджи источника данных
+#
+# Headless-браузер не нужен: jsdom + pyodide из node_modules.
+
+on:
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - "public/export/**"
+      - "**/*.md"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: unit + эталонный код + DOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # puppeteer здесь не нужен (он для растеризации PDF), а его postinstall
+      # тянет Chromium — пропускаем, чтобы установка не зависела от CDN.
+      - name: Зависимости
+        run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 1
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 1
+
+      - name: Типы и сборка
+        run: |
+          npx tsc --noEmit -p tsconfig.json
+          npm run build
+
+      - name: Модульные проверки (liveMatrix)
+        run: npm run verify:unit
+
+      - name: Эталонные коды страниц (настоящий CPython)
+        run: npm run verify:code
+
+      - name: DOM-проверки приложения (jsdom)
+        run: npm run verify:dom
+
+      - name: Отчёт проверок
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-report
+          path: tmp/verify/report.json
+          if-no-files-found: ignore

@@ -13,6 +13,11 @@ const MAX_PER_TERM = 8;
 
 const SKIP_SELECTOR = "code, pre, script, style, a, textarea, input, .term-hint, [data-no-hint]";
 
+/** Числовые константы TreeWalker: глобального `NodeFilter` в jsdom нет. */
+const SHOW_TEXT = 4;
+const FILTER_ACCEPT = 1;
+const FILTER_REJECT = 2;
+
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Одна большая регулярка из всех меток: длинные раньше коротких. */
@@ -36,13 +41,13 @@ export function annotateTerms(root: HTMLElement): void {
 
   const perTerm = new Map<string, number>();
   const perSurface = new Map<string, number>();
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+  const walker = document.createTreeWalker(root, SHOW_TEXT, {
     acceptNode(node) {
       const parent = (node as Text).parentElement;
-      if (!parent) return NodeFilter.FILTER_REJECT;
-      if (parent.closest(SKIP_SELECTOR)) return NodeFilter.FILTER_REJECT;
-      if (!node.nodeValue || node.nodeValue.trim().length < 2) return NodeFilter.FILTER_REJECT;
-      return NodeFilter.FILTER_ACCEPT;
+      if (!parent) return FILTER_REJECT;
+      if (parent.closest(SKIP_SELECTOR)) return FILTER_REJECT;
+      if (!node.nodeValue || node.nodeValue.trim().length < 2) return FILTER_REJECT;
+      return FILTER_ACCEPT;
     },
   });
 

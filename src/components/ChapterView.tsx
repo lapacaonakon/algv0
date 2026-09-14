@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Download, Loader2, Maximize2, MousePointerClick, Printer, Sparkles } from "lucide-react";
+import { Check, Download, FileText, Loader2, Maximize2, MousePointerClick, Printer, Sparkles, Terminal } from "lucide-react";
 import type { Chapter } from "../types";
 import { useTermHints } from "../hooks/useTermHints";
 import { TermPopover, type HintAnchor } from "./hints/TermPopover";
 import { getViz } from "./vizRegistry";
+import { VizChapterContext } from "../data/vizStepBus";
+import { VizLiveStatus } from "./VizLiveStatus";
 import { ChapterNav } from "./ChapterNav";
+import { ChapterQuiz } from "./ChapterQuiz";
 import { downloadChapterHtml } from "../utils/exportHtml";
+import { useTicketLinks } from "../utils/ticketLinks";
 
 interface Props {
   chapter: Chapter;
@@ -15,17 +19,24 @@ interface Props {
   total: number;
   onGo: (id: string) => void;
   onOpenSimulator: (vizId: string) => void;
+  /** Перейти во вкладку компилятора — там уже подставлены переменные этой демонстрации. */
+  onOpenCompiler?: () => void;
 }
 
 const isTouch = () => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
 
-export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator }) => {
+export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total, onGo, onOpenSimulator, onOpenCompiler }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [anchor, setAnchor] = useState<HintAnchor | null>(null);
   const hideTimer = useRef<number | null>(null);
   const [saving, setSaving] = useState<"idle" | "work" | "done">("idle");
 
   useTermHints(contentRef, [chapter.id]);
+  /**
+   * Упоминания «билет 15» становятся переходами на страницу этого билета.
+   * Разметка идёт ПОСЛЕ терминов: подсказки глоссария приоритетнее.
+   */
+  useTicketLinks(contentRef, [chapter.id], { selfId: chapter.id });
 
   const cancelHide = useCallback(() => {
     if (hideTimer.current) {
@@ -42,6 +53,33 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
   useEffect(() => {
     setAnchor(null);
     setSaving("idle");
+  }, [chapter.id]);
+
+  /**
+   * Печать/«сохранить в PDF» этой темы: раскрываем все спойлеры <details>,
+   * чтобы на бумагу попал весь текст (доказательства, код, таблицы),
+   * а после печати возвращаем их в исходное состояние.
+   */
+  useEffect(() => {
+    const each = () => Array.from(contentRef.current?.querySelectorAll("details") ?? []);
+    const openAll = () => {
+      each().forEach((d) => {
+        d.dataset.wasOpen = d.open ? "1" : "0";
+        d.open = true;
+      });
+    };
+    const restore = () => {
+      each().forEach((d) => {
+        if (d.dataset.wasOpen === "0") d.open = false;
+        delete d.dataset.wasOpen;
+      });
+    };
+    window.addEventListener("beforeprint", openAll);
+    window.addEventListener("afterprint", restore);
+    return () => {
+      window.removeEventListener("beforeprint", openAll);
+      window.removeEventListener("afterprint", restore);
+    };
   }, [chapter.id]);
 
   const saveHtml = useCallback(async () => {
@@ -78,6 +116,13 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
   };
 
   const handleClick = (e: React.MouseEvent) => {
+    // ссылка на другой билет: переходим внутри приложения, а не перезагружаем страницу
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[data-goto]");
+    if (link) {
+      e.preventDefault();
+      onGo(link.dataset.goto ?? "");
+      return;
+    }
     const el = (e.target as HTMLElement).closest<HTMLElement>(".term-hint");
     if (!el) return;
     e.preventDefault();
@@ -96,7 +141,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
     <>
       <article className="chapter-body">
         {/* панель выгрузки: сохранить именно эту страницу */}
-        <div className="flex flex-wrap items-center gap-2 mb-4 -mt-1">
+        <div className="flex flex-wrap items-center gap-2 mb-4 -mt-1 print:hidden">
           <button
             onClick={saveHtml}
             disabled={saving === "work"}
@@ -114,11 +159,20 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
           </button>
           <button
             onClick={() => window.print()}
-            title="Распечатать или сохранить в PDF средствами браузера"
+            title="Распечатать или сохранить эту тему в PDF средствами браузера: печатается текст (со всеми раскрытыми спойлерами) и демонстрация, без шапки, содержания и панели компилятора"
             className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
           >
-            <Printer className="w-3.5 h-3.5" /> Печать
+            <Printer className="w-3.5 h-3.5" /> PDF этой темы
           </button>
+          <a
+            href={`?lite=1&topic=${encodeURIComponent(chapter.id)}`}
+            target="_blank"
+            rel="noreferrer"
+            title="Текстовая версия темы без навигации, демонстраций и компилятора — её удобно печатать и её же читают внешние парсеры/ридеры"
+            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-sky-500 transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" /> Текстовая версия
+          </a>
           <span className="text-[11px] text-slate-500">одна тема = один файл, открывается без интернета</span>
         </div>
 
@@ -132,7 +186,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
           dangerouslySetInnerHTML={{ __html: chapter.content }}
         />
 
-        <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
+        <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 print:hidden">
           <MousePointerClick className="w-4 h-4 shrink-0 text-indigo-400 mt-px" />
           <span>
             Подчёркнутые термины — интерактивные: наведите курсор (или тапните на телефоне), чтобы увидеть
@@ -147,17 +201,34 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 Демонстрация: {viz.title}
               </h3>
-              <button
-                onClick={() => onOpenSimulator(chapter.id)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
-              >
-                <Maximize2 className="w-3.5 h-3.5" /> Развернуть
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenSimulator(chapter.id)}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" /> Развернуть
+                </button>
+                {onOpenCompiler && (
+                  <button
+                    onClick={onOpenCompiler}
+                    title="Открыть Python: код выполняется автоматически, а значения i, j, k, v, P, st… сразу подсвечивают объекты демонстрации"
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 hover:text-white hover:border-emerald-500 transition-colors"
+                  >
+                    <Terminal className="w-3.5 h-3.5" /> Код ↔ визуализация
+                  </button>
+                )}
+              </div>
             </div>
             {viz.hint && <p className="text-xs text-slate-400 mb-3">{viz.hint}</p>}
-            <viz.Component />
+            <VizChapterContext.Provider value={chapter.id}>
+              <VizLiveStatus demoTitle={viz.title} className="mb-3" />
+              <viz.Component />
+            </VizChapterContext.Provider>
           </section>
         )}
+
+        {/* прочитал → посмотрел, как работает → проверил себя */}
+        <ChapterQuiz chapterId={chapter.id} />
 
         <ChapterNav prev={prev} next={next} index={index} total={total} onGo={onGo} />
       </article>

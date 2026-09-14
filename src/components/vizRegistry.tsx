@@ -8,19 +8,19 @@ import { DfsBridgesSimulator } from "./DfsBridgesSimulator";
 import DijkstraViz from "./DijkstraViz";
 import { EulerSimulator } from "./EulerSimulator";
 import FloydViz from "./FloydViz";
+import { GraphComponentsViz } from "./GraphComponentsViz";
 import { GraphTraversalViz } from "./GraphTraversalViz";
+import { ComplexityViz } from "./ComplexityViz";
 import { HeapViz } from "./HeapViz";
 import { JohnsonViz } from "./JohnsonViz";
 import { KosarajuViz } from "./KosarajuViz";
 import { KruskalSimulator } from "./KruskalSimulator";
 import MnemonicCards from "./MnemonicCards";
-import { PlanarityDemo } from "./PlanarityDemo";
+import { PlanarColoringViz } from "./PlanarColoringViz";
 import { QueueViz } from "./QueueViz";
 import { SalmonAutomatonWidget } from "./SalmonAutomatonWidget";
 import { SegmentTreeVisualizer } from "./SegmentTreeVisualizer";
-import { SplayTreeViz } from "./SplayTreeViz";
-import { SplayRotationsViz } from "./SplayRotationsViz";
-import { SplayRotationSandbox } from "./SplayRotationSandbox";
+import SplayPlayground from "./SplayPlayground";
 import { StackViz } from "./StackViz";
 import { StringAlgorithmsViz } from "./StringAlgorithmsViz";
 import { TopologicalSortViz } from "./TopologicalSortViz";
@@ -29,26 +29,7 @@ import ChapterImage from "./ChapterImage";
 import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
-
-/** Разбор поворота и песочница всегда идут парой: посмотрел — сразу повтори сам. */
-/**
- * Анимация и песочница идут друг под другом, а не в две колонки: в узкой
- * колонке дерево сжималось до нечитаемого размера, а понятность здесь важнее
- * компактности. Между ними — подпись, объясняющая переход от «смотрю» к «делаю».
- */
-const SplayRotationsPair: React.FC = () => (
-  <div className="space-y-4">
-    <SplayRotationsViz />
-    <p className="flex items-start gap-2 text-[12px] leading-relaxed text-slate-400 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
-      <span aria-hidden="true">👇</span>
-      <span>
-        Разобрался — проверь себя: ниже то же самое дерево, но крутить его нужно самому. Подсказок не будет, пока
-        не решишь.
-      </span>
-    </p>
-    <SplayRotationSandbox />
-  </div>
-);
+import { TreapBuildViz } from "./TreapBuildViz";
 
 export interface VizEntry {
   /** Заголовок панели/модалки. */
@@ -94,6 +75,11 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     hint: "Наведите курсор на любую ячейку — подсветится отрезок, за который она отвечает.",
     Component: SparseTableViz,
   },
+  treap: {
+    title: "Treap: плоскость → дерево → Split/Merge/Erase",
+    hint: "7 вкладок: Собрать (сортировка + соединение + автопроверка), Split, Merge, Erase, миф 2k/2k+1, поиск ≠ сортировка, Игра 🖱️ — собери дерево мышкой, судья-инварианты объясняет каждый запрещённый ход.",
+    Component: TreapBuildViz,
+  },
   "prefix-sums-2d": {
     title: "Префиксные суммы (1D и 2D)",
     hint: "Наведите на число — увидите, из чего оно сложилось.",
@@ -105,19 +91,9 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     Component: DPVisualizer,
   },
   "splay-tree": {
-    title: "Splay-дерево",
-    hint: "Покадровый разбор трёх поворотов, песочница на них же и живое дерево целиком.",
-    Component: () => (
-      <div className="space-y-10">
-        <SplayRotationsPair />
-        <SplayTreeViz />
-      </div>
-    ),
-  },
-  "splay-rotations": {
-    title: "Splay: Zig, Zig-Zig и Zig-Zag по шагам",
-    hint: "Сверху — покадровый разбор поворота, снизу — песочница, где то же самое делаешь сам.",
-    Component: () => <SplayRotationsPair />,
+    title: "Splay: механика → большое дерево → собери сам",
+    hint: "Три вкладки: покадровая механика поворотов в своём темпе, те же случаи на большом дереве (каждый одиночный поворот — кадры), и песочница «подними узел сам» с проверкой порядка.",
+    Component: SplayPlayground,
   },
   "graph-dfs-bfs": { title: "DFS и BFS на графе", Component: GraphTraversalViz },
   "top-sort": { title: "Топологическая сортировка", Component: TopologicalSortViz },
@@ -125,7 +101,11 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
   "graph-articulation": { title: "Точки сочленения", Component: ArticulationPointsViz },
   "bridges-code": { title: "Мосты: DFS + tin/low", Component: DfsBridgesSimulator },
   "euler-path-vs-cycle": { title: "Эйлеров путь и цикл", Component: EulerSimulator },
-  "planarity-euler-formula": { title: "Планарность: K5 и K3,3", Component: PlanarityDemo },
+  "planarity-euler-formula": {
+    title: "Планарность и покраска: K5/K3,3, χ ≤ Δ+1, двудольность, Визинг",
+    hint: "Четыре вкладки: непланарные K5 и K3,3, жадная покраска вершин, проверка двудольности BFS-ом и покраска рёбер. Массив color из вашего кода красит вершины напрямую.",
+    Component: PlanarColoringViz,
+  },
   dijkstra: {
     title: "Дейкстра",
     hint: "Жадно забираем ближайшую вершину и релаксируем её рёбра.",
@@ -155,9 +135,21 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     ),
   },
   "johnson-algo": { title: "Алгоритм Джонсона", Component: JohnsonViz },
-  "mst-kruskal": { title: "Краскал и DSU", Component: KruskalSimulator },
-  "mst-prima": { title: "Прим", Component: KruskalSimulator },
-  "mst-boruvka": { title: "Борувка", Component: KruskalSimulator },
+  mst: {
+    title: "Остовное дерево: Краскал, Прима, Борувка",
+    hint: "Три алгоритма (билеты 18–20) на одном графе из 9 вершин: вкладка переключает и стратегию роста остова, и код в панели Python. Переменные parent/mst/taken/u/v/w перекрашивают граф напрямую.",
+    Component: KruskalSimulator,
+  },
+  "graph-components": {
+    title: "Компоненты связности: обход и DSU",
+    hint: "Две вкладки: покраска обходом (каждый новый запуск DFS/BFS = +1 компонента) и склейка множеств рёбрами (DSU). Массивы comp/parent из вашего кода красят вершины.",
+    Component: GraphComponentsViz,
+  },
+  "complexity-classes": {
+    title: "Классы сложности и сведения",
+    hint: "Иерархия P ⊆ NP ⊆ PSPACE ⊆ EXP, сведение A ≤p B по кадрам, верификатор 3-SAT и живой график роста по вашим n и ops.",
+    Component: ComplexityViz,
+  },
   "string-kmp": { title: "Префикс-функция (КМП)", Component: () => <StringAlgorithmsViz defaultMode="kmp" /> },
   "string-z-func": { title: "Z-функция", Component: () => <StringAlgorithmsViz defaultMode="z" /> },
   "aho-corasick": {

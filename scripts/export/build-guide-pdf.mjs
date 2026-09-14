@@ -1,0 +1,676 @@
+/**
+ * Компактный PDF пособия: public/export/guide_lite.pdf
+ *
+ *   текст всех тем (без служебной разметки)
+ * + снимки визуализаций, если они отрендерены (tmp/viz-shots/*.png — их делает
+ *   capture-viz-shots.mjs в CI через headless-браузер)
+ * + иллюстрации страниц (jpg из src/assets)
+ * + текстовое описание каждой демонстрации и переменных, которыми её двигает
+ *   Python-компилятор (работает и без браузера — локальная сборка полная)
+ * − БЕЗ кода панели компилятора и без навигации приложения
+ *
+ * Запуск:  npm run export:guide
+ * Цель:    40–60 страниц (жёсткий предел — 100).
+ *
+ * Вёрстка целиком на собственном курсоре (cy): pdfkit не дописывает страницы
+ * сам, длинные таблицы/код/боксы режутся на фрагменты по высоте страницы.
+ */
+import fs from "node:fs";
+import path from "node:path";
+import { build } from "esbuild";
+import PDFDocument from "pdfkit";
+import { ROOT, OUT_DIR, ensureDir, humanSize } from "./common.mjs";
+import { htmlToBlocks } from "./html-to-blocks.mjs";
+
+const GUIDE_PDF_PATH = path.join(OUT_DIR, "guide_lite.pdf");
+const SHOTS_DIR = path.join(ROOT, "tmp", "viz-shots");
+const ENTRY = path.join(ROOT, "tmp", "guide-entry.ts");
+
+/** Картинки-иллюстрации страниц (те же, что показывает приложение). */
+const CHAPTER_IMAGES = {
+  dijkstra: "src/assets/dijkstra-kind.jpg",
+  "bellman-ford": "src/assets/bellman-ford-truck.jpg",
+  floyd: "src/assets/floyd-network.jpg",
+};
+
+/** A4 в пунктах. */
+const PAGE = { width: 595.28, height: 841.89, margin: 44 };
+const CONTENT_W = PAGE.width - PAGE.margin * 2;
+const TOP = PAGE.margin;
+const BOTTOM = PAGE.height - PAGE.margin - 16;
+
+/* ───────────────────────────── шрифты ───────────────────────────── */
+
+const CANDIDATES = {
+  regular: [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    "/usr/local/share/fonts/DejaVuSans.ttf",
+    "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+    "C:/Windows/Fonts/arial.ttf",
+  ],
+  bold: [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/local/share/fonts/DejaVuSans-Bold.ttf",
+    "C:/Windows/Fonts/arialbd.ttf",
+  ],
+  oblique: [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf",
+    "/usr/share/fonts/dejavu/DejaVuSans-Oblique.ttf",
+  ],
+  mono: [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/usr/share/fonts/dejavu/DejaVuSansMono.ttf",
+    "/usr/local/share/fonts/DejaVuSansMono.ttf",
+    "C:/Windows/Fonts/consola.ttf",
+  ],
+};
+
+const pick = (list) => list.find((f) => fs.existsSync(f)) ?? null;
+
+/**
+ * Убираем символы, которых нет в DejaVu (эмодзи и пиктограммы): иначе в PDF
+ * на их месте появляется «пустой» глиф. Стрелки, математические знаки и
+ * геометрические фигуры DejaVu знает — их оставляем.
+ */
+const UNSUPPORTED = /[\u{1F000}-\u{1FAFF}\u{2700}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E000}-\u{F8FF}\u{24EA}\u{2122}]/gu;
+/** Русское склонение счётных существительных: 1 страница, 22 страницы, 25 страниц. */
+const plural = (n, one, few, many) => {
+  const mod10 = Math.abs(n) % 10;
+  const mod100 = Math.abs(n) % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+};
+
+const plain = (text) =>
+  String(text ?? "")
+    .replace(UNSUPPORTED, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\u0000/g, "")
+    .trim();
+
+/* ─────────────────── данные приложения (через esbuild) ─────────────────── */
+
+async function loadAppData() {
+  ensureDir(path.dirname(ENTRY));
+  fs.writeFileSync(
+    ENTRY,
+    [
+      'export { chapters, chapterTopics } from "../src/data/content";',
+      'export { PAGE_SYNC } from "../src/data/vizSync";',
+      'export { VIZ_REGISTRY } from "../src/components/vizRegistry";',
+      'export { quizzes } from "../src/data/quizzes";',
+    ].join("\n")
+  );
+  const res = await build({
+    entryPoints: [ENTRY],
+    bundle: true,
+    write: false,
+    format: "esm",
+    platform: "node",
+    jsx: "automatic",
+    logLevel: "silent",
+    loader: { ".ts": "ts", ".tsx": "tsx", ".jpg": "dataurl", ".jpeg": "dataurl", ".png": "dataurl", ".svg": "text", ".gif": "dataurl", ".css": "empty" },
+  });
+  return import("data:text/javascript;base64," + Buffer.from(res.outputFiles[0].text).toString("base64"));
+}
+
+/* ────────────────────────── снимки визуализаций ────────────────────────── */
+
+function shotsFor(chapterId) {
+  if (!fs.existsSync(SHOTS_DIR)) return [];
+  return fs
+    .readdirSync(SHOTS_DIR)
+    .filter((f) => /\.(png|jpe?g)$/i.test(f))
+    .filter((f) => f === `${chapterId}.png` || f.startsWith(`${chapterId}--`) || f.startsWith(`${chapterId}.`))
+    .sort()
+    .map((f) => ({ file: path.join(SHOTS_DIR, f), name: f.replace(/\.(png|jpe?g)$/i, "").split("--")[1] ?? "" }));
+}
+
+/* ───────────────────────────── отрисовка PDF ───────────────────────────── */
+
+class Renderer {
+  constructor(doc, fonts) {
+    this.doc = doc;
+    this.fonts = fonts;
+    this.footerTitle = "";
+    this.pages = 0;
+    this.cy = TOP;
+  }
+
+  /**
+   * Колонтитул текущей страницы (печатаем до перехода на следующую).
+   *
+   * Важно: на время печати нижнее поле страницы уменьшается, иначе pdfkit
+   * решает, что текст не влез, и молча добавляет пустые страницы.
+   */
+  stampFooter() {
+    if (this.pages === 0 || !this.doc.page) return;
+    const prevBottom = this.doc.page.margins.bottom;
+    this.doc.page.margins.bottom = 16;
+    const y = PAGE.height - PAGE.margin + 4;
+    this.doc.font(this.fonts.regular).fontSize(7.6).fillColor("#9ca3af");
+    this.doc.text("Универсальное пособие · алгоритмы и структуры данных", PAGE.margin, y, {
+      width: CONTENT_W * 0.62,
+      align: "left",
+      lineBreak: false,
+      ellipsis: true,
+    });
+    this.doc.text(`${this.footerTitle} · ${this.pages}`, PAGE.margin + CONTENT_W * 0.62, y, {
+      width: CONTENT_W * 0.38,
+      align: "right",
+      lineBreak: false,
+      ellipsis: true,
+    });
+    this.doc.page.margins.bottom = prevBottom;
+    this.doc.y = this.cy;
+  }
+
+  newPage(footerTitle) {
+    this.stampFooter();
+    if (footerTitle !== undefined) this.footerTitle = footerTitle;
+    this.doc.addPage({ size: [PAGE.width, PAGE.height], margin: PAGE.margin });
+    this.pages += 1;
+    this.cy = TOP;
+  }
+
+  firstPage(footerTitle) {
+    if (footerTitle !== undefined) this.footerTitle = footerTitle;
+    this.doc.addPage({ size: [PAGE.width, PAGE.height], margin: PAGE.margin });
+    this.pages += 1;
+    this.cy = TOP;
+  }
+
+  /** Сколько места нужно, чтобы элемент не оторвался от следующего. */
+  ensure(h, extra = 0) {
+    if (this.cy + h + extra > BOTTOM) this.newPage();
+  }
+
+  height(text, { font, size, width, lineGap = 0 }) {
+    return this.doc.font(font).fontSize(size).heightOfString(String(text), { width, lineGap });
+  }
+
+  /**
+   * Режет текст на фрагменты не выше max пунктов: сначала по границам
+   * предложений, слишком длинное предложение — по словам.
+   *
+   * Без этого pdfkit сам переносит остаток на новую страницу: такая страница
+   * создаётся в обход рендерера — без нижнего колонтитула и без счётчика,
+   * из-за чего в файле оказывалось на одну страницу больше, чем в отчёте.
+   */
+  splitToFit(text, opts, max) {
+    const measure = (t) => this.height(t, opts);
+    const source = String(text);
+    if (measure(source) <= max) return [source];
+    const chunks = [];
+    let current = "";
+    const flush = () => {
+      if (current.trim()) chunks.push(current.trim());
+      current = "";
+    };
+    for (const sentence of source.split(/(?<=[.!?…;:])\s+/)) {
+      const withSentence = current ? `${current} ${sentence}` : sentence;
+      if (measure(withSentence) <= max) {
+        current = withSentence;
+        continue;
+      }
+      flush();
+      if (measure(sentence) <= max) {
+        current = sentence;
+        continue;
+      }
+      for (const word of sentence.split(/\s+/)) {
+        const withWord = current ? `${current} ${word}` : word;
+        if (measure(withWord) <= max) current = withWord;
+        else {
+          flush();
+          current = word;
+        }
+      }
+    }
+    flush();
+    return chunks.length ? chunks : [source];
+  }
+
+  rule(color = "#c7d2fe", width = 1) {
+    const y = this.cy;
+    this.doc.moveTo(PAGE.margin, y).lineTo(PAGE.margin + CONTENT_W, y).lineWidth(width).strokeColor(color).stroke();
+    this.cy = y + 8;
+  }
+
+  h1(rawText, { size = 20, color = "#111827", rule = true, gapBefore = 0 } = {}) {
+    const text = plain(rawText);
+    if (!text) return;
+    const h = this.height(text, { font: this.fonts.bold, size, width: CONTENT_W });
+    this.ensure(h + (rule ? 14 : 6) + gapBefore, 22);
+    this.cy += gapBefore;
+    this.doc.font(this.fonts.bold).fontSize(size).fillColor(color).text(text, PAGE.margin, this.cy, { width: CONTENT_W, lineGap: 1 });
+    this.cy = Math.max(this.cy, this.doc.y) + 2;
+    if (rule) this.rule();
+  }
+
+  h2(rawText, { size = 13.5, color = "#1e293b" } = {}) {
+    const text = plain(rawText);
+    if (!text) return;
+    const h = this.height(text, { font: this.fonts.bold, size, width: CONTENT_W });
+    this.ensure(h + 6, 20);
+    this.cy += 6;
+    this.doc.font(this.fonts.bold).fontSize(size).fillColor(color).text(text, PAGE.margin, this.cy, { width: CONTENT_W, lineGap: 0.5 });
+    this.cy = Math.max(this.cy, this.doc.y) + 3;
+  }
+
+  h3(rawText, { size = 11.2, color = "#334155" } = {}) {
+    const text = plain(rawText);
+    if (!text) return;
+    const h = this.height(text, { font: this.fonts.bold, size, width: CONTENT_W });
+    this.ensure(h + 4, 16);
+    this.cy += 4;
+    this.doc.font(this.fonts.bold).fontSize(size).fillColor(color).text(text, PAGE.margin, this.cy, { width: CONTENT_W });
+    this.cy = Math.max(this.cy, this.doc.y) + 2;
+  }
+
+  /** Абзац: режем по высоте страницы сами — автоперенос pdfkit не используем. */
+  para(rawText, { size = 9.6, indent = 0, color = "#1f2937", italic = false, mono = false, lineGap = 1.1, gapAfter = 3 } = {}) {
+    const text = plain(rawText);
+    if (!text) return;
+    const font = mono ? this.fonts.mono : italic && this.fonts.oblique ? this.fonts.oblique : this.fonts.regular;
+    const width = CONTENT_W - indent;
+    const opts = { font, size, width, lineGap };
+    const chunks = this.splitToFit(text, opts, BOTTOM - TOP);
+    chunks.forEach((chunk, index) => {
+      const last = index === chunks.length - 1;
+      const h = this.height(chunk, opts);
+      this.ensure(h + (last ? gapAfter : 0), 6);
+      const y0 = this.cy;
+      this.doc.font(font).fontSize(size).fillColor(color).text(chunk, PAGE.margin + indent, y0, { width, lineGap, align: "left" });
+      this.cy = Math.max(y0 + h, this.doc.y) + (last ? gapAfter : 0);
+      if (this.cy > BOTTOM) this.newPage();
+    });
+  }
+
+  bullet(rawText, { ordinal = null, depth = 0, size = 9.5 } = {}) {
+    const text = plain(rawText);
+    if (!text) return;
+    const indent = 16 + depth * 14;
+    const marker = ordinal ? `${ordinal}.` : "•";
+    const width = CONTENT_W - indent - 4;
+    const opts = { font: this.fonts.regular, size, width, lineGap: 1 };
+    const chunks = this.splitToFit(text, opts, BOTTOM - TOP);
+    chunks.forEach((chunk, index) => {
+      const h = this.height(chunk, opts);
+      this.ensure(h + 2.5, 6);
+      const y0 = this.cy;
+      if (index === 0) {
+        this.doc.font(this.fonts.regular).fontSize(size).fillColor("#6366f1").text(marker, PAGE.margin + indent - 13, y0, { width: 13, align: "right", lineGap: 1 });
+      }
+      this.doc.font(this.fonts.regular).fontSize(size).fillColor("#1f2937").text(chunk, PAGE.margin + indent, y0, { width, lineGap: 1 });
+      this.cy = Math.max(y0 + h, this.doc.y) + 2.5;
+      if (this.cy > BOTTOM) this.newPage();
+    });
+  }
+
+  /** Код: режем на фрагменты по высоте страницы, каждый — в своей рамке. */
+  code(rawText, { size = 8.0 } = {}) {
+    const font = this.fonts.mono;
+    const inner = CONTENT_W - 22;
+    const lines = String(rawText ?? "").replace(UNSUPPORTED, "").split("\n");
+    // собираем фрагменты, которые влезают в одну рамку
+    let i = 0;
+    while (i < lines.length) {
+      // Если у низа страницы осталось меньше минимальной рамки — новая страница
+      // СРАЗУ: иначе рамка уедет за BOTTOM, и pdfkit создаст страницу сам,
+      // в обход рендерера (без колонтитула и нумерации).
+      if (BOTTOM - this.cy - 16 < 60) this.newPage();
+      const avail = BOTTOM - this.cy - 16;
+      const maxH = avail;
+      let chunk = [];
+      let h = 0;
+      while (i < lines.length) {
+        const candidate = chunk.concat(lines[i]).join("\n");
+        const ch = this.height(candidate, { font, size, width: inner, lineGap: 0.6 });
+        if (chunk.length && ch > maxH) break;
+        chunk.push(lines[i]);
+        h = ch;
+        i += 1;
+      }
+      const body = chunk.join("\n");
+      const boxH = h + 14;
+      this.ensure(boxH);
+      const y0 = this.cy;
+      this.doc.roundedRect(PAGE.margin, y0, CONTENT_W, boxH, 4).fillAndStroke("#f6f7fb", "#d7dbe6");
+      this.doc.font(font).fontSize(size).fillColor("#1f2937").text(body, PAGE.margin + 11, y0 + 7, { width: inner, lineGap: 0.6 });
+      this.cy = y0 + boxH + (i < lines.length ? 2 : 7);
+      if (i < lines.length) this.newPage();
+    }
+  }
+
+  /** Таблица: строки режутся по страницам, заголовок повторяется. */
+  table(rawRows, { size = 8.5 } = {}) {
+    const rows = rawRows.map((r) => r.map((c) => plain(c)));
+    if (!rows.length) return;
+    const cols = Math.max(...rows.map((r) => r.length));
+    const widths = new Array(cols).fill(CONTENT_W / cols);
+    const pad = 5;
+    const header = rows[0];
+
+    const rowHeight = (cells) => {
+      let max = 0;
+      for (let i = 0; i < cols; i++) {
+        const h = this.height(cells[i] ?? "", { font: this.fonts.regular, size, width: widths[i] - pad * 2, lineGap: 0.4 });
+        max = Math.max(max, h);
+      }
+      return max + pad * 2;
+    };
+
+    const drawRow = (cells, y, isHeader, zebra) => {
+      const h = rowHeight(cells);
+      this.doc.rect(PAGE.margin, y, CONTENT_W, h).fill(isHeader ? "#eef1f8" : zebra ? "#fafbfd" : "#ffffff");
+      for (let i = 0; i < cols; i++) {
+        const x = PAGE.margin + widths.slice(0, i).reduce((a, b) => a + b, 0) + pad;
+        this.doc
+          .font(isHeader ? this.fonts.bold : this.fonts.regular)
+          .fontSize(size)
+          .fillColor("#1f2937")
+          .text(String(cells[i] ?? ""), x, y + pad, { width: widths[i] - pad * 2, lineGap: 0.4 });
+      }
+      this.doc.rect(PAGE.margin, y, CONTENT_W, h).lineWidth(0.5).strokeColor("#dfe3ec").stroke();
+      return h;
+    };
+
+    this.ensure(rowHeight(header) + 8, 14);
+    let y = this.cy;
+    rows.forEach((cells, idx) => {
+      const row = [];
+      for (let i = 0; i < cols; i++) row.push(cells[i] ?? "");
+      const h = rowHeight(row);
+      if (y + h > BOTTOM) {
+        this.cy = y;
+        this.newPage();
+        y = this.cy;
+        if (idx > 0) y += drawRow(header, y, true, false); // повтор шапки
+      }
+      y += drawRow(row, y, idx === 0, idx % 2 === 1);
+    });
+    this.cy = y + 8;
+  }
+
+  quote(rawText) {
+    const text = plain(rawText);
+    if (!text) return;
+    const font = this.fonts.oblique ?? this.fonts.regular;
+    const width = CONTENT_W - 22;
+    const opts = { font, size: 9.5, width, lineGap: 1 };
+    // Длинная цитата режется по страницам заранее: рисовать целиком нельзя —
+    // текст уйдёт за BOTTOM и pdfkit добавит страницу без колонтитула.
+    const chunks = this.splitToFit(text, opts, BOTTOM - TOP);
+    chunks.forEach((chunk) => {
+      const h = this.height(chunk, opts);
+      this.ensure(h + 10);
+      const y0 = this.cy;
+      this.doc.rect(PAGE.margin, y0, 3, h + 4).fill("#a5b4fc");
+      this.doc.font(font).fontSize(9.5).fillColor("#374151").text(chunk, PAGE.margin + 14, y0 + 2, { width, lineGap: 1 });
+      this.cy = y0 + h + 10;
+      if (this.cy > BOTTOM) this.newPage();
+    });
+  }
+
+  image(file, { maxWidth = CONTENT_W, maxHeight = 320, caption = "" } = {}) {
+    if (!fs.existsSync(file)) return false;
+    let img;
+    try {
+      img = this.doc.openImage(file);
+    } catch {
+      return false;
+    }
+    const capH = caption ? 14 : 0;
+    const scale = Math.min(maxWidth / img.width, (maxHeight - capH) / img.height, 1.5);
+    const w = img.width * scale;
+    const h = img.height * scale;
+    this.ensure(h + capH + 10, 20);
+    const y0 = this.cy;
+    const x0 = PAGE.margin + (CONTENT_W - w) / 2;
+    this.doc.image(file, x0, y0, { width: w, height: h });
+    this.doc.rect(x0, y0, w, h).lineWidth(0.6).strokeColor("#d1d5db").stroke();
+    this.cy = y0 + h + 4;
+    if (caption) {
+      this.doc.font(this.fonts.regular).fontSize(8).fillColor("#6b7280").text(caption, PAGE.margin, this.cy, { width: CONTENT_W, align: "center" });
+      this.cy = Math.max(this.cy, this.doc.y) + 6;
+    }
+    return true;
+  }
+
+  /** Бокс с заголовком и строками; длинные режутся на страницы. */
+  box(rawTitle, rawLines, { color = "#eef2ff", border = "#c7d2fe", titleColor = "#3730a3", size = 8.7 } = {}) {
+    const title = plain(rawTitle);
+    const lines = rawLines.map((l) => plain(l)).filter((l) => l.length);
+    const inner = CONTENT_W - 20;
+    let rest = lines.slice();
+    let first = true;
+    while (rest.length || first) {
+      first = false;
+      const headH = this.height(title, { font: this.fonts.bold, size: 9.2, width: inner }) + 6;
+      this.ensure(headH + 24, 16);
+      const y0 = this.cy;
+      // сколько строк влезет на эту страницу
+      const avail = BOTTOM - y0 - headH - 16;
+      const taken = [];
+      let h = 0;
+      while (rest.length) {
+        const ch = this.height(rest[0], { font: this.fonts.regular, size, width: inner, lineGap: 0.6 }) + 3;
+        if (taken.length && h + ch > avail) break;
+        taken.push(rest.shift());
+        h += ch;
+      }
+      const boxH = headH + h + 12;
+      this.doc.roundedRect(PAGE.margin, y0, CONTENT_W, boxH, 5).fillAndStroke(color, border);
+      this.doc.font(this.fonts.bold).fontSize(9.2).fillColor(titleColor).text(title, PAGE.margin + 10, y0 + 7, { width: inner });
+      let y = y0 + 7 + headH;
+      for (const l of taken) {
+        this.doc.font(this.fonts.regular).fontSize(size).fillColor("#374151").text(l, PAGE.margin + 10, y, { width: inner, lineGap: 0.6 });
+        y += this.height(l, { font: this.fonts.regular, size, width: inner, lineGap: 0.6 }) + 3;
+      }
+      this.cy = y0 + boxH + 7;
+      if (rest.length) this.newPage();
+    }
+  }
+}
+
+/* ─────────────────────────────── сборка ─────────────────────────────── */
+
+async function main() {
+  const fonts = {
+    regular: pick(CANDIDATES.regular),
+    bold: pick(CANDIDATES.bold),
+    oblique: pick(CANDIDATES.oblique),
+    mono: pick(CANDIDATES.mono),
+  };
+  if (!fonts.regular) throw new Error("Не найден TTF-шрифт с кириллицей (DejaVu Sans). Установите fonts-dejavu-core.");
+  fonts.bold = fonts.bold ?? fonts.regular;
+  fonts.mono = fonts.mono ?? fonts.regular;
+
+  const { chapters, chapterTopics, PAGE_SYNC, VIZ_REGISTRY, quizzes } = await loadAppData();
+  ensureDir(OUT_DIR);
+
+  const doc = new PDFDocument({
+    size: [PAGE.width, PAGE.height],
+    margin: PAGE.margin,
+    autoFirstPage: false,
+    info: {
+      Title: "Универсальное пособие — алгоритмы и структуры данных (билеты 1–24)",
+      Author: "algv0 · автоэкспорт",
+      Subject: "Текст всех тем + визуализации, без кода панели компилятора",
+      CreationDate: new Date(),
+    },
+  });
+  const stream = fs.createWriteStream(GUIDE_PDF_PATH);
+  doc.pipe(stream);
+
+  const R = new Renderer(doc, fonts);
+  const today = new Date().toISOString().slice(0, 10);
+  const totalTopics = new Set(Object.values(chapterTopics).flat()).size || 24;
+  const vizCount = chapters.filter((c) => VIZ_REGISTRY[c.id]).length;
+
+  /* ── обложка ── */
+  R.firstPage("Обложка");
+  R.cy = TOP + 90;
+  R.h1("Универсальное пособие", { size: 26, rule: false });
+  R.h1("Алгоритмы и структуры данных", { size: 17, color: "#4338ca" });
+  R.para(
+    `Билеты 1–${totalTopics} · ${chapters.length} ${plural(chapters.length, "страница", "страницы", "страниц")} · ${vizCount} ${plural(vizCount, "интерактивная демонстрация", "интерактивные демонстрации", "интерактивных демонстраций")}`,
+    { size: 10.5, color: "#4b5563" }
+  );
+  R.para(
+    "Автоматический компактный сборник: весь текст тем (включая раскрытые спойлеры с доказательствами, таблицами и кодом алгоритмов) и визуализации. Навигация приложения и код панели Python-компилятора сюда не входят — интерактивная версия живёт в репозитории и на GitHub Pages.",
+    { size: 9.6, color: "#374151" }
+  );
+  R.para(`Дата сборки: ${today}`, { size: 9, color: "#6b7280", italic: true });
+
+  const missingViz = chapters.filter((c) => !VIZ_REGISTRY[c.id]);
+  R.box("Как устроено пособие", [
+    "• Страница = один или несколько билетов: текст, аналогии, доказательства и код в спойлерах.",
+    "• У каждой страницы есть интерактивная демонстрация и панель Python: значения переменных (i, v, dist, comp, color, path, ops…) перерисовывают её напрямую.",
+    "• В этом PDF демонстрации показаны снимками (когда они отрендерены в CI) и описанием: какие вкладки есть и какие переменные кода ими управляют.",
+    missingViz.length
+      ? `• Страницы без демонстрации: ${missingViz.map((c) => c.id).join(", ")}`
+      : "• Демонстрация и синхронизация с компилятором есть у каждой страницы пособия.",
+  ]);
+
+  /* ── содержание ── */
+  R.newPage("Содержание");
+  R.h1("Содержание", { size: 18 });
+  chapters.forEach((c, i) => {
+    const topics = chapterTopics[c.id] ?? [];
+    R.para(
+      `${String(i + 1).padStart(2, "0")}.  ${c.title}${topics.length ? `   ·   билет${topics.length > 1 ? "ы" : ""} ${topics.join(", ")}` : ""}`,
+      { size: 9.3, gapAfter: 2 }
+    );
+  });
+
+  /* ── темы ── */
+  let shotsTotal = 0;
+  for (const chapter of chapters) {
+    const topics = chapterTopics[chapter.id] ?? [];
+    const shortTitle = chapter.title.replace(/^\d+[.–-]?\s*/, "").replace(/^[\d–\s]+/, "").slice(0, 44);
+    R.newPage(shortTitle);
+
+    if (topics.length) {
+      R.para(`Билет${topics.length > 1 ? "ы" : ""} ${topics.join(", ")} · страница ${chapter.id}`, { size: 8.8, color: "#4338ca", gapAfter: 2 });
+    }
+    R.h1(chapter.title.replace(/^\d+[.–-]?\s*/, ""), { size: 16.5 });
+
+    const chapterTitle = chapter.title.replace(/^\d+[.–-]?\s*/, "");
+    for (const b of htmlToBlocks(chapter.content)) {
+      if (b.type === "p" && /^Билет\s/i.test(b.text)) continue; // уже напечатано
+      if (b.type === "heading" && b.level <= 2 && b.text.trim() === chapterTitle.trim()) continue;
+
+      if (b.type === "heading") {
+        if (b.level <= 2) R.h2(b.text);
+        else if (b.level === 3) R.h3(b.text);
+        else R.para(b.text, { size: 10.2, color: "#334155" });
+      } else if (b.type === "summary") {
+        R.para("▸ " + b.text, { size: 9.8, color: "#3730a3", italic: true });
+      } else if (b.type === "li") {
+        R.bullet(b.text, { ordinal: b.ordinal, depth: b.depth });
+      } else if (b.type === "code") {
+        R.code(b.text);
+      } else if (b.type === "table") {
+        R.table(b.rows);
+      } else if (b.type === "quote") {
+        R.quote(b.text);
+      } else if (b.type === "caption") {
+        R.para(b.text, { size: 8.3, color: "#6b7280", italic: true });
+      } else {
+        R.para(b.text);
+      }
+    }
+
+    /* иллюстрация страницы */
+    const img = CHAPTER_IMAGES[chapter.id];
+    if (img && fs.existsSync(path.join(ROOT, img))) {
+      R.h2("Иллюстрация");
+      R.image(path.join(ROOT, img), { maxHeight: 300, caption: chapter.title });
+    }
+
+    /* демонстрация: снимки + описание синхронизации с компилятором */
+    const viz = VIZ_REGISTRY[chapter.id];
+    const syncKeys = Object.keys(PAGE_SYNC).filter((k) => k === chapter.id || k.startsWith(`${chapter.id}#`));
+    if (viz || syncKeys.length) {
+      R.h2("Демонстрация и связь с компилятором");
+      if (viz) {
+        R.para(viz.title, { size: 10.2, color: "#1e293b" });
+        if (viz.hint) R.para(viz.hint, { size: 9.1, color: "#4b5563" });
+      }
+
+      const shots = shotsFor(chapter.id);
+      shotsTotal += shots.length;
+      for (const shot of shots) {
+        R.image(shot.file, {
+          maxHeight: 330,
+          caption: shot.name ? `${viz?.title ?? chapter.id} · режим «${shot.name}»` : viz?.title ?? chapter.id,
+        });
+      }
+
+      for (const key of syncKeys) {
+        const sync = PAGE_SYNC[key];
+        const demo = key.includes("#") ? key.split("#")[1] : null;
+        const title = demo ? `Вкладка «${demo}»${sync.vizTitle ? ` — ${sync.vizTitle}` : ""}` : sync.vizTitle ?? "Основной режим";
+        const lines = [];
+        if (sync.stepNote) lines.push(`Шаг демонстрации: ${sync.stepNote}`);
+        sync.variables.forEach((v) => lines.push(`• ${v.name} — ${v.role}${v.range ? ` (${v.range})` : ""}`));
+        lines.push("• Референсный код демонстрации в этот PDF не включён: он открывается в панели Python приложения.");
+        if (lines.length) R.box(title, lines);
+      }
+
+      if (!shots.length) {
+        R.para(
+          "Снимки демонстрации добавляются автоматически при сборке в CI (headless-браузер проходит по всем вкладкам). В локальной сборке без браузера здесь остаётся текстовое описание: что показывает демонстрация и какие переменные кода её перерисовывают.",
+          { size: 8.5, color: "#6b7280", italic: true }
+        );
+      }
+    }
+
+    /* блиц: те же вопросы, что в приложении, но сразу с ответом и разбором */
+    const quiz = (quizzes && quizzes[chapter.id]) || [];
+    if (quiz.length) {
+      R.h2("Блиц: вопросы по теме");
+      quiz.forEach((q, qi) => {
+        R.para(`${qi + 1}. ${q.question}`, { size: 9.6, color: "#111827", gapAfter: 2 });
+        q.options.forEach((option, oi) => {
+          R.bullet(oi === q.correctIndex ? `${option} — верный ответ` : option, { depth: 1, size: 9.2 });
+        });
+        R.para(q.explanation, { size: 8.8, color: "#4b5563", italic: true, indent: 10, gapAfter: 6 });
+      });
+    }
+  }
+
+  R.stampFooter();
+  doc.end();
+  await new Promise((resolve, reject) => {
+    stream.on("finish", resolve);
+    stream.on("error", reject);
+  });
+
+  const size = fs.statSync(GUIDE_PDF_PATH).size;
+  console.log("[guide] PDF пособия собран");
+  console.log(`        тем: ${chapters.length} · снимков демонстраций: ${shotsTotal}`);
+  console.log(`        выход: ${path.relative(ROOT, GUIDE_PDF_PATH)} (${humanSize(size)})`);
+
+  // Самопроверка: страниц в файле должно быть ровно столько, сколько насчитал
+  // рендерер. Расхождение означает, что pdfkit создал страницу сам — она уходит
+  // в файл без нижнего колонтитула и без нумерации.
+  const pdfLib = await import("pdf-lib");
+  const physical = (await pdfLib.PDFDocument.load(fs.readFileSync(GUIDE_PDF_PATH), { ignoreEncryption: true })).getPageCount();
+  console.log(`        страниц: ${R.pages} (рендер) / ${physical} (в файле)${R.pages === physical ? " — совпадает" : ""}`);
+  if (R.pages > 100) console.warn(`        ВНИМАНИЕ: ${R.pages} страниц — цель до 100 (ожидалось 40–60).`);
+  if (physical !== R.pages) {
+    console.error(`        ОШИБКА: pdfkit добавил ${physical - R.pages} стр. в обход рендерера (без колонтитула).`);
+    process.exitCode = 1;
+  }
+}
+
+main().catch((err) => {
+  console.error("Ошибка сборки PDF пособия:", err.message);
+  process.exit(1);
+});

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useVizStepSync, vizArray, vizString } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from 'lucide-react';
 
 type Node = { id: string; label: string; x: number; y: number };
@@ -98,6 +99,20 @@ export function GraphTraversalViz() {
     const [stepIdx, setStepIdx] = useState(0);
 
     const steps = useMemo(() => mode === 'dfs' ? generateDFSSteps('A') : generateBFSSteps('A'), [mode]);
+    useVizStepSync(stepIdx, setStepIdx, steps.length - 1, (vars) => {
+      const v = vizString(vars.v);
+      const structure = vizArray(vars.stack) ?? vizArray(vars.q);
+      const visited = vizArray(vars.visited);
+      if (v === null && !structure && !visited) return null;
+      const candidates = steps
+        .map((step, index) => ({ step, index }))
+        .filter(({ step }) =>
+          (v === null || step.node === v) &&
+          (!structure || step.queueOrStack?.length === structure.length) &&
+          (!visited || step.visitedNodes?.length === visited.length)
+        );
+      return candidates.at(-1)?.index ?? null;
+    });
 
     useEffect(() => {
         setStepIdx(0);
@@ -225,16 +240,16 @@ export function GraphTraversalViz() {
             <div className="flex flex-col sm:flex-row gap-4 items-stretch">
                 {/* Controls */}
                 <div className="flex bg-slate-900 border border-slate-800 p-2 rounded-xl justify-center shadow-lg gap-1 shrink-0">
-                    <button onClick={() => {setAutoPlay(false); setStepIdx(i => Math.max(0, i - 1));}} disabled={stepIdx === 0} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
+                    <button onClick={() => {setAutoPlay(false); setStepIdx(i => Math.max(0, i - 1));}} disabled={stepIdx === 0} aria-label="Шаг назад" title="Шаг назад" className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
                         <Undo strokeWidth={3} size={16} />
                     </button>
                     <button onClick={() => setAutoPlay(!autoPlay)} className={`px-4 py-2 text-white rounded-lg font-bold flex items-center justify-center min-w-[80px] ${mode === 'dfs' ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-emerald-600 hover:bg-emerald-500'}`}>
                         {autoPlay ? <><Pause size={16} className="mr-1"/> Пауза</> : <><Play size={16} className="mr-1"/> Авто</>}
                     </button>
-                    <button onClick={() => {setAutoPlay(false); setStepIdx(i => Math.min(steps.length - 1, i + 1));}} disabled={stepIdx === steps.length - 1} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
+                    <button onClick={() => {setAutoPlay(false); setStepIdx(i => Math.min(steps.length - 1, i + 1));}} disabled={stepIdx === steps.length - 1} aria-label="Шаг вперёд" title="Шаг вперёд" className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
                         <SkipForward strokeWidth={3} size={16} />
                     </button>
-                    <button onClick={() => {setAutoPlay(false); setStepIdx(0);}} className="p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg ml-2 border-l border-slate-800">
+                    <button onClick={() => {setAutoPlay(false); setStepIdx(0);}} aria-label="Сбросить обход" title="Сбросить обход" className="p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg ml-2 border-l border-slate-800">
                         <RefreshCw strokeWidth={3} size={16} />
                     </button>
                 </div>

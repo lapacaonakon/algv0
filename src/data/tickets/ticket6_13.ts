@@ -3,7 +3,7 @@ import { Chapter } from "../../types";
 export const tickets6to13: Chapter[] = [
   {
     id: "graph-dfs-bfs",
-    title: "6. Графы. Представление, DFS, BFS",
+    title: "6. Графы. Представление графов, DFS, BFS",
     type: "html",
     description: "Представление графов и базовые обходы",
     category: "Графы. База",
@@ -52,7 +52,7 @@ export const tickets6to13: Chapter[] = [
                     </p>
                     <ul class="text-xs text-indigo-300 list-disc list-inside space-y-1">
                         <li><b>Где используется:</b></li>
-                        <li>Топологическая сортировка (Билет 10)</li>
+                        <li>Топологическая сортировка (Билет 9)</li>
                         <li>Поиск мостов и точек сочленения (Билет 11, 12)</li>
                         <li>Сильно связные компоненты Косарайю (Билет 10)</li>
                         <li>Поиск циклов и просто проверка связности.</li>
@@ -149,7 +149,8 @@ while(!q.empty()) {
     id: "graph-components",
     title: "8. Графы. Компоненты связности",
     type: "html",
-    description: "Нахождение кусков графа",
+    description:
+      "Компоненты связности: обходами DFS/BFS за O(V + E) и через DSU, число компонент, связность орграфов, flood fill на изображениях.",
     category: "Графы. База",
     content: `
 <section id="graph-components" class="mb-12 scroll-mt-10">
@@ -159,19 +160,126 @@ while(!q.empty()) {
     </div>
     <div class="space-y-8">
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-emerald-400 mb-4">Поиск кусков графа</h3>
+            <h3 class="text-xl font-bold text-emerald-400 mb-4">8.1 Поиск кусков графа</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-emerald-500/30">
                 <p class="text-lg text-emerald-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Запускаем DFS/BFS от каждой непосещенной вершины. Цикл внешних запусков дает количество компонент.</p>
+                <p class="text-xl font-mono text-white">Компонента связности — максимальный по включению подграф, в котором между любой парой вершин есть путь. Внешний цикл «для каждой непосещённой вершины запустить DFS/BFS и покрасить всё достигнутое в новый цвет» даёт и разметку, и количество компонент.</p>
             </div>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+            <p class="text-slate-300 text-sm mb-4">Два рабочих способа. <b>Обходами:</b> один проход по вершинам, из каждой ещё не посещённой запускаем DFS или BFS и присваиваем всем достигнутым вершинам номер компоненты <span class="font-mono text-emerald-300">comp[v] = c</span>. Счётчик c увеличивается ровно тогда, когда понадобился новый запуск, — поэтому в конце c = числу компонент. Время <b>O(V + E)</b>, память O(V). <b>Через DSU</b> (систему непересекающихся множеств): начинаем с V одиночных множеств, на каждое ребро делаем union(u, v), в конце число различных корней = число компонент. Это нужно, когда рёбра <b>добавляются на лету</b> и после каждого добавления спрашивают «сколько компонент сейчас?».</p>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         🏝️ Аналогия 1: Острова
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Ты десантируешься на любой кусок земли. Красишь его краской. Затем смотришь на карту — остались ли серые (неисследованные) зоны? Если да — прыгаешь туда и красишь второй остров. Сколько раз пришлось прыгать через океан — столько и компонент.</p>
+                    <p class="text-slate-300 text-sm">Ты десантируешься на любой кусок земли и красишь его краской. Смотришь на карту: остались серые (неисследованные) зоны? Прыгаешь туда и красишь второй остров. Сколько раз пришлось прыгать через океан — столько и компонент. Краска — это comp[v], прыжок через океан — увеличение счётчика c.</p>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-emerald-500/50 relative pt-8">
+                    <div class="absolute -top-3 left-4 bg-emerald-900 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
+                        👥 Аналогия 2: Группы друзей (DSU)
+                    </div>
+                    <p class="text-slate-300 text-sm">Каждый человек сначала сам по себе. Приходит новость «А и Б дружат» — склеиваем их компании в одну (union). Кто представитель компании? Любой, кого выбрали «старшим» (find со сжатием пути). Через минуту все разбиты на компании, и вопрос «в одной ли компании А и В?» — это find(А) == find(В). Так же работает Краскал (билет 18): ребро берут, только если концы в разных компонентах.</p>
                 </div>
             </div>
+
+            <h3 class="text-lg font-bold text-white mt-6 mb-3">8.2 Ориентированные графы: три разных вопроса</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left border-collapse min-w-[640px]">
+                    <thead>
+                        <tr class="text-slate-500 border-b border-slate-700">
+                            <th class="py-2 pr-3 font-bold">Что спрашиваем</th>
+                            <th class="py-2 pr-3 font-bold">Определение</th>
+                            <th class="py-2 pr-3 font-bold">Как считать</th>
+                            <th class="py-2 font-bold">Сложность</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300">
+                        <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-3 font-bold text-emerald-300">Слабая связность</td><td class="py-2 pr-3">забыли про стрелки — граф связен</td><td class="py-2 pr-3">DFS/BFS/DSU по базовому неориентированному графу</td><td class="py-2 font-mono">O(V + E)</td></tr>
+                        <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-3 font-bold text-emerald-300">Сильная связность (SCC)</td><td class="py-2 pr-3">из любой вершины достижима любая</td><td class="py-2 pr-3">Косарайю или Тарьян (билет 10)</td><td class="py-2 font-mono">O(V + E)</td></tr>
+                        <tr class="align-top"><td class="py-2 pr-3 font-bold text-emerald-300">Достижимость из одной</td><td class="py-2 pr-3">до кого дойдёт старт</td><td class="py-2 pr-3">один DFS/BFS из s (стрелки не забываем!)</td><td class="py-2 font-mono">O(V + E)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-slate-400 text-xs mt-3">Классическая ошибка: запустить BFS по орграфу «как по неориентированному» и назвать результат SCC. Обход из s даёт только вершины, достижимые <b>из</b> s; для SCC нужна достижимость в обе стороны.</p>
+
+            <h3 class="text-lg font-bold text-white mt-6 mb-3">8.3 Что с этим делают</h3>
+            <p class="text-slate-300 text-sm mb-3">Проверка связности сети («до всех ли серверов дойдёт обновление»), <b>flood fill</b> и разметка связных областей на изображении (пиксель = вершина, соседство 4 или 8 = рёбра), кластеризация по графу сходства, подсчёт «островов» в матрице 0/1, поиск частей электрической цепи, компонентный анализ в соцсетях, динамическая связность при добавлении рёбер (DSU), а в обратной стороне — при удалении рёбер (offline: разворачиваем время и добавляем удалённые рёбра в обратном порядке). Мосты (билет 11) и точки сочленения (билет 12) — это ровно про то, <b>удаление чего увеличивает число компонент</b>.</p>
+
+            <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-4">
+                <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
+                <p class="text-slate-400 text-sm mb-1">· <b>Компоненты связности и SCC</b>: первые — для неориентированных графов (или для «слабой» связности орграфа), вторые — только для ориентированных.</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>DSU не умеет удалять рёбра</b>: union необратим. Нужны удаления — иди в offline-реверс времени или в динамическую связность (link-cut tree).</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>Рекурсивный DFS на длинной цепочке</b> (V = 2·10⁵ в линию) роняет стек: нужен явный стек или увеличение лимита рекурсии.</p>
+                <p class="text-slate-400 text-sm">· <b>Число рёбер в связной компоненте из k вершин ≥ k − 1</b>: ровно k − 1 — это дерево; меньше быть не может, иначе компонента распадётся.</p>
+            </div>
+
+            <p class="text-slate-300 text-sm mt-4"><b class="text-amber-300">Сложность — явно:</b> обходами <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(V + E)</code>, DSU с эвристиками (сжатие пути + union by rank) — <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(α(n))</code> на операцию, где α — обратная функция Аккермана (меньше 5 для всех практических n), то есть <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(E · α(V))</code> на все рёбра. Память <code class="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono text-emerald-300 border border-slate-800">O(V)</code>.</p>
+
+            <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
+                <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
+                    🔍 Код: обходы и DSU (Скрыто)
+                </summary>
+                <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800"># 1) Компоненты обходом в глубину: comp[v] = номер компоненты
+comp = [-1] * n
+c = 0
+for start in range(n):
+    if comp[start] != -1:
+        continue                       # уже покрашена — компонент не новый
+    c += 1                             # новый «прыжок через океан»
+    stack = [start]
+    comp[start] = c
+    while stack:                       # явный стек: не боимся длинных цепочек
+        v = stack.pop()
+        for to in graph[v]:
+            if comp[to] == -1:
+                comp[to] = c
+                stack.append(to)
+print("компонент:", c)
+
+# 2) То же BFS (удобно, когда нужен ещё и кратчайший «диаметр» компоненты)
+from collections import deque
+def bfs_component(start, color):
+    used[start] = True
+    comp[start] = color
+    dq = deque([start])
+    while dq:
+        v = dq.popleft()
+        for to in graph[v]:
+            if not used[to]:
+                used[to] = True
+                comp[to] = color
+                dq.append(to)
+
+# 3) DSU: компоненты при динамическом добавлении рёбер
+parent = list(range(n))
+rank = [0] * n
+comps = n                              # сколько компонент сейчас
+def find(v):
+    while parent[v] != v:
+        parent[v] = parent[parent[v]]  # сжатие пути
+        v = parent[v]
+    return v
+def union(a, b):
+    global comps
+    ra, rb = find(a), find(b)
+    if ra == rb:
+        return False                   # уже в одной компоненте (цикл!)
+    if rank[ra] &lt; rank[rb]:
+        ra, rb = rb, ra
+    parent[rb] = ra
+    if rank[ra] == rank[rb]:
+        rank[ra] += 1
+    comps -= 1
+    return True
+
+for u, v in edges:
+    union(u, v)
+print("компонент после всех рёбер:", comps)</pre>
+                    <p class="text-slate-400 text-xs">Тот же find/union — сердце Краскала (билет 18): ребро идёт в остов, только если union вернул True.</p>
+                </div>
+            </details>
         </div>
     </div>
 </section>`,
@@ -200,13 +308,13 @@ while(!q.empty()) {
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         🎓 Аналогия 1: Учеба в вузе
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">У тебя есть предметы. "Матан 2" нельзя взять, если не сдал "Матан 1". Топологическая сортировка — это расписание, которое гарантрует, что ты не встретишь предмет, пререквизиты которого ты еще не прошел.</p>
+                    <p class="text-slate-300 text-sm mb-4">У тебя есть предметы. "Матан 2" нельзя взять, если не сдал "Матан 1". Топологическая сортировка — это расписание, которое гарантирует, что ты не встретишь предмет, пререквизиты которого ты еще не прошел.</p>
                 </div>
                 <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         💀 Ограничения: Циклы
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Не работает на грахах с циклами. "Чтобы устроиться на работу нужен опыт. Чтобы получить опыт, нужна работа". Алгоритм выявит цикл и скажет, что отсортировать невозможно.</p>
+                    <p class="text-slate-300 text-sm mb-4">Не работает на графах с циклами. "Чтобы устроиться на работу нужен опыт. Чтобы получить опыт, нужна работа". Алгоритм выявит цикл и скажет, что отсортировать невозможно.</p>
                 </div>
             </div>
 

@@ -1,0 +1,1233 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowRightLeft,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  CircleStop,
+  Copy,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  Link2,
+  Loader2,
+  Pause,
+  Pencil,
+  Play,
+  Plus,
+  RotateCcw,
+  SkipBack,
+  SkipForward,
+  Terminal,
+  Unlink,
+  Variable,
+  X,
+} from "lucide-react";
+import { buildInitTemplate, buildSyncTemplate, getPageSync } from "../data/vizSync";
+import { clearVizState, emitVizState, onVizDemo } from "../data/vizStepBus";
+import {
+  baseVarName,
+  buildDebugRunner,
+  changedVars,
+  DEBUG_STEP_CAP,
+  orderVars,
+  type DebugResult,
+} from "../data/debugRunner";
+import { Tooltip } from "./Tooltip";
+
+const PYODIDE_VERSION = "0.27.7";
+const PYODIDE_MODULE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.mjs`;
+const PYODIDE_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+const PLAYBACK_SPEED_KEY = "pythonCompilerPlaybackSpeed";
+const PLAYBACK_SPEEDS = [0.25, 0.5, 1, 1.5, 2, 4] as const;
+
+interface PythonCompilerProps {
+  /** Страница, с которой синхронизируется редактор. */
+  chapterId: string;
+  chapterTitle: string;
+  /** Размер панели (px) управляется родителем и сохраняется между открытиями. */
+  width?: number;
+  height?: number | null;
+  onWidthChange?: (w: number) => void;
+  onHeightChange?: (h: number) => void;
+  /** Перейти к странице пособия (посмотреть визуализацию). */
+  /** Кнопка «открыть страницу в пособии» — не нужна, если вкладка одна. */
+  onOpenGuide?: () => void;
+  /** Скрыть панель. */
+  onClose: () => void;
+}
+
+type PyodideRuntime = {
+  runPythonAsync: (source: string) => Promise<unknown>;
+  setStdout: (options: { batched: (message: string) => void }) => void;
+  setStderr: (options: { batched: (message: string) => void }) => void;
+  setStdin: (options: { stdin: () => string | number | null }) => void;
+};
+
+type PyodideModule = {
+  loadPyodide: (options: { indexURL: string }) => Promise<PyodideRuntime>;
+};
+
+let runtimePromise: Promise<PyodideRuntime> | null = null;
+
+/**
+ * Подмена интерпретатора для проверок: DOM-харнес (jsdom + настоящий Pyodide
+ * из node_modules) и CI-скриншоты кладут сюда готовый runtime, чтобы не ходить
+ * на CDN. В браузере у пользователя поле не определено — путь прежний.
+ */
+type PythonRuntimeProvider = PyodideRuntime | (() => Promise<PyodideRuntime>);
+
+declare global {
+  interface Window {
+    __algv0PythonRuntime?: PythonRuntimeProvider;
+  }
+}
+
+function getPythonRuntime(): Promise<PyodideRuntime> {
+  const injected = typeof window !== "undefined" ? window.__algv0PythonRuntime : undefined;
+  if (injected) return typeof injected === "function" ? Promise.resolve(injected()) : Promise.resolve(injected);
+  if (!runtimePromise) {
+    runtimePromise = import(/* @vite-ignore */ PYODIDE_MODULE_URL).then((module) =>
+      (module as PyodideModule).loadPyodide({ indexURL: PYODIDE_INDEX_URL })
+    );
+  }
+  return runtimePromise;
+}
+
+function errorText(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+/**
+ * Предел вывода в панель «Результат».
+ *
+ * Трасса ограничена по ЧИСЛУ шагов (DEBUG_STEP_CAP), но не по длине одной
+ * напечатанной строки: print("x" * 10_000_000) или print(list(range(200000)))
+ * — это один шаг, после которого весь текст уезжал в <pre> и вешал вкладку.
+ * Обрезаем по границе строки и честно пишем, сколько знаков не показано.
+ */
+const OUTPUT_CHAR_CAP = 20_000;
+
+function clipOutput(text: string): string {
+  if (text.length <= OUTPUT_CHAR_CAP) return text;
+  const cut = text.slice(0, OUTPUT_CHAR_CAP);
+  const lastBreak = cut.lastIndexOf("\n");
+  const head = lastBreak > OUTPUT_CHAR_CAP / 2 ? cut.slice(0, lastBreak) : cut;
+  return `${head}\n… вывод обрезан: показаны первые ${head.length} знаков, дальше ещё ${text.length - head.length}.`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Шаблон синхронизации: короткая шапка + минимальный исполняемый    */
+/*  скелет, шаг-в-шаг с подсветкой визуализации (см. data/vizSync.ts).*/
+/* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/*  Шпаргалка Python: команды сортировки, циклы, структуры.           */
+/*  «Вставить» кладёт сниппет в редактор под курсор.                  */
+/* ------------------------------------------------------------------ */
+
+interface Snippet {
+  label: string;
+  tip: string;
+  code: string;
+}
+
+const SNIPPETS: { group: string; items: Snippet[] }[] = [
+  {
+    group: "Сортировка",
+    items: [
+      {
+        label: "arr.sort() / sorted()",
+        tip: "In-place сортировка по возрастанию и новая копия через sorted(). O(n·log n).",
+        code: 'arr = [5, 2, 8, 1]\narr.sort()                      # по возрастанию, на месте\nprint(arr)\nprint(sorted(arr, reverse=True))  # копия по убыванию\n',
+      },
+      {
+        label: "sorted(key=…)",
+        tip: "Сортировка по ключу: рёбра по весу, пары по второму элементу.",
+        code: 'edges = [(3, "A", "B"), (1, "B", "C"), (2, "A", "C")]\nedges.sort(key=lambda e: e[0])  # по весу, как в Краскале\nprint(edges)\n',
+      },
+    ],
+  },
+  {
+    group: "Циклы",
+    items: [
+      {
+        label: "for i in range(n)",
+        tip: "Вложенные циклы по i и j — как обход матрицы dist[i][j] у Флойда.",
+        code: "n, m = 3, 4\nfor i in range(n):          # 0 … n-1\n    for j in range(m):  # 0 … m-1\n        print(f\"cell {i},{j}\")\n",
+      },
+      {
+        label: "while …",
+        tip: "Классический while-счётчик — как n−1 итераций Беллмана-Форда.",
+        code: "i = 1\nwhile i < 5:\n    print(f\"итерация {i}\")\n    i += 1\n",
+      },
+      {
+        label: "for i, x in enumerate(…)",
+        tip: "Индекс и элемент одновременно: i — позиция, x — значение.",
+        code: "for i, x in enumerate([\"a\", \"b\", \"c\", \"a\"]):\n    print(i, x)\n",
+      },
+    ],
+  },
+  {
+    group: "Структуры",
+    items: [
+      {
+        label: "Стек (список)",
+        tip: "LIFO, как рекурсия DFS: append = push, pop() с конца.",
+        code: 'st = []\nst.append("A")    # push\nst.append("B")\ntop = st.pop()      # pop с конца\nprint(top, st)\n',
+      },
+      {
+        label: "Очередь (deque)",
+        tip: "FIFO для BFS: popleft() за O(1). list.pop(0) был бы O(n).",
+        code: 'from collections import deque\nq = deque(["A"])\nq.append("B")       # enqueue\nv = q.popleft()     # dequeue\nprint(v, list(q))\n',
+      },
+      {
+        label: "Куча (heapq)",
+        tip: "Мин-куча: (вес, вершина) — как очередь приоритетов у Дейкстры и Прима.",
+        code: 'import heapq\nh = []\nheapq.heappush(h, (3, "C"))\nheapq.heappush(h, (1, "A"))\nw, v = heapq.heappop(h)   # минимум\nprint(w, v)\n',
+      },
+      {
+        label: "Матрица n × m",
+        tip: "Таблица расстояний: dist[i][j], бесконечность — float('inf').",
+        code: 'n, m = 3, 4\ndist = [[float("inf")] * m for _ in range(n)]\ndist[0][0] = 0\nprint(dist)\n',
+      },
+      {
+        label: "Множество visited",
+        tip: "Посещённые вершины: in/add за O(1).",
+        code: 'visited = set()\nvisited.add("A")\nprint("A" in visited, "B" in visited)\n',
+      },
+    ],
+  },
+  {
+    group: "Вывод",
+    items: [
+      {
+        label: "f-строка",
+        tip: "Подставить значения переменных шага в строку: i, j, k…",
+        code: 'i, j, k = 1, 2, 0\nprint(f"dist[{i}][{j}] через k={k}")\n',
+      },
+    ],
+  },
+];
+
+/**
+ * Переживает скрытие панели: код пользователя не теряется.
+ *
+ * Хранилище — ПО СТРАНИЦАМ. Раньше слот был один, и код прошлой главы
+ * восстанавливался на новой странице: редактор показывал одно, а трасса
+ * и визуализация жили значениями чужого кода.
+ */
+const savedEditors = new Map<string, { code: string; base: string }>();
+
+export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidthChange, onHeightChange, onOpenGuide, onClose }: PythonCompilerProps) {
+  /** Активная вкладка демонстрации страницы (у sparse-table: 1d / 2d-build / 2d-query). */
+  const [demoId, setDemoId] = useState<string | null>(null);
+  const sync = useMemo(() => getPageSync(chapterId, demoId), [chapterId, demoId]);
+  const syncVarBases = useMemo(
+    () =>
+      [...new Set(
+        sync.variables.flatMap((v) =>
+          v.name
+            .split(/\s*(?:,|\/)\s*/)
+            .map(baseVarName)
+            .filter((name) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name))
+        )
+      )],
+    [sync]
+  );
+  const syncVarSet = useMemo(() => new Set(syncVarBases), [syncVarBases]);
+  /** Полный эталон: глаз сразу вставляет его в обычный редактор. */
+  const template = useMemo(() => buildSyncTemplate(chapterId, chapterTitle, demoId), [chapterId, chapterTitle, demoId]);
+  /** Дефолт редактора: только инициализация демо; она тоже выполняется автоматически. */
+  const initTemplate = useMemo(() => buildInitTemplate(chapterId, chapterTitle, demoId), [chapterId, chapterTitle, demoId]);
+
+  const [code, setCode] = useState(() => {
+    const saved = savedEditors.get(chapterId);
+    if (!saved) return initTemplate;
+    if (saved.code === saved.base || saved.code.trim() === "") return initTemplate;
+    return saved.code;
+  });
+  /** «Глаз» — переключатель: эталонный код демо ↔ инициализация страницы. */
+  const [refOn, setRefOn] = useState(() => {
+    const saved = savedEditors.get(chapterId);
+    return !!saved && saved.code.trim() !== "" && saved.code === buildSyncTemplate(chapterId, chapterTitle, demoId);
+  });
+  const [stdin, setStdin] = useState("");
+  const [output, setOutput] = useState("Код выполнится автоматически после короткой паузы.");
+  const [running, setRunning] = useState(false);
+  const [runtimeReady, setRuntimeReady] = useState(false);
+  const [runtimeMessage, setRuntimeMessage] = useState("Python загружается автоматически…");
+  /** Принудительный повтор (глаз / Ctrl+Enter), даже если текст не изменился. */
+  const [traceRequest, setTraceRequest] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [stripTab, setStripTab] = useState<"vars" | "hints">("vars");
+  const [outputOpen, setOutputOpen] = useState(true);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  /**
+   * Панель жива? Закрытие (крестик, «глаз» в шапке, смена страницы) размонтирует
+   * компонент, но `runPythonAsync` к тому моменту может ещё выполняться. Без
+   * этого флага доехавший до конца прогон публиковал снимок переменных уже
+   * после закрытия: панель исчезла, а визуализация продолжала жить значениями
+   * кода, которого на экране больше нет.
+   */
+  const aliveRef = useRef(true);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+
+  // Код хранится по страницам, поэтому при открытии панели «чужого» кода не
+  // бывает: рассинхрон возможен только после смены вкладки демонстрации.
+  const [desyncedFrom, setDesyncedFrom] = useState<string | null>(null);
+  const prevTplRef = useRef({ base: initTemplate, full: template });
+
+  /** Активная трасса. input нужен, чтобы изменение stdin тоже запускало её заново. */
+  const [debug, setDebug] = useState<{ result: DebugResult; idx: number; src: string; input: string; request: number } | null>(null);
+  /** Esc оставляет неизменённый текст в редакторе, пока пользователь не начнёт печатать. */
+  const [editHold, setEditHold] = useState<string | null>(null);
+  /** Автопроход включается пользователем; первый шаг показывается сразу после автозапуска. */
+  const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const saved = Number(window.localStorage.getItem(PLAYBACK_SPEED_KEY));
+    return PLAYBACK_SPEEDS.includes(saved as (typeof PLAYBACK_SPEEDS)[number]) ? saved : 1;
+  });
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.localStorage.setItem(PLAYBACK_SPEED_KEY, String(playbackSpeed));
+  }, [playbackSpeed]);
+
+  useEffect(() => {
+    savedEditors.set(chapterId, { code, base: initTemplate });
+  }, [code, initTemplate, chapterId]);
+
+  // демонстрация сообщает, какая вкладка открыта — код панели следует за ней
+  useEffect(() => setDemoId(null), [chapterId]);
+  useEffect(() => onVizDemo(chapterId, (d) => setDemoId(d || null)), [chapterId]);
+  useEffect(() => () => clearVizState(chapterId), [chapterId]);
+
+  // Смена страницы (или вкладки демо): нетронутый редактор получает свежую
+  // инициализацию; свой код не затираем — предлагаем синхронизироваться кнопкой.
+  useEffect(() => {
+    const prev = prevTplRef.current;
+    if (initTemplate === prev.base && template === prev.full) return;
+    prevTplRef.current = { base: initTemplate, full: template };
+    setPlaying(false);
+    setEditHold(null);
+    setDebug(null); // трасса ссылается на строки старого источника — сбрасываем
+    setRefOn(false);
+    if (code === prev.base || code === prev.full || code.trim() === "") {
+      setCode(initTemplate);
+      setDesyncedFrom(null);
+    } else {
+      setDesyncedFrom(chapterId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initTemplate, template]);
+
+  const resync = useCallback(() => {
+    prevTplRef.current = { base: initTemplate, full: template };
+    setCode(initTemplate);
+    setRefOn(false);
+    setDesyncedFrom(null);
+    setStripTab("vars");
+    setPlaying(false);
+    setEditHold(null);
+    setDebug(null);
+    setTraceRequest((n) => n + 1);
+  }, [initTemplate, template]);
+
+  const copyCode = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setRuntimeMessage("Не получилось скопировать — буфер обмена недоступен");
+    }
+  }, [code]);
+
+  /* ── Пошаговый отладчик ────────────────────────────────────────────── */
+
+  /** Связь больше не зависит от эталонных строк: совпадают только имена переменных. */
+  const hasViz = sync.variables.length > 0;
+
+  /**
+   * Снимок ПОСЛЕ выделенной строки. Контейнеры берём из следующего trace-event
+   * (там уже виден append/st[i][j]=…), но индексы цикла сохраняем с текущего
+   * события: после st[i][j]= Python уже мог увеличить i для новой итерации.
+   */
+  const snapshotAt = useCallback((result: DebugResult, idx: number, source = "") => {
+    const step = result.steps[idx];
+    const next = result.steps[idx + 1];
+    const afterLocals = next?.locals ?? result.finalLocals ?? step?.locals ?? {};
+    const afterValues = next?.values ?? result.finalValues ?? step?.values ?? {};
+    const beforeValues = step?.values ?? {};
+    const line = step?.line ? source.split("\n")[step.line - 1] ?? "" : "";
+    // Нас интересуют только простые скалярные цели (`i =`, `i, j =`,
+    // `i +=`). Контейнеры и так всегда берутся из afterValues. Так знак `=`
+    // внутри print(f"i={i}") не будет ошибочно принят за присваивание.
+    const assignment = line.match(
+      /^\s*([A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)\s*(?:\+=|-=|\*=|\/=|\/\/=|%=|=(?!=))/
+    );
+    const assigned = new Set(assignment?.[1].split(",").map((name) => name.trim()) ?? []);
+
+    const variables = { ...afterValues };
+    const locals = { ...afterLocals };
+    for (const [name, value] of Object.entries(beforeValues)) {
+      const scalar = value === null || typeof value !== "object";
+      if (scalar && !assigned.has(name) && name in afterValues) {
+        variables[name] = value;
+        if (step?.locals[name] !== undefined) locals[name] = step.locals[name];
+      }
+    }
+    const changed = changedVars(step?.locals, locals);
+    return {
+      line: step?.line,
+      func: step?.func,
+      locals,
+      variables,
+      changed: Object.keys(changed).filter((name) => changed[name]),
+    };
+  }, []);
+
+  const publishDebug = useCallback(
+    (result: DebugResult, idx: number, source: string) => {
+      if (!aliveRef.current) return; // панель закрыта — визуализации ничего не отдаём
+      if (!hasViz || result.steps.length === 0) return;
+      const snapshot = snapshotAt(result, idx, source);
+      emitVizState(chapterId, {
+        line: snapshot.line,
+        func: snapshot.func,
+        variables: snapshot.variables,
+        changed: snapshot.changed,
+      });
+    },
+    [chapterId, hasViz, snapshotAt]
+  );
+
+  // Единственная точка публикации: любое перемещение трассы сразу отдаёт
+  // визуализации согласованный снимок, без side-effect внутри setState.
+  useEffect(() => {
+    if (debug) publishDebug(debug.result, debug.idx, debug.src);
+  }, [debug, publishDebug]);
+
+  const goDebug = useCallback(
+    (nextIdx: number) => {
+      setDebug((d) => {
+        if (!d || d.result.steps.length === 0) return d;
+        const idx = Math.max(0, Math.min(d.result.steps.length - 1, nextIdx));
+        return { ...d, idx };
+      });
+    },
+    []
+  );
+
+  const stepBy = useCallback(
+    (delta: number) => {
+      setDebug((d) => {
+        if (!d || d.result.steps.length === 0) return d;
+        const idx = Math.max(0, Math.min(d.result.steps.length - 1, d.idx + delta));
+        return { ...d, idx };
+      });
+    },
+    []
+  );
+
+  const stepTo = useCallback((idx: number) => goDebug(idx), [goDebug]);
+
+  const stopDebug = useCallback(() => {
+    setPlaying(false);
+    setEditHold(code);
+    setDebug(null);
+    clearVizState(chapterId);
+  }, [chapterId, code]);
+
+  // Базовый интервал 650 мс; множитель скорости хранится в localStorage.
+  useEffect(() => {
+    if (!playing || !debug) return;
+    if (debug.idx >= debug.result.steps.length - 1) {
+      setPlaying(false);
+      return;
+    }
+    const t = window.setTimeout(() => stepBy(1), 650 / playbackSpeed);
+    return () => window.clearTimeout(t);
+  }, [playing, debug, stepBy, playbackSpeed]);
+
+  const debugRun = useCallback(async (autoPlay = false) => {
+    if (running) return;
+
+    const source = code;
+    const input = stdin;
+    const request = traceRequest;
+    setRunning(true);
+    setPlaying(false);
+    setEditHold(null);
+    setDebug(null);
+    clearVizState(chapterId);
+    setOutputOpen(false);
+
+    // Пустой редактор: Pyodide не гоняем, панель в режим трассы не уводим,
+    // связь с визуализацией снимаем — демо показывает свой встроенный сценарий.
+    if (source.trim() === "") {
+      setDebug({ result: { steps: [], error: "", truncated: false }, idx: 0, src: source, input, request });
+      setOutput("В редакторе пусто — выполнять нечего.\nВизуализация показывает встроенное демо: напишите код или вставьте эталон кнопкой-«глаз».");
+      setRuntimeMessage("Пустой код: связь с визуализацией снята.");
+      setOutputOpen(true);
+      setRunning(false);
+      return;
+    }
+
+    setRuntimeMessage(runtimeReady ? "Обновляю трассу…" : "Загружаю Python в браузер…");
+
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const inputLines = input.split(/\r?\n/);
+
+    try {
+      const runtime = await getPythonRuntime();
+      setRuntimeReady(true);
+      runtime.setStdout({ batched: (message) => stdout.push(message) });
+      runtime.setStderr({ batched: (message) => stderr.push(message) });
+      runtime.setStdin({ stdin: () => (inputLines.length > 0 ? inputLines.shift() ?? "" : null) });
+
+      const raw = await runtime.runPythonAsync(buildDebugRunner(source));
+      // Панель могли закрыть, пока Python считал: выходим, не публикуя ничего.
+      if (!aliveRef.current) return;
+      const result = JSON.parse(String(raw)) as DebugResult;
+      const printed = clipOutput([...stdout, ...stderr].join(""));
+
+      if (result.steps.length === 0) {
+        // Шагов нет (только комментарии, синтаксическая ошибка): редактор НЕ
+        // заменяется пустым листингом, а визуализация снимается со связи и
+        // показывает собственный встроенный сценарий (с явным бейджем).
+        setDebug({ result, idx: 0, src: source, input, request });
+        clearVizState(chapterId);
+        setOutputOpen(true);
+        setOutput(
+          result.error
+            ? `Ошибка:\n${result.error}`
+            : printed || "В коде нет исполняемых строк — трассы нет.\nВизуализация показывает встроенное демо, а не ваш код."
+        );
+        setRuntimeMessage(
+          result.error
+            ? "Код не выполнился — редактор остался открытым, исправьте ошибку."
+            : "Нет шагов трассы: связь с визуализацией снята."
+        );
+      } else {
+        setDebug({ result, idx: 0, src: source, input, request });
+        setPlaying(autoPlay && result.steps.length > 1);
+        // Программа что-то напечатала — значит, вывод надо показать: прятать
+        // результат своего же print() панель не имеет права.
+        if (printed.trim() !== "") setOutputOpen(true);
+        setOutput(
+          (printed || "Программа ничего не вывела — трасса и переменные всё равно доступны.") +
+            (result.error ? `\n\nОшибка (выполнение прервано на шаге ${result.steps.length}):\n${result.error}` : "")
+        );
+        if (result.error) setOutputOpen(true);
+        setRuntimeMessage(
+          result.truncated
+            ? `Выполнение остановлено после ${DEBUG_STEP_CAP} шагов (защита от бесконечного цикла).`
+            : "Трасса готова автоматически. ← → — шаги, пробел — воспроизведение, Esc — редактирование."
+        );
+      }
+    } catch (error) {
+      if (!aliveRef.current) return;
+      const message = errorText(error);
+      setDebug({ result: { steps: [], error: message, truncated: false }, idx: 0, src: source, input, request });
+      clearVizState(chapterId);
+      setOutputOpen(true);
+      setOutput(`Ошибка:\n${message}`);
+      setRuntimeMessage("Не удалось выполнить код — проверьте синтаксис и доступ к CDN Pyodide");
+    } finally {
+      setRunning(false);
+    }
+  }, [chapterId, code, stdin, traceRequest, running, runtimeReady]);
+
+  // Код выполняется сам: debounce даёт спокойно допечатать строку. Если текст
+  // изменился во время загрузки Pyodide, после завершения запустится свежая версия.
+  useEffect(() => {
+    if (running || editHold === code) return;
+    if (debug?.src === code && debug.input === stdin && debug.request === traceRequest) return;
+    const timer = window.setTimeout(() => void debugRun(), runtimeReady ? 450 : 80);
+    return () => window.clearTimeout(timer);
+  }, [code, stdin, traceRequest, running, runtimeReady, debug, debugRun, editHold]);
+
+  // Стрелки ← → в режиме отладки листают ШАГИ (а не страницы), Esc — выход из отладчика.
+  useEffect(() => {
+    if (!debug || debug.result.steps.length === 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowRight") {
+        e.stopPropagation();
+        e.preventDefault();
+        setPlaying(false);
+        stepBy(1);
+      }
+      if (e.key === "ArrowLeft") {
+        e.stopPropagation();
+        e.preventDefault();
+        setPlaying(false);
+        stepBy(-1);
+      }
+      if (e.key === " ") {
+        e.stopPropagation();
+        e.preventDefault();
+        setPlaying((v) => !v);
+      }
+      if (e.key === "Escape") stopDebug();
+    };
+    // capture-фаза: чтобы глобальный обработчик навигации по главам не сработал
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [debug, stepBy, stopDebug]);
+
+  // держим текущую строку листинга в видимой области
+  /**
+   * Панель показывает листинг трассы, только если шаги реально есть.
+   * Пустой код или синтаксическая ошибка больше не прячут редактор:
+   * раньше на их месте возникал пустой листинг без возможности печатать —
+   * «исчезала» и кнопка, и само поле ввода.
+   */
+  const showTrace = !!debug && debug.result.steps.length > 0;
+  /** Трасса построена по старому тексту: пользователь ещё печатает, автозапуск догоняет. */
+  const stale = !!debug && debug.src !== code;
+  /** Листинг трассы можно свернуть, но редактор от этого не исчезает. */
+  const [traceOpen, setTraceOpen] = useState(true);
+  const curDebug = debug ? { step: debug.result.steps[debug.idx], prev: debug.result.steps[debug.idx - 1] } : null;
+  const curDebugLine = curDebug?.step?.line;
+  useEffect(() => {
+    if (curDebugLine === undefined || !listRef.current) return;
+    listRef.current
+      .querySelector(`[data-line="${curDebugLine}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [curDebugLine]);
+
+  // производные данные шага: что изменилось, в каком порядке показать переменные
+  // Строка, которую назначает текущий шаг, подсвечивается вместе с её РЕЗУЛЬТАТОМ:
+  // локали берём со следующего шага трассы (для последнего — финальные, записанные
+  // трейсером на возврате из фрейма). Значит на строке `i, j = 0, 0` видны именно 0, 0.
+  const shownLocals = useMemo(() => {
+    if (!debug || !curDebug?.step) return {};
+    return snapshotAt(debug.result, debug.idx, debug.src).locals;
+  }, [debug, curDebug, snapshotAt]);
+  const debugChanged = curDebug?.step ? changedVars(curDebug.step.locals, shownLocals) : {};
+  const debugOrdered = curDebug?.step ? orderVars(shownLocals, syncVarBases) : [];
+
+  /** Одна и та же кнопка запуска всегда видна: из редактора строит трассу и
+   * проигрывает её, в отладчике переключает play/pause. */
+  const runOrTogglePlayback = useCallback(() => {
+    if (running) return;
+    if (!debug || debug.result.steps.length === 0) {
+      void debugRun(true);
+      return;
+    }
+    if (playing) {
+      setPlaying(false);
+      return;
+    }
+    if (debug.idx >= debug.result.steps.length - 1) stepTo(0);
+    setPlaying(true);
+  }, [debug, debugRun, playing, running, stepTo]);
+
+  /** Вставка сниппета из шпаргалки в позицию курсора. */
+  const insertSnippet = useCallback((snippet: string) => {
+    const ta = editorRef.current;
+    setCode((current) => {
+      if (!ta) return current + (current.endsWith("\n") ? "" : "\n") + snippet;
+      const start = ta.selectionStart ?? current.length;
+      const end = ta.selectionEnd ?? start;
+      const padded = (start > 0 && !current.slice(0, start).endsWith("\n") ? "\n" : "") + snippet;
+      const next = current.slice(0, start) + padded + current.slice(end);
+      requestAnimationFrame(() => {
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = start + padded.length;
+      });
+      return next;
+    });
+  }, []);
+
+  return (
+    <aside
+      aria-label="Python-компилятор"
+      className="fixed z-40 inset-x-0 bottom-0 h-[58dvh] lg:inset-x-auto lg:right-0 lg:top-auto lg:h-[calc(100dvh-4rem)] lg:w-[520px] xl:w-[600px] flex flex-col bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-700 shadow-2xl shadow-black/60"
+      style={typeof window !== "undefined" ? {
+        ...(width && window.innerWidth >= 1024 ? { width } : {}),
+        ...(height ? { height: Math.min(height, window.innerHeight - (window.innerWidth >= 1024 ? 64 : 0)) } : {}),
+      } : undefined}
+    >
+      {/* Верхний край меняет высоту на телефоне и десктопе; панель закреплена снизу. */}
+      {onHeightChange && (
+        <div
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Потяните, чтобы изменить высоту терминала"
+          title="Потяните, чтобы изменить высоту терминала"
+          className="absolute -top-1.5 left-0 right-0 h-3 cursor-row-resize z-[51] group touch-none"
+          onPointerDown={(event) => {
+            const el = event.currentTarget;
+            el.setPointerCapture(event.pointerId);
+            const startY = event.clientY;
+            const startH = el.parentElement?.getBoundingClientRect().height ?? window.innerHeight * 0.58;
+            const onMove = (moveEvent: PointerEvent) => {
+              const maxHeight = window.innerHeight - (window.innerWidth >= 1024 ? 64 : 0);
+              const minHeight = Math.min(260, maxHeight);
+              const next = Math.round(startH + startY - moveEvent.clientY);
+              onHeightChange(Math.max(minHeight, Math.min(next, maxHeight)));
+            };
+            const onUp = () => {
+              el.removeEventListener("pointermove", onMove as EventListener);
+              el.removeEventListener("pointerup", onUp as EventListener);
+              el.removeEventListener("pointercancel", onUp as EventListener);
+            };
+            el.addEventListener("pointermove", onMove as EventListener);
+            el.addEventListener("pointerup", onUp as EventListener);
+            el.addEventListener("pointercancel", onUp as EventListener);
+          }}
+        >
+          <div className="absolute left-1/2 top-1/2 h-1 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-600 group-hover:bg-indigo-400 transition-colors" />
+        </div>
+      )}
+
+      {/* Левый край меняет ширину на десктопе. */}
+      {onWidthChange && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Потяните, чтобы изменить ширину панели"
+          title="Потяните, чтобы изменить ширину панели"
+          className="hidden lg:block absolute top-0 bottom-0 -left-1.5 w-3 cursor-col-resize z-50 group"
+          onPointerDown={(e) => {
+            const el = e.currentTarget;
+            el.setPointerCapture(e.pointerId);
+            const startX = e.clientX;
+            const startW = width ?? 560;
+            const onMove = (ev: PointerEvent) => {
+              const next = Math.round(startW + (startX - ev.clientX));
+              onWidthChange(Math.max(380, Math.min(next, Math.round(window.innerWidth * 0.9))));
+            };
+            const onUp = () => {
+              el.removeEventListener("pointermove", onMove as EventListener);
+              el.removeEventListener("pointerup", onUp as EventListener);
+            };
+            el.addEventListener("pointermove", onMove as EventListener);
+            el.addEventListener("pointerup", onUp as EventListener);
+          }}
+        >
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-14 w-1 rounded-full bg-slate-700 group-hover:bg-indigo-500 transition-colors" />
+        </div>
+      )}
+      {/* ── Заголовок панели ─────────────────────────────────────────── */}
+      <div className="shrink-0 flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 border-b border-slate-800 bg-slate-900">
+        <span className={`w-2 h-2 rounded-full shrink-0 ${desyncedFrom !== null ? "bg-amber-400" : "bg-emerald-400"}`} />
+        <Terminal className="w-4 h-4 text-emerald-400 shrink-0" />
+        <span className="text-[13px] font-bold text-white truncate">main.py</span>
+        <span className="hidden sm:inline text-[10px] text-slate-500 shrink-0">Pyodide</span>
+
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-1 min-w-0">
+          <Tooltip
+            side="bottom"
+            content={running ? "Python выполняется…" : playing ? "Пауза автопрохода" : showTrace ? "Продолжить автопроход" : "Выполнить код и запустить автопроход"}
+          >
+            <button
+              type="button"
+              onClick={runOrTogglePlayback}
+              disabled={running}
+              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-bold transition-colors disabled:opacity-60 ${
+                playing
+                  ? "bg-amber-500/15 text-amber-300 hover:bg-amber-500/25"
+                  : "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
+              }`}
+              aria-label={running ? "Python выполняется" : playing ? "Пауза" : showTrace ? "Продолжить автопроход" : "Запустить код"}
+            >
+              {running ? <Loader2 className="h-4 w-4 animate-spin" /> : playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              <span>{playbackSpeed}×</span>
+            </button>
+          </Tooltip>
+          <Tooltip side="bottom" content="Скопировать код из редактора.">
+            <button
+              type="button"
+              onClick={() => void copyCode()}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+              aria-label="Скопировать код"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </Tooltip>
+          <Tooltip side="bottom" content="Вернуть комментарий с переменными текущей страницы (код будет заменён).">
+            <button
+              type="button"
+              onClick={resync}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+              aria-label="Сбросить к шаблону страницы"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </Tooltip>
+          <Tooltip side="bottom" content="Скрыть панель (код сохранится).">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+              aria-label="Закрыть компилятор"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </Tooltip>
+          <Tooltip
+            side="bottom"
+            content={
+              refOn
+                ? "Убрать эталонный код: редактор станет пустым, выполнение остановится, связь с демонстрацией снимется — она вернётся к собственному встроенному демо. Кнопка ↺ вернёт инициализацию страницы."
+                : "Вставить полный эталонный код этого демо в редактор. Выполнится именно этот текст (он виден в редакторе); текущий код будет заменён."
+            }
+          >
+            <button
+              type="button"
+              onClick={() => {
+                const next = !refOn;
+                setRefOn(next);
+                // «Убрать эталон» — значит убрать код вовсе: пустой редактор не
+                // выполняется, поэтому демонстрация больше не получает чужих
+                // значений и честно показывает встроенное демо (бейдж на
+                // странице скажет об этом явно).
+                setCode(next ? template : "");
+                setDesyncedFrom(null);
+                setPlaying(false);
+                setEditHold(null);
+                setDebug(null);
+                clearVizState(chapterId);
+                setTraceRequest((n) => n + 1);
+              }}
+              className={`p-1.5 rounded-lg transition-colors shrink-0 ${
+                refOn
+                  ? "bg-indigo-500/30 text-white ring-1 ring-inset ring-indigo-400/60"
+                  : "text-indigo-300 hover:text-white hover:bg-indigo-500/20"
+              }`}
+              aria-label={refOn ? "Убрать эталонный код (редактор станет пустым, выполнение остановится)" : "Вставить эталонный код в редактор"}
+              aria-pressed={refOn}
+            >
+              {refOn ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+          </Tooltip>
+          <label
+            className="ml-1 inline-flex items-center gap-1 rounded-lg bg-slate-800 pl-2 pr-1 py-1 text-[10px] font-bold text-slate-400 border border-slate-700 hover:border-emerald-500/60 shrink-0"
+            title="Скорость автоматического проигрывания шагов — сохраняется между открытиями"
+          >
+            {running ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" /> : <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+            <span className="hidden xl:inline">{running ? "авто…" : "авто"}</span>
+            <select
+              aria-label="Скорость автопрохода"
+              value={playbackSpeed}
+              onChange={(event) => setPlaybackSpeed(Number(event.target.value))}
+              className="cursor-pointer rounded bg-slate-950 px-1 py-0.5 text-[10px] font-bold text-emerald-300 outline-none"
+            >
+              {PLAYBACK_SPEEDS.map((speed) => (
+                <option key={speed} value={speed}>{speed}×</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      {/* ── Мини-вкладки: переменные страницы / шпаргалка Python ────── */}
+      <div className="shrink-0 border-b border-slate-800 bg-slate-900/70">
+        <div className="flex items-center gap-1 px-2 pt-1.5">
+          <button
+            type="button"
+            onClick={() => setStripTab("vars")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-lg text-[11px] font-bold transition-colors ${
+              stripTab === "vars" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Variable className="w-3.5 h-3.5" /> Переменные страницы
+          </button>
+          <button
+            type="button"
+            onClick={() => setStripTab("hints")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-lg text-[11px] font-bold transition-colors ${
+              stripTab === "hints" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <HelpCircle className="w-3.5 h-3.5" /> Подсказки Python
+          </button>
+          <div className="ml-auto pr-1">
+            <Tooltip
+              side="bottom"
+              content={
+                hasViz
+                  ? "Связь идёт по именам ниже: реальные значения из любого Python-кода сразу управляют ячейками и вершинами. Текст эталона не сравнивается."
+                  : "На выбранной странице нет интерактива — переменных синхронизации нет."
+              }
+            >
+              <span
+                tabIndex={0}
+                className={`cursor-help inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-bold ${
+                  hasViz ? "text-emerald-400" : "text-slate-500"
+                }`}
+              >
+                <Link2 className="w-3 h-3" />
+                {hasViz ? "синхронизировано" : "нет визуализации"}
+              </span>
+            </Tooltip>
+          </div>
+        </div>
+
+        {stripTab === "vars" ? (
+          <div className="px-3 pb-2.5 space-y-2 max-h-36 overflow-y-auto">
+            <div className="flex items-center gap-2 min-w-0">
+              {onOpenGuide ? (
+                <Tooltip side="bottom" content="Открыть эту страницу в пособии — демонстрация появится рядом с панелью.">
+                  <button
+                    type="button"
+                    onClick={onOpenGuide}
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors max-w-full"
+                  >
+                    <span className="truncate">{chapterTitle}</span>
+                  </button>
+                </Tooltip>
+              ) : (
+                <span className="inline-flex items-center rounded-md px-2 py-1 text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 max-w-full">
+                  <span className="truncate">{chapterTitle}</span>
+                </span>
+              )}
+            </div>
+            {desyncedFrom !== null && (
+              <Tooltip
+                side="bottom"
+                content="В редакторе ваш код, а страница сменилась. Кнопка вернёт комментарий с переменными текущей страницы (ваш код будет заменён)."
+              >
+                <button
+                  type="button"
+                  onClick={resync}
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-bold bg-amber-500/10 border border-amber-500/40 text-amber-400 hover:bg-amber-500/20 transition-colors w-full text-left"
+                >
+                  <Unlink className="w-3.5 h-3.5 shrink-0" />
+                  Страница сменилась — подставить её переменные
+                </button>
+              </Tooltip>
+            )}
+            {hasViz && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {sync.variables.map((v) => (
+                  <Tooltip
+                    key={v.name}
+                    side="bottom"
+                    content={
+                      <span>
+                        <span className="block font-bold text-white mb-0.5">
+                          <code className="font-mono text-emerald-300">{v.name}</code>
+                        </span>
+                        <span className="block">{v.role}</span>
+                        {v.range && <span className="block mt-1 text-indigo-300">{v.range}</span>}
+                      </span>
+                    }
+                  >
+                    <code
+                      tabIndex={0}
+                      className="cursor-help rounded-md border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                    >
+                      {v.name}
+                    </code>
+                  </Tooltip>
+                ))}
+                {sync.stepNote && (
+                  <Tooltip side="bottom" content={`Шаг визуализации = ${sync.stepNote}`}>
+                    <span
+                      tabIndex={0}
+                      className="cursor-help inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-white transition-colors max-w-full"
+                    >
+                      <ArrowRightLeft className="w-3 h-3 shrink-0" />
+                      <span className="truncate max-w-52">{sync.stepNote}</span>
+                    </span>
+                  </Tooltip>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="px-3 pb-2.5 max-h-36 overflow-y-auto space-y-2.5">
+            {SNIPPETS.map((gItem) => (
+              <div key={gItem.group}>
+                <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">{gItem.group}</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {gItem.items.map((s) => (
+                    <Tooltip key={s.label} side="bottom" content={s.tip}>
+                      <button
+                        type="button"
+                        onClick={() => insertSnippet(s.code)}
+                        className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 font-mono text-[10.5px] text-indigo-300 hover:text-white hover:border-indigo-500 transition-colors"
+                        title=""
+                      >
+                        <Plus className="w-3 h-3 text-slate-500" />
+                        {s.label}
+                      </button>
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <p className="text-[10px] text-slate-600">Нажатие вставляет сниппет в редактор в позицию курсора.</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Редактор (всегда на месте) + трасса + ввод ───────────────── */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        {/* Заголовок редактора: сразу видно, что выполняется именно этот текст. */}
+        <div className="shrink-0 flex items-center gap-2 px-3 pt-1.5 pb-1 border-b border-slate-800 bg-slate-900/60">
+          <Pencil className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
+            Редактор · выполняется этот текст
+          </span>
+          {stale && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-300 shrink-0"
+              title="Трасса ниже построена по предыдущей версии текста: автозапуск уже пересчитывает"
+            >
+              <Loader2 className="w-2.5 h-2.5 animate-spin" /> устарела
+            </span>
+          )}
+          <span className="ml-auto text-[10px] text-slate-500 font-mono shrink-0">
+            {code.trim() === "" ? "пусто — ничего не выполняется" : `${code.split("\n").length} стр.`}
+          </span>
+        </div>
+
+        <textarea
+          ref={editorRef}
+          value={code}
+          onChange={(event) => {
+            setEditHold(null);
+            setRefOn(false);
+            setCode(event.target.value);
+          }}
+          onKeyDown={(event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+              event.preventDefault();
+              void debugRun();
+            }
+            event.stopPropagation();
+          }}
+          spellCheck={false}
+          aria-label="Код Python"
+          className="flex-[2] min-h-[110px] w-full resize-none bg-[#0b1220] px-3 py-2.5 font-mono text-[12px] leading-5 text-slate-200 outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/40 placeholder:text-slate-600"
+          placeholder="Напишите Python-код… (пустой редактор = ничего не выполняется, демонстрация показывает встроенное демо)"
+        />
+
+        {showTrace && debug && (
+          <div className={`flex flex-col border-t border-slate-800 ${traceOpen ? "flex-[3] min-h-0" : "shrink-0"}`}>
+            {/* панель управления шагами */}
+            <div className="shrink-0 flex flex-wrap items-center gap-0.5 px-2 py-1 border-b border-slate-800 bg-slate-900">
+              <Tooltip content={playing ? `Пауза автопрохода ${playbackSpeed}× (пробел)` : debug.idx >= debug.result.steps.length - 1 ? `Проиграть трассу заново со скоростью ${playbackSpeed}× (пробел)` : `Продолжить автопроход со скоростью ${playbackSpeed}× (пробел)`}>
+                <button
+                  type="button"
+                  onClick={runOrTogglePlayback}
+                  className={`mx-0.5 inline-flex items-center gap-1 p-1.5 rounded-md transition-colors ${playing ? "text-amber-300 bg-amber-500/15 hover:bg-amber-500/25" : "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"}`}
+                  aria-label={playing ? `Пауза автопрохода ${playbackSpeed}×` : `Пуск автопрохода ${playbackSpeed}×`}
+                >
+                  {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <span className="text-[9px] font-bold">{playbackSpeed}×</span>
+                </button>
+              </Tooltip>
+              <Tooltip content="В начало трассы">
+                <button type="button" aria-label="В начало трассы" title="В начало трассы" onClick={() => { setPlaying(false); stepTo(0); }} disabled={!curDebug?.step} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <SkipBack className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Шаг назад (←) — автопроход встанет на паузу">
+                <button type="button" aria-label="Шаг назад" title="Шаг назад (←)" onClick={() => { setPlaying(false); stepBy(-1); }} disabled={!curDebug?.prev} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Шаг вперёд (→) — автопроход встанет на паузу">
+                <button type="button" aria-label="Шаг вперёд" title="Шаг вперёд (→)" onClick={() => { setPlaying(false); stepBy(1); }} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="В конец трассы">
+                <button type="button" aria-label="В конец трассы" title="В конец трассы" onClick={() => { setPlaying(false); stepTo(debug.result.steps.length - 1); }} disabled={!curDebug?.step || debug.idx >= debug.result.steps.length - 1} className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors">
+                  <SkipForward className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <span className="ml-1.5 text-[10px] text-slate-400 font-mono truncate min-w-0 max-w-full">
+                {curDebug?.step ? (
+                  <>
+                    шаг {debug.idx + 1}/{debug.result.steps.length} · строка {curDebug.step.line}
+                    {curDebug.step.func !== "<module>" && <> · {curDebug.step.func}()</>}
+                  </>
+                ) : (
+                  "шагов нет — исправьте ошибку и начните редактирование"
+                )}
+              </span>
+              {debug.result.truncated && (
+                <Tooltip content={`Выполнение остановлено: лимит ${DEBUG_STEP_CAP} шагов защищает браузер от бесконечного цикла.`}>
+                  <span tabIndex={0} className="cursor-help text-[9px] font-bold text-amber-400 border border-amber-500/40 bg-amber-500/10 rounded-full px-1.5 py-0.5">
+                    лимит
+                  </span>
+                </Tooltip>
+              )}
+              <Tooltip content={hasViz ? "Визуализация этой темы читает значения переменных с договорёнными именами: i, j, k, v, dist, P, st… Эталонный текст не обязателен — пишите свой код с теми же именами, и картинка будет следовать за ним." : "У этой страницы нет имён, связанных с демонстрацией; Python выполняет любой ваш код, а значения видны в панели переменных."}>
+                <span
+                  tabIndex={0}
+                  className={`cursor-help inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold ${hasViz ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-slate-600 bg-slate-800 text-slate-400"}`}
+                >
+                  {hasViz ? <Link2 className="w-3 h-3" /> : <Unlink className="w-3 h-3" />}
+                  {hasViz ? "имена → демо" : "свободный Python"}
+                </span>
+              </Tooltip>
+              <Tooltip content={traceOpen ? "Свернуть листинг и переменные — редактор выше останется на месте." : "Показать листинг трассы и переменные текущего шага."}>
+                <button
+                  type="button"
+                  aria-label={traceOpen ? "Свернуть листинг трассы" : "Показать листинг трассы"}
+                  aria-expanded={traceOpen}
+                  onClick={() => setTraceOpen((v) => !v)}
+                  className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-[10px] font-bold text-slate-300 transition-colors hover:text-white hover:border-indigo-500"
+                >
+                  {traceOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+                  листинг
+                </button>
+              </Tooltip>
+              <Tooltip content="Остановить прогон (Esc): трасса убирается, редактор остаётся открытым, связь с демонстрацией снимается — она показывает встроенное демо. Автозапуск не повторит прогон, пока вы не измените текст.">
+                <button
+                  type="button"
+                  aria-label="Остановить прогон трассы"
+                  onClick={stopDebug}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-bold text-rose-300 transition-colors hover:bg-rose-500/25 hover:text-white"
+                >
+                  <CircleStop className="w-3.5 h-3.5" />
+                  стоп
+                  <kbd className="rounded border border-rose-400/30 px-1 font-mono text-[9px] text-rose-200/70">Esc</kbd>
+                </button>
+              </Tooltip>
+            </div>
+
+            {traceOpen && (
+            <>
+            {/* листинг с подсветкой текущей строки */}
+            <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto bg-[#0b1220] py-1 font-mono text-[11.5px] leading-5">
+              {debug.src.split("\n").map((line, i) => {
+                const ln = i + 1;
+                const active = ln === curDebug?.step?.line;
+                return (
+                  <div
+                    key={i}
+                    data-line={ln}
+                    className={`flex whitespace-pre px-2 ${
+                      active ? "bg-emerald-500/15 text-emerald-200" : "text-slate-500"
+                    }`}
+                  >
+                    <span
+                      className={`w-7 shrink-0 select-none text-right pr-2 ${
+                        active ? "text-emerald-300" : "text-slate-700"
+                      }`}
+                    >
+                      {active ? "▶" : ln}
+                    </span>
+                    <span>{line || " "}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* панель переменных — «Variables», как в обычном отладчике */}
+            <div className="shrink-0 max-h-[34%] overflow-y-auto border-t border-slate-800 bg-slate-950/80 px-2.5 py-1.5">
+              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                <Variable className="w-3 h-3 text-indigo-400" />
+                Переменные на этом шаге
+                <span className="normal-case tracking-normal text-slate-600">· янтарные — присваивает выделенная строка</span>
+              </div>
+              {debug.result.error && (
+                <pre className="mt-1 whitespace-pre-wrap break-words text-[11px] leading-snug text-rose-300">{debug.result.error}</pre>
+              )}
+              {debugOrdered.length === 0 && !debug.result.error && (
+                <div className="mt-1 text-[11px] text-slate-600">на этом шаге значений пока нет (заголовок/комментарий или пустая строка)</div>
+              )}
+              <div className="mt-1 flex flex-wrap gap-1">
+                {debugOrdered.map(([name, value]) => {
+                  const changed = debugChanged[name];
+                  const synced = syncVarSet.has(name);
+                  return (
+                    <span
+                      key={name}
+                      className={`inline-flex items-baseline gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[10.5px] leading-4 ${
+                        changed
+                          ? "border-amber-500/50 bg-amber-500/10"
+                          : synced
+                            ? "border-emerald-500/40 bg-emerald-500/10"
+                            : "border-slate-700 bg-slate-800/60"
+                      }`}
+                    >
+                      <span className={changed ? "text-amber-300 font-bold" : synced ? "text-emerald-300" : "text-indigo-300"}>
+                        {name}
+                      </span>
+                      <span className="text-slate-500">=</span>
+                      <span className={changed ? "text-amber-200" : "text-slate-200"}>{value}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+            </>
+            )}
+          </div>
+        )}
+        {debug && !showTrace && debug.result.error ? (
+          <pre className="shrink-0 max-h-28 overflow-auto whitespace-pre-wrap break-words border-t border-rose-900/50 bg-rose-950/30 px-3 py-2 font-mono text-[11px] leading-snug text-rose-200">
+            {debug.result.error}
+          </pre>
+        ) : null}
+        <div className="shrink-0 border-t border-slate-800 bg-slate-950/70 flex items-center gap-2 px-3 py-1.5">
+          <label htmlFor="python-stdin" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 shrink-0">
+            stdin для input()
+          </label>
+          <input
+            id="python-stdin"
+            value={stdin}
+            onChange={(event) => {
+              setEditHold(null);
+              setStdin(event.target.value);
+            }}
+            spellCheck={false}
+            placeholder="строки ввода через ↵"
+            className="w-full bg-transparent font-mono text-[11.5px] text-slate-300 outline-none placeholder:text-slate-700"
+          />
+        </div>
+      </div>
+
+      {/* ── Вывод ────────────────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-slate-800 flex flex-col max-h-[38%]">
+        <button
+          type="button"
+          onClick={() => setOutputOpen((o) => !o)}
+          className="flex items-center justify-between gap-2 px-3 py-1.5 text-[11px] font-bold text-slate-300 hover:text-white transition-colors"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <Terminal className="w-3.5 h-3.5 text-emerald-400" /> Результат
+          </span>
+          <span className="inline-flex items-center gap-2">
+            {runtimeReady && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+            <span className="text-slate-600">{outputOpen ? "▾" : "▸"}</span>
+          </span>
+        </button>
+        {outputOpen && (
+          <pre
+            data-testid="compiler-output"
+            className="flex-1 min-h-[70px] overflow-auto whitespace-pre-wrap break-words bg-[#080d18] px-3 py-2 font-mono text-[11.5px] leading-5 text-slate-300"
+          >
+            {output}
+          </pre>
+        )}
+        <div className="px-3 py-1.5 border-t border-slate-800 text-[10px] text-slate-500 truncate">{runtimeMessage}</div>
+      </div>
+    </aside>
+  );
+}

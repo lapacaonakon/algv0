@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Play, RotateCcw, SkipForward, HelpCircle, CheckCircle, XCircle, GitGraph, Layers, Users, BookOpen, Clock, Code, Award } from 'lucide-react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Play, RotateCcw, SkipForward, HelpCircle, CheckCircle, XCircle, GitGraph, Layers, Users, BookOpen, Clock, Code, Award, Terminal } from 'lucide-react';
+import { VizChapterContext, emitVizDemo, useVizRuntime, useVizStepSync, vizArray, vizNumber, vizRecord, vizString, type VizStepSelector } from '../data/vizStepBus';
 
 interface Vertex {
   id: number;
@@ -605,38 +606,217 @@ export const KruskalSimulator: React.FC = () => {
     }
   };
 
+  const introLog = (algo: 'kruskal' | 'prim' | 'boruvka'): StepLog[] => {
+    if (algo === 'kruskal') {
+      return [{
+        title: 'Введение в раскраску (Краскал)',
+        description: 'Представь, что все 9 вершин графа — бесцветные. Мы выписали ребра по возрастанию веса. Готовы начинать!',
+        type: 'info',
+      }];
+    }
+    if (algo === 'prim') {
+      return [{
+        title: 'Введение в Плесень (Прима)',
+        description: 'Логика «Плесени»: выбираем стартовую вершину (Центр Токио - E). Смотрим на исходящие ребра через Приоритетную очередь (Heap) и захватываем соседей!',
+        type: 'info',
+      }];
+    }
+    return [{
+      title: 'Введение в Коллективизацию (Борувка)',
+      description: 'Логика «Борувки»: Каждая из 9 деревень параллельно и одновременно ищет свою кратчайшую дорогу к соседней деревне, чтобы объединиться в колхоз.',
+      type: 'info',
+    }];
+  };
+
   const handleReset = (algo: 'kruskal' | 'prim' | 'boruvka') => {
     setActiveAlgo(algo);
     setVertices(initialVertices);
     setEdges(initialEdges);
     setStepIndex(0);
     setHeapQueue([]);
-    if (algo === 'kruskal') {
-      setLogs([
-        {
-          title: 'Введение в раскраску (Краскал)',
-          description: 'Представь, что все 9 вершин графа — бесцветные. Мы выписали ребра по возрастанию веса. Готовы начинать!',
-          type: 'info',
-        },
-      ]);
-    } else if (algo === 'prim') {
-      setLogs([
-        {
-          title: 'Введение в Плесень (Прима)',
-          description: 'Логика «Плесени»: выбираем стартовую вершину (Центр Токио - E). Смотрим на исходящие ребра через Приоритетную очередь (Heap) и захватываем соседей!',
-          type: 'info',
-        },
-      ]);
-    } else {
-      setLogs([
-        {
-          title: 'Введение в Коллективизацию (Борувка)',
-          description: 'Логика «Борувки»: Каждая из 9 деревень параллельно и одновременно ищет свою кратчайшую дорогу к соседней деревне, чтобы объединиться в колхоз.',
-          type: 'info',
-        },
-      ]);
-    }
+    setLogs(introLog(algo));
   };
+
+  /* ───────────── связь с Python-компилятором ───────────── */
+  const chapterId = useContext(VizChapterContext);
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+
+  // активная вкладка = подрежим страницы: код в панели следует за алгоритмом
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, activeAlgo);
+  }, [chapterId, activeAlgo]);
+
+  /** Перемотка на кадр n: сброс и повтор первых n шагов (шаги — функциональные апдейты). */
+  const goToStep = useCallback((n: number) => {
+    const target = Math.max(0, Math.min(currentSteps.length, n));
+    setVertices(initialVertices);
+    setEdges(initialEdges);
+    setHeapQueue([]);
+    setLogs(introLog(activeAlgo));
+    for (let i = 0; i < target; i++) currentSteps[i]();
+    setStepIndex(target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAlgo, currentSteps]);
+
+  /** Номер кадра из переменных кода: i / step / число уже взятых рёбер. */
+  const selectByVariables = useCallback<VizStepSelector>((v) => {
+    const i = vizNumber(v.i) ?? vizNumber(v.step);
+    if (i !== null) return i + 1;
+    const mst = vizArray(v.mst) ?? vizArray(v.answer) ?? vizArray(v.result);
+    if (mst) return mst.length;
+    const taken = vizArray(v.taken) ?? vizArray(v.used);
+    if (taken) return Math.max(0, taken.length - 1);
+    return null;
+  }, []);
+
+  useVizStepSync(stepIndex, goToStep, currentSteps.length, selectByVariables);
+
+  /** A..I ↔ id 0..8 */
+  const idOf = (name: string | number | null | undefined): number | null => {
+    if (name === null || name === undefined) return null;
+    if (typeof name === 'number') return Number.isInteger(name) && name >= 0 && name < 9 ? name : null;
+    const c = name.trim().toUpperCase().replace(/[^A-I]/g, '')[0];
+    return c ? c.charCodeAt(0) - 65 : null;
+  };
+
+  /** Разбор одного ребра из кода: (2, 'A', 'B') / [2,'A','B'] / 'A-B' / [0,1]. */
+  const parseEdge = (item: unknown): { u: number; v: number; w: number | null } | null => {
+    if (item === null || item === undefined) return null;
+    if (typeof item === 'string') {
+      const nums = item.match(/-?\d+(?:\.\d+)?/g);
+      const letters = item.match(/[A-Ia-i]/g);
+      let u: number | null = null;
+      let v: number | null = null;
+      if (letters && letters.length >= 2) { u = idOf(letters[0]); v = idOf(letters[1]); }
+      else if (nums && nums.length >= 2) { u = idOf(Number(nums[nums.length - 2])); v = idOf(Number(nums[nums.length - 1])); }
+      if (u === null || v === null) return null;
+      return { u, v, w: nums && nums.length ? Number(nums[0]) : null };
+    }
+    if (Array.isArray(item)) {
+      const letters = item.filter((x) => typeof x === 'string').map((x) => String(x));
+      const nums = item.filter((x) => typeof x === 'number').map((x) => Number(x));
+      if (letters.length >= 2) {
+        const u = idOf(letters[0]); const v = idOf(letters[1]);
+        if (u === null || v === null) return null;
+        return { u, v, w: nums.length ? nums[0] : null };
+      }
+      if (nums.length >= 2) {
+        const u = idOf(nums[nums.length - 2]); const v = idOf(nums[nums.length - 1]);
+        if (u === null || v === null) return null;
+        return { u, v, w: nums.length > 2 ? nums[0] : null };
+      }
+    }
+    return null;
+  };
+
+  const PALETTE = ['red', 'blue', 'purple', 'mold'];
+  /** Цвет по корне компоненты: одинаковый корень → одинаковый цвет. */
+  const colorOfComp = (root: string | undefined): string => {
+    if (!root) return 'none';
+    let h = 0;
+    for (let i = 0; i < root.length; i++) h = (h * 31 + root.charCodeAt(i)) >>> 0;
+    return PALETTE[h % PALETTE.length];
+  };
+
+  /** Всё, что код пользователя рассказал про граф. */
+  const live = useMemo(() => {
+    if (!vars) return null;
+    const parentRec = vizRecord(vars.parent) ?? vizRecord(vars.comp) ?? vizRecord(vars.root);
+    const parentArr = vizArray(vars.parent) ?? vizArray(vars.comp);
+    /** Метка множества вершины, как её записал код (буква, число или произвольная строка). */
+    const rawComp = new Map<number, string>();
+    /** То же, но только если метка — вершина графа: по ней восстанавливаем корень DSU. */
+    const parentIdx = new Map<number, number>();
+    const feed = (id: number, val: unknown) => {
+      const label = String(typeof val === 'string' ? val : JSON.stringify(val)).toUpperCase();
+      rawComp.set(id, label);
+      const inner = typeof val === 'string' ? val : typeof val === 'number' ? val : null;
+      const pid = idOf(inner);
+      if (pid !== null) parentIdx.set(id, pid);
+    };
+    if (parentRec) {
+      Object.entries(parentRec).forEach(([k, val]) => {
+        const id = idOf(k);
+        if (id === null) return;
+        feed(id, val);
+      });
+    } else if (parentArr) {
+      parentArr.forEach((val, id) => {
+        if (id > 8) return;
+        feed(id, val);
+      });
+    }
+    /**
+     * Ключ множества вершины: если код дал DSU-массив (parent[v] = представитель),
+     * идём по цепочке до корня — иначе вершины одной компоненты получили бы
+     * разные цвета. Для произвольных меток («comp1») берём метку как есть.
+     */
+    const compOfVertex = new Map<number, string>();
+    rawComp.forEach((label, id) => {
+      if (parentIdx.size === 0) {
+        compOfVertex.set(id, label);
+        return;
+      }
+      let cur = id;
+      const seen = new Set<number>([id]);
+      for (let hop = 0; hop < 16; hop++) {
+        const nxt = parentIdx.get(cur);
+        if (nxt === undefined || nxt === cur || seen.has(nxt)) break;
+        seen.add(nxt);
+        cur = nxt;
+      }
+      compOfVertex.set(id, String.fromCharCode(65 + cur));
+    });
+    const takenRaw = vizArray(vars.mst) ?? vizArray(vars.answer) ?? vizArray(vars.result);
+    const takenEdges = (takenRaw ?? []).map(parseEdge).filter((e): e is { u: number; v: number; w: number | null } => e !== null);
+    const takenVertices = (vizArray(vars.taken) ?? vizArray(vars.used) ?? vizArray(vars.intree) ?? [])
+      .map((x) => idOf(typeof x === 'string' ? x : vizNumber(x)))
+      .filter((x): x is number => x !== null);
+    const curU = idOf(vizString(vars.u) ?? vizNumber(vars.u));
+    const curV = idOf(vizString(vars.v) ?? vizNumber(vars.v));
+    const curW = vizNumber(vars.w);
+    const heapRaw = vizArray(vars.heap) ?? vizArray(vars.q) ?? vizArray(vars.pq);
+    const heapEdges = (heapRaw ?? []).map(parseEdge).filter((e): e is { u: number; v: number; w: number | null } => e !== null);
+    const cheapestRaw = vizRecord(vars.cheapest) ?? vizRecord(vars.best);
+    const cheapestEdges = cheapestRaw ? Object.values(cheapestRaw).map(parseEdge).filter((e): e is { u: number; v: number; w: number | null } => e !== null) : [];
+    const total = vizNumber(vars.total) ?? vizNumber(vars.cost) ?? vizNumber(vars.sum);
+    const any = compOfVertex.size > 0 || takenEdges.length > 0 || takenVertices.length > 0 ||
+      (curU !== null && curV !== null) || heapEdges.length > 0 || cheapestEdges.length > 0;
+    return any ? { compOfVertex, takenEdges, takenVertices, curU, curV, curW, heapEdges, cheapestEdges, total } : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vars]);
+
+  /** Рёбра, которые рисуем: код пользователя важнее кадров демо. */
+  const effEdges: Edge[] = useMemo(() => {
+    if (!live) return edges;
+    const key = (a: number, b: number) => `${Math.min(a, b)}-${Math.max(a, b)}`;
+    const takenKey = new Set(live.takenEdges.map((e) => key(e.u, e.v)));
+    const heapKey = new Set(live.heapEdges.map((e) => key(e.u, e.v)));
+    const cheapKey = new Set(live.cheapestEdges.map((e) => key(e.u, e.v)));
+    return edges.map((e) => {
+      const k = key(e.u, e.v);
+      const isCur = (live.curU === e.u && live.curV === e.v) || (live.curU === e.v && live.curV === e.u);
+      if (isCur) return { ...e, status: 'inspecting' as const };
+      if (takenKey.has(k)) return { ...e, status: 'included' as const, color: colorOfComp(live.compOfVertex.get(e.u)) };
+      if (heapKey.has(k)) return { ...e, status: 'in_heap' as const };
+      if (cheapKey.has(k)) return { ...e, status: 'inspecting' as const };
+      return { ...e, status: 'pending' as const };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edges, live]);
+
+  const effVertices: Vertex[] = useMemo(() => {
+    if (!live) return vertices;
+    return vertices.map((v) => {
+      const root = live.compOfVertex.get(v.id);
+      if (root !== undefined) return { ...v, color: colorOfComp(root) };
+      if (live.takenVertices.includes(v.id)) return { ...v, color: 'mold' };
+      if (live.curU === v.id || live.curV === v.id) return { ...v, color: 'gold' };
+      return { ...v, color: 'none' };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vertices, live]);
 
   const getColorClass = (color: string, id: number) => {
     switch (color) {
@@ -644,6 +824,7 @@ export const KruskalSimulator: React.FC = () => {
       case 'blue': return 'bg-blue-500 border-blue-300 text-white shadow-lg shadow-blue-500/50';
       case 'purple': return 'bg-purple-600 border-purple-300 text-white shadow-lg shadow-purple-600/50';
       case 'mold': return 'bg-emerald-500 border-emerald-200 text-slate-950 shadow-lg shadow-emerald-500/50 animate-pulse';
+      case 'gold': return 'bg-amber-400 border-amber-200 text-slate-950 shadow-lg shadow-amber-400/50 animate-pulse';
       default: 
         if (activeAlgo === 'prim' && id === 4 && stepIndex === 0) {
           return 'bg-slate-700 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/20';
@@ -752,6 +933,57 @@ export const KruskalSimulator: React.FC = () => {
           </div>
         </div>
 
+        {/* Что компилятор сообщил графу прямо сейчас */}
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-500">
+            <Terminal className="w-3.5 h-3.5" /> из компилятора:
+          </span>
+          {live ? (
+            <>
+              {live.curU !== null && live.curV !== null && (
+                <span className="text-[11px] font-mono bg-slate-950 border border-amber-600/40 text-amber-300 rounded-md px-2 py-1">
+                  ребро {String.fromCharCode(65 + live.curU)}–{String.fromCharCode(65 + live.curV)}{live.curW !== null ? ` (w=${live.curW})` : ''}
+                </span>
+              )}
+              {live.takenEdges.length > 0 && (
+                <span className="text-[11px] font-mono bg-slate-950 border border-emerald-600/40 text-emerald-300 rounded-md px-2 py-1">
+                  в остове: {live.takenEdges.map((e) => `${String.fromCharCode(65 + e.u)}${String.fromCharCode(65 + e.v)}`).join(' ')}
+                </span>
+              )}
+              {live.compOfVertex.size > 0 && (
+                <span className="text-[11px] font-mono bg-slate-950 border border-indigo-600/40 text-indigo-300 rounded-md px-2 py-1">
+                  компонент: {new Set(Array.from(live.compOfVertex.values())).size}
+                </span>
+              )}
+              {live.takenVertices.length > 0 && (
+                <span className="text-[11px] font-mono bg-slate-950 border border-emerald-600/40 text-emerald-300 rounded-md px-2 py-1">
+                  дерево выросло: {live.takenVertices.map((v) => String.fromCharCode(65 + v)).join('')}
+                </span>
+              )}
+              {live.heapEdges.length > 0 && (
+                <span className="text-[11px] font-mono bg-slate-950 border border-sky-600/40 text-sky-300 rounded-md px-2 py-1">
+                  в куче: {live.heapEdges.length}
+                </span>
+              )}
+              {live.cheapestEdges.length > 0 && (
+                <span className="text-[11px] font-mono bg-slate-950 border border-rose-600/40 text-rose-300 rounded-md px-2 py-1">
+                  cheapest: {live.cheapestEdges.length}
+                </span>
+              )}
+              {live.total !== null && (
+                <span className="text-[11px] font-mono bg-slate-950 border border-purple-600/40 text-purple-300 rounded-md px-2 py-1">
+                  вес остова = {live.total}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-[11px] text-slate-500">
+              открой панель Python и запусти код вкладки «{activeAlgo === 'kruskal' ? 'Краскал' : activeAlgo === 'prim' ? 'Прима' : 'Борувка'}»: переменные
+              {' '}<code className="font-mono text-purple-300">parent</code>, <code className="font-mono text-purple-300">mst</code>, <code className="font-mono text-purple-300">u</code>, <code className="font-mono text-purple-300">v</code>, <code className="font-mono text-purple-300">w</code> перекрасят этот граф
+            </span>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Graph Canvas */}
           <div className="lg:col-span-2 bg-slate-950 rounded-2xl border border-slate-800 p-4 flex flex-col items-center justify-center relative min-h-[480px] overflow-hidden">
@@ -803,9 +1035,9 @@ export const KruskalSimulator: React.FC = () => {
 
             {/* SVG Edges */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {edges.map(edge => {
-                const u = vertices[edge.u];
-                const v = vertices[edge.v];
+              {effEdges.map(edge => {
+                const u = effVertices[edge.u];
+                const v = effVertices[edge.v];
                 const strokeColor = getEdgeStroke(edge.status, edge.color);
                 const isInspecting = edge.status === 'inspecting';
                 const isRejected = edge.status === 'rejected';
@@ -844,7 +1076,7 @@ export const KruskalSimulator: React.FC = () => {
 
             {/* HTML Overlay for Vertices */}
             <div className="absolute inset-0 w-full h-full pointer-events-none">
-              {vertices.map(vertex => (
+              {effVertices.map(vertex => (
                 <div
                   key={vertex.id}
                   style={{ top: vertex.y + "%", left: vertex.x + "%" }}

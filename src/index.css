@@ -87,6 +87,25 @@
   }
 }
 
+/* Ссылка на другой билет («…берите Форда—Беллмана (билет 15)») */
+.ticket-link {
+  color: #a5b4fc;
+  border-bottom: 1px dotted rgba(165, 180, 252, 0.7);
+  text-decoration: none;
+  border-radius: 3px;
+  padding: 0 1px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.ticket-link:hover,
+.ticket-link:focus-visible {
+  background: rgba(99, 102, 241, 0.25);
+  color: #fff;
+  outline: none;
+}
+
 /* Контент главы приходит готовым HTML — чиним его под мобильные */
 .chapter-body {
   max-width: 100%;
@@ -107,6 +126,13 @@
   max-width: 100%;
   font-size: clamp(11px, 2.9vw, 13px);
 }
+
+/* Пользователь: «поля вокруг теории слишком большие». Карточки и отступы
+   глав ужимаем на ступень, не трогая семантику разметки глав. */
+.chapter-body [class~="p-6"] { padding: 1.25rem; }
+.chapter-body [class~="sm:p-6"] { padding: 1.25rem; }
+.chapter-body [class~="space-y-8"] > * + * { margin-top: 1.5rem; }
+.chapter-body [class~="mb-6"] { margin-bottom: 1rem; }
 
 .chapter-body table {
   display: block;
@@ -170,5 +196,91 @@
   }
   to {
     width: 100%;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Печать и «Сохранить в PDF» из браузера.
+
+   Печатаем ТОЛЬКО саму тему: текст страницы + её демонстрацию. Обвязка
+   приложения (шапка, содержание, панель Python-компилятора, всплывающие
+   карточки терминов, кнопки управления) убирается, тёмная палитра текста
+   уплощается до чёрного по белому — как «лёгкая» версия статьи в ридере.
+   Интерактивная демонстрация печатается как есть (со своими цветами),
+   поэтому для неё включён print-color-adjust: exact.
+   ───────────────────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* служебные блоки приложения */
+  header,
+  footer,
+  aside,
+  nav,
+  button,
+  .term-popover {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  /* текст темы — чёрным по белому, без теней и плашек */
+  article.chapter-body .prose,
+  article.chapter-body .prose * {
+    color: #111827 !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+
+  article.chapter-body .prose pre,
+  article.chapter-body .prose code {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+    font-size: 9pt;
+  }
+
+  article.chapter-body .prose table {
+    border-collapse: collapse;
+  }
+
+  article.chapter-body .prose th,
+  article.chapter-body .prose td {
+    border: 1px solid #9ca3af !important;
+  }
+
+  article.chapter-body .prose h2,
+  article.chapter-body .prose h3,
+  article.chapter-body .prose h4 {
+    page-break-after: avoid;
+  }
+
+  article.chapter-body .prose details,
+  article.chapter-body .prose table,
+  article.chapter-body .prose pre {
+    page-break-inside: avoid;
+  }
+
+  /* демонстрация — на отдельной странице, со своими цветами */
+  #chapter-viz {
+    page-break-before: always;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  #chapter-viz svg {
+    max-height: 68vh;
   }
 }

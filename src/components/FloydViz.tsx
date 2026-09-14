@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
+import { liveMatrix, pickLiveVar, useVizRuntime, vizNumber } from '../data/vizStepBus';
 
 interface Step {
   k: number; i: number; j: number;
-  matrix: number[][]; updated: boolean;
+  matrix: (number | null)[][]; updated: boolean;
   log: string; activeCodeLine: number;
 }
+
+/** Подсказка для кнопок, когда шаги ведёт компилятор. */
+const HINT_TEXT = "Шаги сейчас ведёт панель Python: ← → — шаг, пробел — автопроход. Уберите связь (Esc в панели или пустой код), чтобы снова листать вручную.";
 
 export default function FloydViz() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const runtime = useVizRuntime();
+  // k/i/j/d приходят напрямую; номер строки произвольной программы не используется.
   const [isPlaying, setIsPlaying] = useState(false);
 
   const nodeNames = ['А 0', 'Б 1', 'В 2', 'Г 3', 'Д 4', 'Е 5', 'Ж 6'];
@@ -110,8 +116,45 @@ export default function FloydViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
-  if (!currentStep) return <div>Загрузка...</div>;
+  const baseStep = steps[currentStepIndex] || null;
+  if (!baseStep) return <div>Загрузка...</div>;
+
+  const vars = runtime?.variables;
+  const liveK = vizNumber(vars?.k);
+  const liveI = vizNumber(vars?.i);
+  const liveJ = vizNumber(vars?.j);
+  /**
+   * Матрица из кода пользователя — СВОЕЙ размерности. Раньше значения
+   * протискивались в демо-сетку 7×7: при n < 7 появлялись пустые ячейки,
+   * при n > 7 компонент падал на nodeNames[i].split(...).
+   */
+  const liveSource = pickLiveVar(vars, ["d", "dist", "dp", "D", "a"]);
+  const liveMat = liveMatrix(liveSource?.value);
+  const compilerLinked = liveK !== null || liveI !== null || liveJ !== null || !!liveMat;
+
+  const rows = liveMat?.rows ?? baseStep.matrix.length;
+  const cols = liveMat?.cols ?? (baseStep.matrix[0]?.length ?? 0);
+  const shownMatrix: (number | null)[][] = liveMat
+    ? Array.from({ length: rows }, (_, i) => Array.from({ length: cols }, (_, j) => liveMat.at(i, j)))
+    : baseStep.matrix;
+
+  const demoSize = baseStep.matrix.length;
+  const sizeMismatch = compilerLinked && liveMat && (liveMat.rows !== demoSize || liveMat.cols !== demoSize)
+    ? `Демо-схема графа нарисована для ${demoSize} вершин, а в вашем коде матрица ${liveMat.sizeLabel}. Матрица ниже показана в вашей размерности; схема графа остаётся демонстрационной.`
+    : null;
+  const labelOf = (idx: number) => nodeNames[idx]?.split(" ")[0] ?? `#${idx}`;
+
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        k: liveK ?? -1,
+        i: liveI ?? -1,
+        j: liveJ ?? -1,
+        matrix: shownMatrix,
+        updated: !!runtime?.changed?.some((name) => name === (liveSource?.name ?? "d")),
+        log: `Компилятор: k=${liveK ?? "—"}, i=${liveI ?? "—"}, j=${liveJ ?? "—"}, матрица ${rows}×${cols}${liveSource ? ` (${liveSource.name})` : ""}. Подсветка взята из реальных переменных.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -127,9 +170,9 @@ export default function FloydViz() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={() => { setIsPlaying(false); setCurrentStepIndex(0); }} className="px-3 py-2 bg-slate-700 text-white rounded-lg text-sm">🔄 Сброс</button>
-          <button onClick={() => setIsPlaying(!isPlaying)} className={`px-4 py-2 rounded-lg text-sm font-bold text-white ${isPlaying ? 'bg-amber-600' : 'bg-emerald-600'}`}>{isPlaying ? '⏸️ Пауза' : '▶️ Пуск'}</button>
-          <button onClick={() => { setIsPlaying(false); if (currentStepIndex < steps.length - 1) setCurrentStepIndex(currentStepIndex + 1); }} className="px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm">Шаг ⏭️</button>
+          <button onClick={() => { setIsPlaying(false); setCurrentStepIndex(0); }} disabled={compilerLinked} title={compilerLinked ? HINT_TEXT : "Вернуться к первому шагу"} className="px-3 py-2 bg-slate-700 text-white rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed">Сброс</button>
+          <button onClick={() => setIsPlaying(!isPlaying)} disabled={compilerLinked} title={compilerLinked ? HINT_TEXT : "Проиграть встроенную демонстрацию"} className={`px-4 py-2 rounded-lg text-sm font-bold text-white disabled:opacity-40 disabled:cursor-not-allowed ${isPlaying ? 'bg-amber-600' : 'bg-emerald-600'}`}>{isPlaying ? 'Пауза' : 'Пуск'}</button>
+          <button onClick={() => { setIsPlaying(false); if (currentStepIndex < steps.length - 1) setCurrentStepIndex(currentStepIndex + 1); }} disabled={compilerLinked} title={compilerLinked ? HINT_TEXT : "Следующий шаг демонстрации"} className="px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed">Шаг</button>
         </div>
       </div>
 
@@ -223,19 +266,26 @@ export default function FloydViz() {
         {/* Матрица расстояний */}
         <div className="w-full lg:w-1/2 bg-rose-950/10 rounded-xl p-4 border border-rose-500/40 flex flex-col justify-between">
           <div className="flex justify-between items-center mb-4">
-            <h4 className="text-lg font-bold text-rose-300">🔁 Матрица расстояний d[i][j]</h4>
+            <h4 className="text-lg font-bold text-rose-300">Матрица расстояний d[i][j]</h4>
           </div>
+          {sizeMismatch ? (
+            <p className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200">
+              {sizeMismatch}
+            </p>
+          ) : null}
           <div className="overflow-x-auto">
             <table className="w-full text-center border-collapse border border-rose-900/50">
               <thead><tr className="bg-rose-950/40 text-slate-300 text-[10px] uppercase border-b border-rose-900">
                 <th className="p-2 border-r border-rose-900/50">i\j</th>
-                {nodeNames.map((n, idx) => <th key={idx} className={`p-2 border-r border-rose-900/50 ${currentStep.k === idx ? 'text-amber-400 font-bold' : ''}`}>{n.split(' ')[0]} {idx}</th>)}
+                {Array.from({ length: cols }, (_, idx) => (
+                  <th key={idx} className={`p-2 border-r border-rose-900/50 ${currentStep.k === idx ? 'text-amber-400 font-bold' : ''}`}>{labelOf(idx)} {idx}</th>
+                ))}
               </tr></thead>
               <tbody className="text-xs font-mono">
                 {currentStep.matrix.map((row, i) => (
                   <tr key={i} className="border-b border-rose-900/50">
                     <td className={`p-2 bg-rose-950/40 text-slate-300 text-[10px] font-sans font-bold border-r border-rose-900/50 ${currentStep.k === i ? 'text-amber-400' : ''}`}>
-                       {nodeNames[i].split(' ')[0]} {i}
+                       {labelOf(i)} {i}
                     </td>
                     {row.map((val, j) => {
                       const isUpd = currentStep.i === i && currentStep.j === j && currentStep.updated;
@@ -243,8 +293,11 @@ export default function FloydViz() {
                       let bg = 'bg-slate-900/40 text-slate-300';
                       if (isUpd) bg = 'bg-emerald-900/80 text-emerald-200 border-2 border-emerald-500 shadow-inner z-10 relative';
                       else if (isVia) bg = 'bg-indigo-950/80 text-indigo-200 border border-indigo-500 shadow-inner z-10 relative';
+                      else if (currentStep.i === -1 && currentStep.k >= 0 && (i === currentStep.k || j === currentStep.k))
+                        bg = 'bg-indigo-950/60 text-indigo-200 border border-indigo-800/60'; // вся строка/столбец текущего посредника k
                       else if (i === j) bg = 'bg-slate-950/60 text-slate-500';
-                      return (<td key={j} className={`p-2 border-r border-rose-900/50 transition-colors ${bg}`}>{val === 999 ? '∞' : val}</td>);
+                      const shown = val === null ? '·' : val === Number.POSITIVE_INFINITY || val === 999 ? '∞' : val;
+                      return (<td key={j} className={`p-2 border-r border-rose-900/50 transition-colors ${bg}`}>{shown}</td>);
                     })}
                   </tr>
                 ))}

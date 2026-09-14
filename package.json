@@ -12,7 +12,15 @@
     "export:txt": "node scripts/export/collect-code.mjs",
     "export:png": "node scripts/export/render-pages.mjs",
     "export:pdf": "node scripts/export/build-pdf.mjs",
-    "export": "npm run export:txt && npm run export:png && npm run export:pdf"
+    "export": "npm run export:txt && npm run export:png && npm run export:pdf && npm run export:guide",
+    "export:guide": "node scripts/export/build-guide-pdf.mjs",
+    "export:shots": "node scripts/export/capture-viz-shots.mjs",
+    "verify:unit": "node scripts/verify/live-matrix.test.mjs",
+    "verify:code": "node scripts/verify/check-reference-code.mjs",
+    "verify:links": "node scripts/verify/check-links.mjs",
+    "verify:dom": "node scripts/verify/run-browser-checks.mjs",
+    "verify:probe": "node scripts/verify/run-probe.mjs",
+    "verify": "npm run verify:unit && npm run verify:links && npm run verify:code && npm run verify:dom"
   },
   "dependencies": {
     "clsx": "2.1.1",
@@ -24,6 +32,7 @@
     "tailwind-merge": "3.4.0"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "^153.0.0",
     "@tailwindcss/vite": "4.1.17",
     "@types/node": "22.19.17",
     "@types/pdfkit": "^0.17.6",
@@ -31,6 +40,10 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
     "esbuild": "^0.28.2",
+    "jsdom": "^25.0.1",
+    "pdf-lib": "^1.17.1",
+    "puppeteer": "^25.10.0",
+    "pyodide": "^0.27.7",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vite": "7.3.2",

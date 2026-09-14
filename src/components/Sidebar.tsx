@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ChevronRight, Compass, Search, Sparkles, X } from "lucide-react";
-import { chapters } from "../data/content";
+import { chapters, SECTIONS, sectionOf } from "../data/content";
 import { VIZ_REGISTRY } from "./vizRegistry";
 
 interface SidebarProps {
@@ -13,21 +13,23 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelectedChapterId, onNavigate }) => {
   const [query, setQuery] = useState("");
 
+  /**
+   * Группы — это разделы пособия (SECTIONS), а не случайные `category`:
+   * связанные темы стоят рядом, порядок разделов не зависит от того, какая
+   * страница встретилась первой.
+   */
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = q ? chapters.filter((c) => c.title.toLowerCase().includes(q)) : chapters;
-    const map = new Map<string, typeof chapters>();
-    for (const c of filtered) {
-      const key = c.category?.trim() || "Прочие темы";
-      if (!map.has(key)) map.set(key, []);
-      (map.get(key) as typeof chapters).push(c);
-    }
-    return Array.from(map.entries());
+    return SECTIONS.map((section) => ({
+      section,
+      items: filtered.filter((c) => sectionOf(c.id).id === section.id),
+    })).filter((g) => g.items.length > 0);
   }, [query]);
 
   return (
     <aside className="w-full bg-slate-900/80 lg:bg-transparent flex flex-col h-full">
-      <div className="p-4 pb-3 shrink-0">
+      <div className="p-3 pb-2 shrink-0">
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Compass className="w-4 h-4 text-indigo-400" /> Содержание · {chapters.length} тем
         </h3>
@@ -37,7 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск по темам…"
-            className="w-full bg-slate-800/70 border border-slate-700 rounded-lg pl-9 pr-8 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-slate-800/70 border border-slate-700 rounded-lg pl-9 pr-8 py-1.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
           />
           {query && (
             <button
@@ -54,13 +56,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-4 overscroll-contain">
         {groups.length === 0 && <p className="text-sm text-slate-500 px-2 py-6 text-center">Ничего не найдено</p>}
 
-        {groups.map(([category, items]) => (
-          <div key={category}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 mb-1.5">{category}</div>
+        {groups.map(({ section, items }) => (
+          <div key={section.id}>
+            <div className="flex items-baseline gap-1.5 px-2 mb-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{section.title}</span>
+              {section.from > 0 && (
+                <span className="text-[10px] text-slate-600">билеты {section.from}–{section.to}</span>
+              )}
+            </div>
             <div className="space-y-1">
               {items.map((chapter) => {
                 const isSelected = chapter.id === selectedChapterId;
                 const hasViz = Boolean(VIZ_REGISTRY[chapter.id]);
+                // «18–20. Графы. Остовное дерево…» → значок «18–20» + короткое название
+                const num = chapter.title.match(/^(\d+(?:[–—-]\d+)?)\.\s*/);
+                const label = num ? chapter.title.slice(num[0].length) : chapter.title;
                 return (
                   <button
                     key={chapter.id}
@@ -69,19 +79,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
                       onNavigate?.();
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg border transition-colors flex items-start gap-2 group ${
+                    title={chapter.title}
+                    aria-current={isSelected ? "page" : undefined}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg border transition-colors flex items-start gap-2 group ${
                       isSelected
                         ? "bg-indigo-600/15 border-indigo-500 text-white"
                         : "bg-slate-800/40 border-transparent text-slate-300 hover:bg-slate-800 hover:text-white"
                     }`}
                   >
-                    {hasViz && (
-                      <span
-                        className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-2"
-                        title="Есть интерактивная визуализация"
-                      />
-                    )}
-                    <span className="font-semibold text-[13px] leading-snug flex-1 min-w-0">{chapter.title}</span>
+                    <span className="shrink-0 mt-px rounded-md border border-slate-700 bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] font-bold text-indigo-300">
+                      {num ? num[1] : "•"}
+                    </span>
+                    <span className="font-semibold text-[13px] leading-snug flex-1 min-w-0">
+                      {label}
+                      {hasViz && (
+                        <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle" title="Есть интерактивная визуализация" />
+                      )}
+                    </span>
                     <ChevronRight
                       className={`w-4 h-4 shrink-0 mt-0.5 transition-transform ${
                         isSelected ? "text-indigo-400" : "text-slate-600 group-hover:text-slate-400"
@@ -99,6 +113,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
         <div className="font-bold text-indigo-400 flex items-center gap-1.5 text-xs">
           <Sparkles className="w-3.5 h-3.5" /> Как пользоваться
         </div>
+        <p className="leading-relaxed">
+          <b className="text-slate-200">Порядок чтения — сверху вниз:</b> темы разбиты по разделам и идут по
+          номерам билетов 1 → 24, каждая опирается на предыдущую. Внизу страницы кнопки «Предыдущая /
+          Следующая тема» продолжают этот же порядок.
+        </p>
         <p className="leading-relaxed">
           Подчёркнутые термины в тексте раскрываются по наведению: короткое объяснение, мини-анимация и запуск
           симулятора.

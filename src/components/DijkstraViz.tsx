@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useVizRuntime, vizArray, vizNumber, vizRecord, vizString } from '../data/vizStepBus';
+import { LiveDistTable } from './LiveDistTable';
 
 interface Node { id: string; x: number; y: number; name: string; }
 interface Edge { u: string; v: string; w: number; }
@@ -11,6 +13,9 @@ interface Step {
   log: string;
   activeCodeLine: number;
 }
+
+/** Подсказка для кнопок, когда шаги ведёт компилятор. */
+const HINT_TEXT = "Шаги сейчас ведёт панель Python: ← → — шаг, пробел — автопроход. Снимите связь (Esc в панели или пустой редактор), чтобы листать вручную.";
 
 export default function DijkstraViz() {
   const nodes: Node[] = [
@@ -59,6 +64,7 @@ export default function DijkstraViz() {
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const runtime = useVizRuntime();
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -141,9 +147,27 @@ export default function DijkstraViz() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  const currentStep = steps[currentStepIndex] || null;
+  const baseStep = steps[currentStepIndex] || null;
 
-  if (!currentStep) return <div className="text-white">Загрузка симулятора...</div>;
+  if (!baseStep) return <div className="text-white">Загрузка симулятора...</div>;
+  const vars = runtime?.variables;
+  const liveU = vizString(vars?.u);
+  const liveV = vizString(vars?.v);
+  const liveDist = vizRecord(vars?.dist);
+  const livePrev = vizRecord(vars?.prev);
+  const liveDone = vizArray(vars?.done) ?? vizArray(vars?.visited);
+  const compilerLinked = liveU !== null || liveV !== null || !!liveDist;
+  const currentStep: Step = compilerLinked
+    ? {
+        ...baseStep,
+        currentNode: liveU,
+        checkingEdge: liveU && liveV ? { u: liveU, v: liveV } : null,
+        distances: Object.fromEntries(nodes.map((node) => [node.id, vizNumber(liveDist?.[node.id]) ?? 999])),
+        previous: Object.fromEntries(nodes.map((node) => [node.id, vizString(livePrev?.[node.id])])),
+        visited: Object.fromEntries(nodes.map((node) => [node.id, !!liveDone?.includes(node.id)])),
+        log: `Компилятор: u=${liveU ?? "—"}, v=${liveV ?? "—"}; граф читает dist/done/prev напрямую.`,
+      }
+    : baseStep;
 
   return (
     <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
@@ -159,30 +183,43 @@ export default function DijkstraViz() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             onClick={() => { setIsPlaying(false); setCurrentStepIndex(0); }}
-            className="flex items-center gap-1 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            disabled={compilerLinked}
+            title={compilerLinked ? HINT_TEXT : "Вернуться к первому шагу"}
+            className="flex items-center gap-1 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            🔄 Сброс
+            Сброс
           </button>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white ${
+            disabled={compilerLinked}
+            title={compilerLinked ? HINT_TEXT : "Проиграть встроенную демонстрацию"}
+            className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white disabled:opacity-40 disabled:cursor-not-allowed ${
               isPlaying ? 'bg-amber-600 hover:bg-amber-500' : 'bg-emerald-600 hover:bg-emerald-500'
             }`}
           >
-            {isPlaying ? '⏸️ Пауза' : '▶️ Пуск'}
+            {isPlaying ? 'Пауза' : 'Пуск'}
           </button>
           <button
             onClick={() => { setIsPlaying(false); if (currentStepIndex < steps.length - 1) setCurrentStepIndex(currentStepIndex + 1); }}
-            disabled={currentStepIndex >= steps.length - 1}
-            className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            disabled={compilerLinked || currentStepIndex >= steps.length - 1}
+            title={compilerLinked ? HINT_TEXT : "Следующий шаг демонстрации"}
+            className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            Шаг ⏭️
+            Шаг
           </button>
         </div>
       </div>
+
+      <LiveDistTable
+        dist={liveDist}
+        prev={livePrev}
+        done={liveDone}
+        demoIds={nodes.map((node) => node.id)}
+        title="Ваши расстояния из кода (Дейкстра)"
+      />
 
       <div className="flex flex-col lg:flex-row gap-6 mb-6">
         {/* Граф */}

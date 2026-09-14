@@ -1,6 +1,7 @@
 import type { Chapter } from "../types";
 import { GLOSSARY_BY_ID } from "../data/glossary";
 import { annotateTerms } from "../hooks/useTermHints";
+import { annotateTicketLinks } from "./ticketLinks";
 
 /**
  * Выгрузка главы (или всего пособия) в самостоятельный HTML-файл.
@@ -68,7 +69,10 @@ const escapeHtml = (s: string) =>
  * Размечает термины и превращает их в якорные ссылки на словарик.
  * Возвращает готовый HTML главы и список найденных терминов.
  */
-function prepareBody(html: string): { body: string; termIds: string[] } {
+function prepareBody(html: string, opts: { selfId?: string; ticketAnchors?: boolean } = {}): {
+  body: string;
+  termIds: string[];
+} {
   const host = document.createElement("div");
   host.innerHTML = html;
 
@@ -76,6 +80,23 @@ function prepareBody(html: string): { body: string; termIds: string[] } {
     annotateTerms(host);
   } catch {
     /* если браузер не осилил регулярку — выгружаем текст как есть */
+  }
+
+  /*
+   * Упоминания «билет 15» становятся якорями на главу внутри файла. Делаем это
+   * только для книги, где все главы на месте: в файле одной темы такой якорь
+   * вёл бы в никуда, а битые ссылки — ровно то, от чего мы избавляемся.
+   */
+  if (opts.ticketAnchors) {
+    try {
+      annotateTicketLinks(host, { selfId: opts.selfId });
+      host.querySelectorAll<HTMLAnchorElement>("a[data-goto]").forEach((a) => {
+        a.setAttribute("href", `#ch-${a.dataset.goto}`);
+        a.removeAttribute("data-goto");
+      });
+    } catch {
+      /* ссылки — улучшение, а не обязательная часть файла */
+    }
   }
 
   const ids: string[] = [];
@@ -156,6 +177,38 @@ ${opts.gloss}
 </html>`;
 }
 
+/**
+ * Картинки встраиваются в файл data-URL: автономная копия не должна терять
+ * иллюстрации офлайн (раньше src вел на ассет приложения и в скачанной книге
+ * картинки исчезали — оставались только самые первые, встроенные в CSS).
+ */
+async function inlineImages(html: string): Promise<string> {
+  const doc = new DOMParser().parseFromString(`<body>${html}</body>`, "text/html");
+  const imgs = Array.from(doc.querySelectorAll("img[src]"));
+  await Promise.all(
+    imgs.map(async (img) => {
+      const src = img.getAttribute("src") ?? "";
+      if (!src || src.startsWith("data:")) return;
+      try {
+        const res = await fetch(src);
+        if (!res.ok) return;
+        const blob = await res.blob();
+        if (blob.size > 4_000_000) return;
+        const data = await new Promise<string>((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(String(fr.result));
+          fr.onerror = () => reject(fr.error);
+          fr.readAsDataURL(blob);
+        });
+        img.setAttribute("src", data);
+      } catch {
+        /* картинка недоступна — глава останется со ссылкой на онлайн */
+      }
+    })
+  );
+  return doc.body.innerHTML;
+}
+
 function triggerDownload(html: string, filename: string) {
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -178,7 +231,8 @@ function safeName(title: string, id: string): string {
 /** Выгрузить одну главу. */
 export async function downloadChapterHtml(chapter: Chapter): Promise<void> {
   const css = await collectCss();
-  const { body, termIds } = prepareBody(chapter.content);
+  const { body: rawBody, termIds } = prepareBody(chapter.content);
+  const body = await inlineImages(rawBody);
   const html = wrap({
     title: chapter.title,
     subtitle: chapter.category || "Универсальное пособие",
@@ -200,14 +254,16 @@ export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
     .map((c) => `<li style="margin:.2rem 0"><a href="#ch-${escapeHtml(c.id)}" style="color:#a5b4fc">${escapeHtml(c.title)}</a></li>`)
     .join("\n");
 
-  chapters.forEach((c) => {
-    const { body, termIds } = prepareBody(c.content);
+  for (const c of chapters) {
+    const { body: rawBody, termIds } = prepareBody(c.content, { selfId: c.id, ticketAnchors: true });
+    // картинки глав встраиваются сразу: книга одна, ассеты снаружи не выживут
+    const body = await inlineImages(rawBody);
     termIds.forEach((t) => {
       if (!allTerms.includes(t)) allTerms.push(t);
     });
     bodies.push(`<div id="ch-${escapeHtml(c.id)}" style="scroll-margin-top:1rem">${body}
 <p style="text-align:right;font-size:.72rem;margin:0 0 3rem"><a href="#toc" style="color:#475569">↑ к оглавлению</a></p></div>`);
-  });
+  }
 
   const body = `<nav id="toc" style="background:#0f172a;border:1px solid #1e293b;border-radius:.6rem;padding:1rem 1.2rem;margin-bottom:2.5rem">
   <h2 style="color:#fff;font-size:1.05rem;font-weight:800;margin:0 0 .6rem">Оглавление · ${chapters.length} тем</h2>

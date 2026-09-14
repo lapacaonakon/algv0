@@ -3,22 +3,151 @@ import { Chapter } from "../types";
 export const graphChapters: Chapter[] = [
   {
     id: "intro",
-    title: "Обзор: Кратчайшие пути и Графы",
+    title: "Введение. Базовая база: куча, очередь, бинпоиск, AVL, DFS/BFS",
     type: "html",
-    category: "Графы",
+    category: "Введение",
     content: `<section id="intro-content" class="mb-12 scroll-mt-10">
-    <div class="flex items-center mb-6">
-        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-4">Введение</span>
-        <h2 class="text-3xl font-bold text-white">Обзор: Кратчайшие пути</h2>
+    <div class="flex items-center mb-6 flex-wrap gap-2">
+        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold mr-2">Введение</span>
+        <h2 class="text-3xl font-bold text-white">Базовая база</h2>
     </div>
+
+    <div class="bg-slate-900 border border-indigo-500/40 rounded-xl p-5 mb-8 text-center">
+        <p class="text-slate-200 text-sm leading-relaxed max-w-[62ch] mx-auto">
+          <b class="text-indigo-300">Базовая база</b> — шесть кирпичиков, без которых остальные билеты не читаются:
+          дерево как массив, куча, очередь и стек, бинарный поиск, встроенная сортировка и AVL-дерево.
+          Кодим по минимуму: там, где за нас уже написал Python, показываем одну строку и её сложность.
+        </p>
+    </div>
+
     <div class="space-y-8">
-        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
-            <h3 class="text-xl font-bold text-blue-400 mb-4">Для чего это нужно?</h3>
-            <p class="text-slate-300 text-sm mb-4">Представь, что города — это вершины, а дороги между ними — ребра с весом (стоимостью проезда). Алгоритмы поиска кратчайшего пути показывают, как добраться из точки А в точку Б максимально дешево или быстро.</p>
-            <div class="mt-8 mb-4">
-               <div id="slot-mnemonic-cards"></div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-indigo-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-indigo-400 mb-4">1. Дерево как массив: дети 2n и 2n+1</h3>
+        <p class="text-slate-300 text-sm mb-4">Дерево не обязано жить указателями. Если занумеровать вершины сверху вниз и слева направо с единицы, то родственников выдаёт простая арифметика: у вершины <span class="font-mono text-emerald-300">n</span> дети сидят в ячейках <span class="font-mono text-emerald-300">2n</span> и <span class="font-mono text-emerald-300">2n+1</span>, а родитель — в <span class="font-mono text-emerald-300">n // 2</span>. Никаких объектов и ссылок: один список, который дружит с кэшем процессора.</p>
+        <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
+tree = [None, 40, 20, 60, 10, 30, 50, 70]   # tree[0] не используем, нумерация с 1
+#        корень n=1
+#        дети 40:  2*1=2 → 20   и   2*1+1=3 → 60
+#        дети 20:  2*2=4 → 10   и   2*2+1=5 → 30
+#        родитель 30: 5 // 2 = 2 → 20</pre>
+        <p class="text-slate-300 text-sm mb-4">Цена: пустые места в массиве, если дерево перекошено. Поэтому так хранят <b>почти полные</b> деревья — кучу (ниже) и дерево отрезков из билета 1. В нумерации с нуля формулы сдвигаются: дети <span class="font-mono text-emerald-300">2n+1</span> и <span class="font-mono text-emerald-300">2n+2</span>, родитель <span class="font-mono text-emerald-300">(n−1)//2</span>.</p>
+        <details class="bg-slate-900 border border-slate-700 rounded-lg mb-4">
+          <summary class="cursor-pointer px-4 py-2 text-sm font-bold text-indigo-300">Почему именно 2n и 2n+1 (спойлер)</summary>
+          <div class="px-4 pb-4 text-slate-300 text-sm leading-relaxed">
+            На уровне <span class="font-mono text-emerald-300">k</span> полного дерева ровно <span class="font-mono text-emerald-300">2^k</span> вершин, а перед ним суммарно <span class="font-mono text-emerald-300">2^k − 1</span>. Значит, первый номер уровня <span class="font-mono text-emerald-300">k</span> — это <span class="font-mono text-emerald-300">2^k</span>, и дети вершины <span class="font-mono text-emerald-300">n</span> уезжают ровно на длину своего уровня вперёд: <span class="font-mono text-emerald-300">2n</span> и <span class="font-mono text-emerald-300">2n+1</span>. Та же арифметика держит кучу и кучеобразные структуры везде, включая heapq.
+          </div>
+        </details>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-emerald-400 mb-4">2. Куча: минимум на вершине за O(1), всё остальное за O(log n)</h3>
+        <p class="text-slate-300 text-sm mb-4"><b>Куча (min-heap)</b> — почти полное дерево в массиве из пункта 1, у которого каждый родитель ≤ своих детей. Отсюда магия: минимум всегда лежит в <span class="font-mono text-emerald-300">h[0]</span>, а вставка и снятие минимума стоят <span class="font-mono text-emerald-300">O(log n)</span> — элемент просачивается вверх или вниз по цепочке родителей/детей. Полностью сортировать кучу не нужно: ей достаточно держать кандидата на вершине.</p>
+        <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
+import heapq
+h = []
+heapq.heappush(h, 5); heapq.heappush(h, 1); heapq.heappush(h, 3)
+h[0]                 # 1 — минимум виден без всякого обхода
+heapq.heappop(h)     # 1, куча починилась за O(log n)</pre>
+        <p class="text-slate-300 text-sm">Куча — двигатель Дейкстры (билет 14) и Прима (билет 19): «достань наименьший» там нужен миллионы раз, и список с <span class="font-mono text-rose-300">min()</span> за O(n) это бы утопил.</p>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-sky-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-sky-400 mb-4">3. Очередь и стек: FIFO и LIFO за O(1)</h3>
+        <p class="text-slate-300 text-sm mb-4"><b>Очередь</b> (FIFO: первый вошёл — первый вышел) и <b>стек</b> (LIFO: последний вошёл — первый вышел) отличаются одной операцией снятия. В Python очередь — это <span class="font-mono text-emerald-300">collections.deque</span>: оба конца работают за O(1). Обычный список вместо очереди — мина: <span class="font-mono text-rose-300">lst.pop(0)</span> сдвигает весь хвост и стоит O(n).</p>
+        <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
+from collections import deque
+q = deque([1, 2])
+q.append(3);  q.popleft()   # 1 — очередь (BFS)
+s = [1, 2];   s.append(3); s.pop()   # 3 — стек (DFS)</pre>
+        <p class="text-slate-300 text-sm">Вся разница обходов графа из билета 6 — какая из этих двух структур стоит в цикле: очередь даёт BFS (волнами), стек — DFS (вглубь).</p>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-amber-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-amber-400 mb-4">4. Бинарный поиск: O(log n) по отсортированному</h3>
+        <p class="text-slate-300 text-sm mb-4">Если массив отсортирован, элемент ищется не перебором, а отбрасыванием половин: сравнил с серединой — понял, в какой половине жить, — и так <span class="font-mono text-emerald-300">log₂ n</span> раз. Миллион элементов — это 20 сравнений. В Python за это отвечает модуль <span class="font-mono text-emerald-300">bisect</span>.</p>
+        <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
+from bisect import bisect_left
+a = [10, 20, 30, 40, 50]
+bisect_left(a, 30)   # 2 — индекс первого элемента, не меньшего 30</pre>
+        <p class="text-slate-300 text-sm">Без сортировки бинпоиск не работает — поэтому следующий кирпичик про неё.</p>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-rose-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-rose-400 mb-4">5. Сортировка по умолчанию: sorted() и .sort()</h3>
+        <p class="text-slate-300 text-sm mb-4">Писать свой квиксорт на экзамене не нужно: в Python встроен Timsort — <span class="font-mono text-emerald-300">O(n log n)</span> в худшем случае и <span class="font-mono text-emerald-300">O(n)</span> на почти отсортированных данных. Внутри он ищет уже упорядоченные куски (раны) и аккуратно сливает их, как в сортировке слиянием, попутно пользуясь вставками на короткихранах. Сортировка <b>устойчивая</b>: равные элементы не перемешиваются.</p>
+        <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
+sorted([3, 1, 2])                 # [1, 2, 3] — новый список, O(n log n)
+sorted([(1, "б"), (1, "а")], key=lambda t: t[0])   # равные по ключу сохранят порядок</pre>
+        <p class="text-slate-300 text-sm">Что лежит внутри, одной строкой: <b>runs + merge + insertion</b>. На вопросах «почему не O(n²)» отвечают: слияние двух ранов длины k стоит O(k), а уровней слияния log n.</p>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-purple-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-purple-400 mb-4">6. AVL: условие баланса и повороты стрелочками</h3>
+        <p class="text-slate-300 text-sm mb-4"><b>AVL-дерево</b> — двоичное дерево поиска (слева меньше, справа больше), у которого для <b>каждой</b> вершины выполнено условие баланса: высоты левого и правого поддеревьев отличаются не больше чем на 1, то есть <span class="font-mono text-emerald-300">|h_L − h_R| ≤ 1</span>. Разность <span class="font-mono text-emerald-300">h_L − h_R</span> называют фактором баланса; из условия следует высота <span class="font-mono text-emerald-300">O(log n)</span>, а значит поиск, вставка и удаление за O(log n) даже в худшем случае.</p>
+        <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
+Малый поворот (цепочка вправо-вправо стрелочками):
+
+  z                x
+  └─&gt; x    ⇒      ↙ ↘
+      └─&gt; y      z     y
+
+Зигзаг (вправо-влево): сначала малый поворот нижнего изгиба,
+потом малый поворот верхнего — две перерисовки стрелок:
+
+  z                z              x
+  └─&gt; x    ⇒       └─&gt; x   ⇒     ↙ ↘
+      ↙ y              └─&gt; y     z     y</pre>
+        <p class="text-slate-300 text-sm mb-4">Поворот — это не «взять сыновей и переставить», а <b>перерисовать три стрелки</b>: поменять родителя у среднего звена и перевесить одно внутреннее поддерево на бывшего верха. После вставки достаточно не более двух поворотов вдоль пути вставки, и условие <span class="font-mono text-emerald-300">|h_L − h_R| ≤ 1</span> снова везде верно.</p>
+        <details class="bg-slate-900 border border-slate-700 rounded-lg mb-4">
+          <summary class="cursor-pointer px-4 py-2 text-sm font-bold text-purple-300">Формулы малого поворота вокруг z (спойлер)</summary>
+          <div class="px-4 pb-4 text-slate-300 text-sm leading-relaxed font-mono text-[12px]">
+            x = right(z)<br/>
+            right(z) = left(x)   # внутреннее поддерево уезжает к z<br/>
+            left(x) = z          # z становится левым ребёнком x<br/>
+            высоты пересчитываются только у z и x — остальные вершины стрелок не меняли
+          </div>
+        </details>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-teal-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-teal-400 mb-4">7. DFS и BFS: один цикл, две структуры</h3>
+        <p class="text-slate-300 text-sm mb-4">Оба обхода графа — это «возьми вершину из тары, отметь посещённой, положи соседей обратно в тару». Вся разница в таре: стек уходит вглубь (DFS), очередь расходится волнами (BFS). Оба работают за <span class="font-mono text-emerald-300">O(V + E)</span>: каждая вершина и каждое ребро обрабатываются один раз.</p>
+        <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
+def go(graph, start, tank):        # tank: список-стек или deque-очередь
+    seen, tank = {start}, tank([start])
+    while tank:
+        v = tank.pop() if isinstance(tank, list) else tank.popleft()
+        for to in graph[v]:
+            if to not in seen:
+                seen.add(to); tank.append(to)
+    return seen</pre>
+        <p class="text-slate-300 text-sm">Дальше эта пара расцветает в билеты 6–13: компоненты связности, мосты, топосортировка — всё это надстройки над этими восемью строками.</p>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-slate-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-slate-300 mb-4">Аналогии</h3>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                <div class="absolute -top-3 left-4 bg-slate-700 text-indigo-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-indigo-500 shadow-md">
+                  Аналогия 1: Схема кинозала
+                </div>
+                <p class="text-slate-300 text-sm">Дерево как массив — схема мест кинозала: ряд и место считаются арифметикой, и никаких указателей-«usher'ов» не нужно. Место n, дети на 2n и 2n+1 — схема сама говорит, где родственники, потому что нумерация идёт сверху вниз и слева направо.</p>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
+                <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
+                  Аналогия 2: Турнирная сетка
+                </div>
+                <p class="text-slate-300 text-sm">Куча — турнирная сетка на вылет: в финале (вершине) сидит победитель, и чтобы его назвать, не нужно переигрывать все матчи. Снял победителя — сетка чинится за log n перестановок, и на вершине снова сильнейший из оставшихся.</p>
             </div>
         </div>
+    </div>
+
+    <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-indigo-500 scroll-mt-10">
+        <h3 class="text-xl font-bold text-indigo-400 mb-4">Куда идти дальше</h3>
+        <p class="text-slate-300 text-sm leading-relaxed">База закрыта — теперь ею пользуются остальные билеты. Обзоры кратчайших путей живут в билетах 14–16 (Дейкстра, Форд-Беллман, Флойд), остовные деревья — в билетах 18–20, обходы и связность — в билетах 6–13, строки — в 21–23. Начинать удобно с билета 6: там DFS и BFS из пункта 7 работают на живом графе.</p>
+    </div>
+
     </div>
 </section>`
   },

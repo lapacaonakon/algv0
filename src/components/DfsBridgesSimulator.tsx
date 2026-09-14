@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useVizStepSync, vizNumber, vizString } from '../data/vizStepBus';
 import { Undo, Play, Pause, SkipForward, RefreshCw } from "lucide-react";
 
 interface CodeLine {
@@ -179,6 +180,22 @@ const DFS_STEPS: DfsStep[] = [
 
 export function DfsBridgesSimulator() {
   const [dfsIdx, setDfsIdx] = useState(0);
+  useVizStepSync(dfsIdx, setDfsIdx, DFS_STEPS.length - 1, (vars) => {
+    const rawV = vizString(vars.v) ?? (vizNumber(vars.v)?.toString() ?? null);
+    const rawTo = vizString(vars.to) ?? (vizNumber(vars.to)?.toString() ?? null);
+    const toId = (value: string | null) => {
+      if (value === null) return null;
+      const byLabel = GRAPH_NODES.find((node) => node.label === value)?.id;
+      return byLabel ?? (Number.isFinite(Number(value)) ? Number(value) : null);
+    };
+    const v = toId(rawV);
+    const to = toId(rawTo);
+    if (v === null) return null;
+    const candidates = DFS_STEPS
+      .map((step, index) => ({ step, index }))
+      .filter(({ step }) => step.currentNode === v && (to === null || step.activeEdge?.includes(to)));
+    return candidates.at(-1)?.index ?? null;
+  });
   const [dfsAuto, setDfsAuto] = useState(false);
   const dfsTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -203,6 +220,7 @@ export function DfsBridgesSimulator() {
         <div className="flex items-center gap-1 bg-slate-800 p-0.5 rounded-lg border border-slate-700">
           <button onClick={() => { setDfsAuto(false); setDfsIdx(i => Math.max(0,i-1)); }}
             disabled={dfsIdx === 0}
+            aria-label="Шаг назад" title="Шаг назад"
             className="p-1.5 hover:bg-slate-700 rounded text-slate-300 disabled:opacity-30">
             <Undo className="h-3.5 w-3.5" />
           </button>
@@ -214,10 +232,12 @@ export function DfsBridgesSimulator() {
           </button>
           <button onClick={() => { setDfsAuto(false); setDfsIdx(i => Math.min(DFS_STEPS.length-1,i+1)); }}
             disabled={dfsIdx === DFS_STEPS.length-1}
+            aria-label="Шаг вперёд" title="Шаг вперёд"
             className="p-1.5 hover:bg-slate-700 rounded text-slate-300 disabled:opacity-30">
             <SkipForward className="h-3.5 w-3.5" />
           </button>
           <button onClick={() => { setDfsAuto(false); setDfsIdx(0); }}
+            aria-label="Сбросить DFS" title="Сбросить DFS"
             className="p-1.5 hover:bg-slate-700 rounded text-slate-400">
             <RefreshCw className="h-3.5 w-3.5" />
           </button>

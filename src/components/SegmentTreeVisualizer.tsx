@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, RefreshCw, Hammer, Search, Info } from 'lucide-react';
+import { useVizRuntime, vizNumber } from '../data/vizStepBus';
 
 // ===== TYPES =====
 interface Step {
@@ -299,11 +300,11 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
       <div className="px-3 py-2.5 bg-slate-950 border-t border-slate-800/50 flex items-center justify-between gap-2">
         <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 gap-0.5">
           <button onClick={() => { setPlaying(false); setIdx(0); }} className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded" title="Сброс"><RotateCcw className="w-3 h-3" /></button>
-          <button onClick={() => { setPlaying(false); setIdx(Math.max(0, idx - 1)); }} disabled={idx === 0} className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded disabled:opacity-30"><ChevronLeft className="w-3.5 h-3.5" /></button>
+          <button onClick={() => { setPlaying(false); setIdx(Math.max(0, idx - 1)); }} disabled={idx === 0} aria-label="Шаг назад" title="Шаг назад" className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded disabled:opacity-30"><ChevronLeft className="w-3.5 h-3.5" /></button>
           <button onClick={() => setPlaying(!playing)} className={`flex items-center gap-1 px-2.5 py-1 rounded font-bold text-[10px] text-white transition-all ${playing ? 'bg-rose-500 hover:bg-rose-400' : clr.btn}`}>
             {playing ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}{playing ? 'Стоп' : 'Пуск'}
           </button>
-          <button onClick={() => { setPlaying(false); setIdx(Math.min(total - 1, idx + 1)); }} disabled={idx === total - 1} className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded disabled:opacity-30"><ChevronRight className="w-3.5 h-3.5" /></button>
+          <button onClick={() => { setPlaying(false); setIdx(Math.min(total - 1, idx + 1)); }} disabled={idx === total - 1} aria-label="Шаг вперёд" title="Шаг вперёд" className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded disabled:opacity-30"><ChevronRight className="w-3.5 h-3.5" /></button>
         </div>
         <select value={speed} onChange={e => setSpeed(Number(e.target.value))} className="bg-slate-900 border border-slate-800 text-white text-[9px] font-bold rounded px-1.5 py-1 outline-none cursor-pointer">
           <option value={1200}>Медл.</option>
@@ -323,6 +324,8 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 // MAIN EXPORTED COMPONENT
 // ==========================================================
 export function SegmentTreeVisualizer() {
+  const runtime = useVizRuntime();
+  const liveI = vizNumber(runtime?.variables?.i);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
@@ -378,8 +381,8 @@ export function SegmentTreeVisualizer() {
             </div>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {arr.map((v, i) => (
-                <span key={i} className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-xs font-mono text-slate-200">
-                  <span className="text-slate-500">A[{i}]=</span>{v}
+                <span key={i} className={`border px-2 py-0.5 rounded text-xs font-mono ${liveI === i ? "bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30" : "bg-slate-900 border-slate-800 text-slate-200"}`}>
+                  <span className={liveI === i ? "text-amber-300" : "text-slate-500"}>A[{i}]=</span>{v}
                 </span>
               ))}
               <span className="text-xs text-slate-500 flex items-center gap-1">| Σ = {totalSum}</span>

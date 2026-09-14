@@ -33,7 +33,7 @@ export const MobileToc: React.FC<Props> = ({ selectedChapterId, setSelectedChapt
 
   return (
     <>
-      <div className="lg:hidden sticky top-[57px] z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+      <div className="lg:hidden sticky top-[57px] z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800 print:hidden">
         <button
           onClick={() => setOpen(true)}
           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left"

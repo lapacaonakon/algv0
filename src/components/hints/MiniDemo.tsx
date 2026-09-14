@@ -49,6 +49,9 @@ const REGISTRY: Record<DemoKind, React.FC> = {
   "zig-zag": ZigZagDemo,
 };
 
+/** Список работающих мини-демо — его проверяет `npm run verify:links`. */
+export const MINI_DEMO_KINDS = Object.keys(REGISTRY);
+
 export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {
   const [paused, setPaused] = useState(false);
   const Cmp = REGISTRY[kind];

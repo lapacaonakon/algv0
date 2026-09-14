@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ArrowRight, CheckCircle2, AlertCircle, Lightbulb, Play, GitBranch } from 'lucide-react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { ArrowRight, CheckCircle2, AlertCircle, Lightbulb, Play, GitBranch, Terminal } from 'lucide-react';
+import { VizChapterContext, emitVizDemo, useVizRuntime, vizArray, vizNumber, vizString } from '../data/vizStepBus';
 
 // Структура заранее подготовленного красивого бора для анимации водопада
 // Словарь: ["HE", "SHE", "HIS", "HERS"]
@@ -49,6 +50,65 @@ const TRIE_TRANSITIONS: { [key: number]: { [char: string]: number } } = {
 export const WaterfallAnimationWidget: React.FC = () => {
   // Переключатель режимов: 'training' (Полный BFS обход) или 'search' (поиск в тексте)
   const [activeMode, setActiveMode] = useState<'training' | 'search'>('training');
+
+  /* ── связь с Python-компилятором (PAGE_SYNC["aho-corasick"]) ──
+     text — сканируемый текст, state — вершина автомата, i — индекс символа,
+     matches — найденные вхождения (индекс конца, слово), mode — training/search. */
+  const chapterId = useContext(VizChapterContext);
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, "aho");
+  }, [chapterId]);
+
+  const liveText = vars ? vizString(vars.text) ?? vizString(vars.s) : null;
+  const liveState = vars ? vizNumber(vars.state) ?? vizNumber(vars.node) ?? vizNumber(vars.v) : null;
+  const liveI = vars ? vizNumber(vars.i) ?? vizNumber(vars.idx) : null;
+  const liveMode = vars ? vizString(vars.mode) : null;
+  const liveMatchesRaw = vars ? vizArray(vars.matches) ?? vizArray(vars.found) : null;
+  const liveMatchesSig = useMemo(() => (liveMatchesRaw ? JSON.stringify(liveMatchesRaw) : null), [liveMatchesRaw]);
+  const liveFail = vars ? vars.fail : undefined;
+
+  useEffect(() => {
+    if (!vars) return;
+    if (liveMode && /search|поиск/i.test(liveMode)) setActiveMode("search");
+    else if (liveMode && /train|обуч|bfs/i.test(liveMode)) setActiveMode("training");
+    if (liveText) {
+      const clean = liveText.toUpperCase().replace(/[^A-Z]/g, "");
+      if (clean && clean !== textToScan) {
+        setTextToScan(clean);
+        setCurrentIndex(0);
+        setCurrentNode(0);
+        setFoundMatches([]);
+        setIsSearchDone(false);
+        setJumpPath(null);
+        setActiveMode("search");
+      }
+    }
+    if (liveState !== null && liveState >= 0 && WATERFALL_NODES[liveState]) setCurrentNode(liveState);
+    if (liveI !== null && liveI >= 0) setCurrentIndex(Math.min(liveI + 1, (liveText ? liveText.toUpperCase().replace(/[^A-Z]/g, "") : textToScan).length));
+    if (liveMatchesSig) {
+      const parsed = (JSON.parse(liveMatchesSig) as unknown[])
+        .map((it) => {
+          if (Array.isArray(it) && it.length >= 2) {
+            const idx = vizNumber(it[0]);
+            const word = vizString(it[1]);
+            if (idx !== null && word) return { index: idx, word };
+          }
+          if (typeof it === "string") {
+            const m = it.match(/(\d+)\D+([A-Za-zА-Яа-я]+)/);
+            if (m) return { index: Number(m[1]), word: m[2].toUpperCase() };
+          }
+          return null;
+        })
+        .filter((x): x is { index: number; word: string } => x !== null);
+      if (parsed.length) setFoundMatches(parsed);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vars]);
+
+  const compilerLinked = Boolean(liveText || (liveState !== null) || liveMatchesSig);
 
   // === СОСТОЯНИЯ РЕЖИМА ПОИСКА (SEARCH) ===
   const [textToScan, setTextToScan] = useState<string>('USHERS');
@@ -756,6 +816,30 @@ export const WaterfallAnimationWidget: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* что сейчас сообщил компилятор */}
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+          <Terminal className="w-3.5 h-3.5" /> из компилятора:
+        </span>
+        {compilerLinked ? (
+          <>
+            {liveText && <span className="text-[11px] font-mono bg-slate-950 border border-cyan-600/40 text-cyan-300 rounded-md px-2 py-1">text = {liveText}</span>}
+            {liveI !== null && <span className="text-[11px] font-mono bg-slate-950 border border-slate-700 text-slate-300 rounded-md px-2 py-1">i = {liveI}{liveText ? ` (${liveText.toUpperCase()[liveI] ?? ""})` : ""}</span>}
+            {liveState !== null && (
+              <span className="text-[11px] font-mono bg-slate-950 border border-indigo-600/40 text-indigo-300 rounded-md px-2 py-1">
+                state = {liveState}{WATERFALL_NODES[liveState] ? ` (${WATERFALL_NODES[liveState].label})` : ""}
+              </span>
+            )}
+            {liveMatchesSig && <span className="text-[11px] font-mono bg-slate-950 border border-emerald-600/40 text-emerald-300 rounded-md px-2 py-1">matches: {foundMatches.map((m) => `${m.word}@${m.index}`).join(", ") || "—"}</span>}
+            {liveFail !== undefined && <span className="text-[11px] font-mono bg-slate-950 border border-amber-600/40 text-amber-300 rounded-md px-2 py-1">fail = {JSON.stringify(liveFail).slice(0, 60)}</span>}
+          </>
+        ) : (
+          <span className="text-[11px] text-slate-500">
+            открой панель Python и запусти Ахо—Корасик: переменные <code className="font-mono text-cyan-300">text</code>, <code className="font-mono text-cyan-300">state</code>, <code className="font-mono text-cyan-300">i</code>, <code className="font-mono text-cyan-300">matches</code> поведут лосося по этому водопаду
+          </span>
+        )}
+      </div>
     </div>
   );
 };

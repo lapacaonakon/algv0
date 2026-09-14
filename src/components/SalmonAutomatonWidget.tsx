@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { Terminal } from 'lucide-react';
+import { VizChapterContext, emitVizDemo, useVizRuntime, vizArray, vizNumber, vizRecord } from '../data/vizStepBus';
 import { Play, RotateCcw, Plus, Volume2, Info } from 'lucide-react';
 
 interface TrieNode {
@@ -27,6 +29,59 @@ export const SalmonAutomatonWidget: React.FC = () => {
   );
   const [isTalking, setIsTalking] = useState<boolean>(false);
   const [isBlinking, setIsBlinking] = useState<boolean>(false);
+
+  /* ── связь с Python-компилятором (PAGE_SYNC["aho-corasick"]) ──
+     words/patterns — набор образцов: бор ПЕРЕСТРАИВАЕТСЯ по нему,
+     state — текущая вершина автомата, step — шаг BFS, queue — очередь BFS. */
+  const chapterId = useContext(VizChapterContext);
+  const runtime = useVizRuntime();
+  const vars = runtime?.variables;
+
+  useEffect(() => {
+    if (chapterId) emitVizDemo(chapterId, "aho");
+  }, [chapterId]);
+
+  const liveWordsRaw = vars ? vizArray(vars.words) ?? vizArray(vars.patterns) ?? vizArray(vars.dict) : null;
+  const liveWordsSig = useMemo(() => (liveWordsRaw ? JSON.stringify(liveWordsRaw) : null), [liveWordsRaw]);
+  const liveState = vars ? vizNumber(vars.state) ?? vizNumber(vars.node) ?? vizNumber(vars.v) : null;
+  const liveStep = vars ? vizNumber(vars.step) ?? vizNumber(vars.qi) : null;
+  const liveQueue = vars ? vizArray(vars.queue) : null;
+  const liveNodes = vars ? vizNumber(vars.nodes) : null;
+  const liveFail = vars ? vizRecord(vars.fail) : null;
+
+  // набор образцов из кода перестраивает бор целиком
+  useEffect(() => {
+    if (!liveWordsSig) return;
+    const parsed = (JSON.parse(liveWordsSig) as unknown[])
+      .map((w) => (typeof w === "string" ? w : typeof w === "number" ? String(w) : ""))
+      .filter((w) => Boolean(w))
+      .map((w) => w.toUpperCase().replace(/[^A-ZА-Я]/g, ""))
+      .filter((w) => w.length > 0)
+      .slice(0, 8);
+    if (!parsed.length) return;
+    if (parsed.join("|") === words.join("|")) return;
+    setWords(parsed);
+    buildInitialTrie(parsed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveWordsSig]);
+
+  // состояние автомата и шаг BFS — подсвечиваем вершину
+  useEffect(() => {
+    if (liveState !== null && liveState >= 0 && nodes[liveState]) setCurrentNode(liveState);
+    if (liveStep !== null && liveStep >= 0) {
+      // simulationStep — грубый статус: 0 = бор готов, 1 = BFS считает fail-ссылки, 2 = автомат построен
+      const total = Object.keys(nodes).length;
+      const failReady = liveFail ? Object.keys(liveFail).length >= total && total > 0 : false;
+      setSimulationStep(liveStep <= 0 ? 0 : failReady ? 2 : 1);
+    }
+    if (liveQueue) {
+      const q = liveQueue.map((x) => (typeof x === "number" ? x : vizNumber(x))).filter((x): x is number => x !== null && nodes[x] !== undefined);
+      if (q.length) setBfsQueue(q);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vars]);
+
+  const compilerLinked = Boolean(liveWordsSig || liveState !== null || liveStep !== null);
 
   // Регулярное моргание рыбы
   useEffect(() => {
@@ -638,6 +693,26 @@ export const SalmonAutomatonWidget: React.FC = () => {
             </table>
           </div>
         </div>
+      </div>
+
+      {/* что сейчас сообщил компилятор */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+          <Terminal className="w-3.5 h-3.5" /> из компилятора:
+        </span>
+        {compilerLinked ? (
+          <>
+            {liveWordsSig && <span className="text-[11px] font-mono bg-slate-950 border border-cyan-600/40 text-cyan-300 rounded-md px-2 py-1">words = {words.join(", ")}</span>}
+            {liveNodes !== null && <span className="text-[11px] font-mono bg-slate-950 border border-slate-700 text-slate-300 rounded-md px-2 py-1">вершин в боре = {liveNodes}</span>}
+            {liveState !== null && <span className="text-[11px] font-mono bg-slate-950 border border-indigo-600/40 text-indigo-300 rounded-md px-2 py-1">state = {liveState}</span>}
+            {liveStep !== null && <span className="text-[11px] font-mono bg-slate-950 border border-slate-700 text-slate-300 rounded-md px-2 py-1">шаг BFS = {liveStep}</span>}
+            {liveQueue && <span className="text-[11px] font-mono bg-slate-950 border border-amber-600/40 text-amber-300 rounded-md px-2 py-1">queue = {JSON.stringify(liveQueue).slice(0, 40)}</span>}
+          </>
+        ) : (
+          <span className="text-[11px] text-slate-500">
+            открой панель Python: массив <code className="font-mono text-cyan-300">words</code> перестроит этот бор, а <code className="font-mono text-cyan-300">state</code>/<code className="font-mono text-cyan-300">queue</code> подсветят обход
+          </span>
+        )}
       </div>
     </div>
   );

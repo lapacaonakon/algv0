@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useVizRuntime, vizArray, vizNumber, vizString } from '../data/vizStepBus';
 import { Play, Pause, SkipForward, Undo, RefreshCw } from "lucide-react";
 
 function generateKmpSteps(pattern: string, text: string) {
@@ -92,10 +93,14 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
     const safePattern = pattern || " ";
     const safeText = text || " ";
 
-    const { s, steps, patternLength } = useMemo(() => {
+    const { s: demoString, steps, patternLength: demoPatternLength } = useMemo(() => {
        if (mode === "kmp") return generateKmpSteps(safePattern, safeText);
        else return generateZSteps(safePattern, safeText);
     }, [mode, safePattern, safeText]);
+    const runtime = useVizRuntime();
+    const runtimeString = vizString(runtime?.variables?.s);
+    const s = runtimeString ?? demoString;
+    const patternLength = runtimeString ? runtimeString.length : demoPatternLength;
 
     const [autoPlay, setAutoPlay] = useState(false);
     const [stepIdx, setStepIdx] = useState(0);
@@ -125,7 +130,26 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
     const prevStep = () => { setAutoPlay(false); setStepIdx(i => Math.max(0, i - 1)); };
     const reset = () => { setAutoPlay(false); setStepIdx(0); };
 
-    const step = steps[stepIdx] || steps[0];
+    const baseStep = steps[stepIdx] || steps[0];
+    const vars = runtime?.variables;
+    const liveValues = vizArray(mode === "kmp" ? vars?.pi : vars?.z);
+    const hasLiveValues = !!vars && Object.prototype.hasOwnProperty.call(vars, mode === "kmp" ? "pi" : "z");
+    const liveI = vizNumber(vars?.i);
+    const liveJ = vizNumber(vars?.j);
+    const liveL = vizNumber(vars?.l);
+    const liveR = vizNumber(vars?.r);
+    const compilerLinked = liveI !== null || hasLiveValues;
+    const step = compilerLinked
+      ? {
+          ...baseStep,
+          i: liveI ?? baseStep.i,
+          j: liveJ ?? baseStep.j,
+          l: liveL ?? baseStep.l,
+          r: liveR ?? baseStep.r,
+          [mode === "kmp" ? "pi" : "z"]: hasLiveValues ? liveValues ?? [] : baseStep[mode === "kmp" ? "pi" : "z"],
+          desc: `Компилятор: i=${liveI ?? "—"}${mode === "kmp" ? `, j=${liveJ ?? "—"}` : `, [l,r]=[${liveL ?? "—"},${liveR ?? "—"}]`}.`,
+        }
+      : baseStep;
 
     return (
         <div className="space-y-4">
@@ -203,7 +227,7 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
 
                                 {/* Value array box */}
                                 <div className="text-[10px] bg-slate-800 text-amber-300 w-full text-center py-[2px] rounded border border-slate-700/50 font-mono font-bold">
-                                    {mode === "kmp" ? step.pi[index] : step.z[index]}
+                                    {(mode === "kmp" ? step.pi?.[index] : step.z?.[index]) ?? "·"}
                                 </div>
 
                                 {/* KMP fingers */}
@@ -256,16 +280,16 @@ export function StringAlgorithmsViz({ defaultMode = "kmp" }: { defaultMode?: "km
             <div className="flex flex-col sm:flex-row gap-4 items-stretch">
                 {/* Controls */}
                 <div className="flex bg-slate-900 border border-slate-800 p-2 rounded-xl justify-center shadow-lg gap-1shrink-0">
-                    <button onClick={prevStep} disabled={stepIdx === 0} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
+                    <button onClick={prevStep} disabled={stepIdx === 0} aria-label="Шаг назад" title="Шаг назад" className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
                         <Undo strokeWidth={3} size={16} />
                     </button>
                     <button onClick={playPause} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold flex items-center justify-center min-w-[80px]">
                         {autoPlay ? <><Pause size={16} className="mr-1"/> Пауза</> : <><Play size={16} className="mr-1"/> Авто</>}
                     </button>
-                    <button onClick={nextStep} disabled={stepIdx === steps.length - 1} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
+                    <button onClick={nextStep} disabled={stepIdx === steps.length - 1} aria-label="Шаг вперёд" title="Шаг вперёд" className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent">
                         <SkipForward strokeWidth={3} size={16} />
                     </button>
-                    <button onClick={reset} className="p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg ml-2 border-l border-slate-800">
+                    <button onClick={reset} aria-label="Сбросить" title="Сбросить" className="p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg ml-2 border-l border-slate-800">
                         <RefreshCw strokeWidth={3} size={16} />
                     </button>
                 </div>
