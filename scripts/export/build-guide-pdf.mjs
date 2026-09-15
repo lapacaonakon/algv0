@@ -120,13 +120,23 @@ async function loadAppData() {
 /* ────────────────────────── снимки визуализаций ────────────────────────── */
 
 function shotsFor(chapterId) {
-  if (!fs.existsSync(SHOTS_DIR)) return [];
-  return fs
-    .readdirSync(SHOTS_DIR)
-    .filter((f) => /\.(png|jpe?g)$/i.test(f))
-    .filter((f) => f === `${chapterId}.png` || f.startsWith(`${chapterId}--`) || f.startsWith(`${chapterId}.`))
-    .sort()
-    .map((f) => ({ file: path.join(SHOTS_DIR, f), name: f.replace(/\.(png|jpe?g)$/i, "").split("--")[1] ?? "" }));
+  const dirs = [SHOTS_DIR, path.join(ROOT, "public", "export", "viz-shots")];
+  for (const dir of dirs) {
+    if (fs.existsSync(dir)) {
+      const files = fs
+        .readdirSync(dir)
+        .filter((f) => /\.(png|jpe?g)$/i.test(f))
+        .filter((f) => f === `${chapterId}.png` || f.startsWith(`${chapterId}--`))
+        .sort();
+      if (files.length > 0) {
+        return files.map((f) => ({
+          file: path.join(dir, f),
+          name: f.replace(/\.(png|jpe?g)$/i, "").split("--")[1] ?? "",
+        }));
+      }
+    }
+  }
+  return [];
 }
 
 /* ───────────────────────────── отрисовка PDF ───────────────────────────── */
