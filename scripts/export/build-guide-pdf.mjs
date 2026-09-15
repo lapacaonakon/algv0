@@ -26,12 +26,7 @@ const GUIDE_PDF_PATH = path.join(OUT_DIR, "guide_lite.pdf");
 const SHOTS_DIR = path.join(ROOT, "tmp", "viz-shots");
 const ENTRY = path.join(ROOT, "tmp", "guide-entry.ts");
 
-/** Картинки-иллюстрации страниц (те же, что показывает приложение). */
-const CHAPTER_IMAGES = {
-  dijkstra: "public/assets/dijkstra-freakazoid.jpg",
-  "bellman-ford": "public/assets/bellman-ford-batman.jpg",
-  floyd: "public/assets/floyd-network.jpg",
-};
+
 
 /** Векторные схемы графов и таблицы состояний для PDF без растровых скриншотов */
 const VECTOR_VISUALIZERS = {
@@ -789,18 +784,6 @@ async function main() {
       } else {
         R.para(b.text);
       }
-    }
-
-    /* иллюстрация страницы */
-    const img = CHAPTER_IMAGES[chapter.id];
-    if (img && fs.existsSync(path.join(ROOT, img))) {
-      R.h2("Иллюстрация-аналогия");
-      const captions = {
-        dijkstra: "⚡ Декстер Дуглас у CRT-монитора и вирус Фриказоид (неотрицательные веса)",
-        "bellman-ford": "🦇 Бэтмен патрулирует Готэм в машине Генри Форда (n-1 ночей и проверка n-й ночи)",
-        floyd: "🌐 Все вершины связаны со всеми",
-      };
-      R.image(path.join(ROOT, img), { maxHeight: 220, caption: captions[chapter.id] ?? chapter.title });
     }
 
     /* демонстрация: интерактивная схема (векторные графы и таблицы) + связь с компилятором */

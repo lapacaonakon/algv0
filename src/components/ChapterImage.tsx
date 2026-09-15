@@ -19,8 +19,8 @@ const imageMap: Record<string, { src: string; alt: string; caption: string; bord
   },
   floyd: {
     src: floydImg,
-    alt: 'Фсе ко Фсем Флойд',
-    caption: '🌐 Все связаны со всеми!',
+    alt: 'Fortnite Все против Всех (Флойд—Уоршелл)',
+    caption: '🎮 Fortnite: Все против Всех — Флойд-Уоршелл за три цикла (k, i, j) находит кратчайшие пути от всех вершин ко всем!',
     borderColor: 'border-emerald-500/30',
     captionColor: 'text-emerald-400',
   },
