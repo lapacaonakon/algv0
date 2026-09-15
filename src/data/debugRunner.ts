@@ -150,7 +150,12 @@ def __tracer(frame, event, arg):
 __err = ""
 try:
     __sys.settrace(__tracer)
-    exec(compile(__src, "<user-code>", "exec"), {"__name__": "__main__"})
+    __init_globals = {
+        "__name__": "__main__",
+        "A": [5, 8, 3, 12, 7, 2, 0, 0],
+        "a": [5, 8, 3, 12, 7, 2, 0, 0],
+    }
+    exec(compile(__src, "<user-code>", "exec"), __init_globals)
 except __TraceLimit:
     pass
 except Exception:

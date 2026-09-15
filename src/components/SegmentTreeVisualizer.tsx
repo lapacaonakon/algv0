@@ -350,11 +350,23 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 export function SegmentTreeVisualizer() {
   const runtime = useVizRuntime();
   const liveI = vizNumber(runtime?.variables?.i);
+  const liveA = vizArray(runtime?.variables?.A) || vizArray(runtime?.variables?.a);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
   const [qR, setQR] = useState(4);
   const [view, setView] = useState<'build' | 'queries' | 'theory'>('build');
+
+  // Update array from live compiler variables A / a if present
+  useEffect(() => {
+    if (liveA && Array.isArray(liveA)) {
+      const nums = liveA.filter((x): x is number => typeof x === 'number');
+      if (nums.length > 0) {
+        setArr(nums);
+        setCustomInput(nums.join(', '));
+      }
+    }
+  }, [liveA]);
 
   // Clamp query range when array changes
   useEffect(() => {

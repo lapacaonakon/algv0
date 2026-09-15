@@ -32,15 +32,24 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "segment-trees": {
     vizTitle: "Дерево отрезков",
     stepNote: "Шаг = спуск по вершине v: либо читаем tree[v], либо толкаем lazy к детям 2·v и 2·v+1.",
-    code: `n = 8                       # длина массива (демо)
-tree = [0] * (2 * n)
-i = 0                       # лист: tree[n + i]
+    code: `A = [5, 8, 3, 12, 7, 2, 0, 0] # исходный массив A
+a = A                          # псевдоним a
+n = len(A)                     # длина массива n=8
 
-v, l, r = 1, 0, n - 1       # вершина и её отрезок
-m = (l + r) // 2            # граница детей 2v, 2v+1
-print(f"v={v} [{l}..{r}] mid={m}")`,
+tree = [0] * (2 * n)
+for idx in range(n):
+    tree[n + idx] = A[idx]
+for v_idx in range(n - 1, 0, -1):
+    tree[v_idx] = tree[2 * v_idx] + tree[2 * v_idx + 1]
+
+i = 0                          # индекс элемента массива
+v, l, r = 1, 0, n - 1          # вершина и её отрезок
+m = (l + r) // 2               # граница детей 2v, 2v+1
+print(f"v={v} [{l}..{r}] tree[v]={tree[v]}")`,
     variables: [
+      { name: "A / a", role: "исходный массив элементов A[0..N-1]", range: "A = [5, 8, 3, 12, 7, 2, 0, 0]" },
       { name: "n", role: "длина исходного массива; листья дерева лежат в tree[n … 2·n − 1]", range: "n = 8 на демо" },
+      { name: "tree", role: "массив дерева отрезков; tree[1] — корень (сумма всего отрезка)", range: "длина 2·n" },
       { name: "i", role: "индекс элемента массива; его лист — tree[n + i]", range: "0 … n−1" },
       { name: "v", role: "текущая вершина дерева отрезков", range: "1 … 2·n−1" },
       { name: "l, r", role: "границы отрезка, за который отвечает вершина v", range: "0 … n−1" },
