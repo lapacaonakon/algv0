@@ -20,6 +20,115 @@ export const graphChapters: Chapter[] = [
         </p>
     </div>
 
+    <!-- Таблица мнемоники графовых алгоритмов -->
+    <div class="my-8 overflow-x-auto">
+        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <span>🗺️</span> Таблица ассоциаций и мнемоники алгоритмов на графах
+        </h3>
+        <table class="w-full text-left border-collapse bg-slate-900 border border-slate-700 rounded-xl overflow-hidden text-xs md:text-sm">
+            <thead>
+                <tr class="bg-indigo-950 text-indigo-300 font-bold border-b border-slate-700">
+                    <th class="p-3 border-r border-slate-700">Термин</th>
+                    <th class="p-3 border-r border-slate-700">Ассоциация</th>
+                    <th class="p-3 border-r border-slate-700">Что делает</th>
+                    <th class="p-3 border-r border-slate-700">Граф</th>
+                    <th class="p-3 border-r border-slate-700">Жадный?</th>
+                    <th class="p-3">Ключевая строка</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-300">
+                <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">DFS</td>
+                    <td class="p-3 border-r border-slate-800">Варяг с одной идеей</td>
+                    <td class="p-3 border-r border-slate-800">Ныряет до упора, откатывается</td>
+                    <td class="p-3 border-r border-slate-800">любой</td>
+                    <td class="p-3 border-r border-slate-800">нет, <b class="text-amber-300">упрямый</b></td>
+                    <td class="p-3 font-mono text-emerald-400">dfs(u) из цикла</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50 bg-slate-900/40">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">BFS</td>
+                    <td class="p-3 border-r border-slate-800">Почтальон с обходным листом</td>
+                    <td class="p-3 border-r border-slate-800">Обходит слоями (волна)</td>
+                    <td class="p-3 border-r border-slate-800">любой</td>
+                    <td class="p-3 border-r border-slate-800">нет, <b class="text-amber-300">методичный</b></td>
+                    <td class="p-3 font-mono text-emerald-400">queue.popleft()</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">CC</td>
+                    <td class="p-3 border-r border-slate-800">Острова в архипелаге</td>
+                    <td class="p-3 border-r border-slate-800">Считает бессвязные куски</td>
+                    <td class="p-3 border-r border-slate-800">без стрелок</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 font-mono text-emerald-400">DFS + счётчик снаружи</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50 bg-slate-900/40">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">DAG</td>
+                    <td class="p-3 border-r border-slate-800">Путь <b>из варяг в греки</b></td>
+                    <td class="p-3 border-r border-slate-800">Тип графа: стрелки без циклов</td>
+                    <td class="p-3 border-r border-slate-800">со стрелками</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 text-slate-500 italic">(это не алгоритм)</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">Топсорт</td>
+                    <td class="p-3 border-r border-slate-800">От истока к устью</td>
+                    <td class="p-3 border-r border-slate-800">Порядок «варяги → греки»</td>
+                    <td class="p-3 border-r border-slate-800">только DAG</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 font-mono text-emerald-400">order.append(v) <b>после</b> цикла</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50 bg-slate-900/40">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">Поиск цикла в орграфе</td>
+                    <td class="p-3 border-r border-slate-800">Встретил варяга в омуте</td>
+                    <td class="p-3 border-r border-slate-800">3 цвета: WHITE/GRAY/BLACK</td>
+                    <td class="p-3 border-r border-slate-800">со стрелками</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 font-mono text-emerald-400">сосед GRAY → цикл</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">SCC</td>
+                    <td class="p-3 border-r border-slate-800"><b>Косые кварталы, жилые массивы</b></td>
+                    <td class="p-3 border-r border-slate-800">Группы, где все доезжают до всех</td>
+                    <td class="p-3 border-r border-slate-800">только со стрелками</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 text-slate-500 italic">(понятие, не алгоритм)</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50 bg-slate-900/40">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">Косарайю (Косой заяц)</td>
+                    <td class="p-3 border-r border-slate-800">Заяц бежит от варягов к грекам, потом обратно против течения</td>
+                    <td class="p-3 border-r border-slate-800">Находит все SCC за 2 DFS</td>
+                    <td class="p-3 border-r border-slate-800">со стрелками</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 font-mono text-emerald-400">1) топсорт 2) DFS по adj_rev</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">Мост</td>
+                    <td class="p-3 border-r border-slate-800">Перешеек-<b>ребро</b></td>
+                    <td class="p-3 border-r border-slate-800">Ребро, чьё удаление плодит острова</td>
+                    <td class="p-3 border-r border-slate-800">без стрелок</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 text-slate-500 italic">(понятие)</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50 bg-slate-900/40">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">Точка сочленения</td>
+                    <td class="p-3 border-r border-slate-800">Перевалочная <b>деревня</b></td>
+                    <td class="p-3 border-r border-slate-800">Вершина, чьё удаление плодит острова</td>
+                    <td class="p-3 border-r border-slate-800">без стрелок</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 text-slate-500 italic">(понятие)</td>
+                </tr>
+                <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-bold text-white border-r border-slate-800">Тарьян-Троян</td>
+                    <td class="p-3 border-r border-slate-800 italic text-slate-500">пояснения пока нет</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 border-r border-slate-800">—</td>
+                    <td class="p-3 text-slate-500 italic">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <div class="space-y-8">
 
     <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-indigo-500 scroll-mt-10">

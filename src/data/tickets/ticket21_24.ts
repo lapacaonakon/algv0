@@ -20,25 +20,25 @@ export const tickets21to24: Chapter[] = [
                 <p class="text-xl font-mono text-white">π[i] — максимальная длина такого префикса строки, который также является её суффиксом, оканчивающимся в позиции i.</p>
             </div>
             
-            <div class="bg-slate-800/90 p-5 rounded-xl border-2 border-indigo-500/60 my-6 shadow-md">
-                <h4 class="text-indigo-300 font-bold text-base mb-2">👁️ Главный секрет подглядывания в $\pi$-функции (смотрим СПЕРЕДИ / ВЛЕВО):</h4>
-                <p class="text-slate-200 text-sm leading-relaxed mb-3">
-                    Чтобы узнать значение <span class="font-mono text-indigo-300">π[i]</span>, мы не перебираем строки с нуля. Мы подглядываем <b>СПЕРЕДИ (в уже посчитанный префикс слева от нас)</b>:
+            <div class="bg-slate-900 border border-indigo-500/40 p-5 rounded-xl my-6">
+                <h4 class="text-indigo-300 font-bold text-base mb-2">
+                    👁️ Префикс-функция π[i] — смотрим СПЕРЕДИ (ВЛЕВО)
+                </h4>
+                <p class="text-slate-300 text-sm mb-4 leading-relaxed">
+                    Чтобы узнать значение <span class="font-mono text-indigo-300 font-bold">π[i]</span>, мы подглядываем <b>СПЕРЕДИ (ВЛЕВО)</b> — в уже вычисленный префикс <span class="font-mono text-indigo-300">π[i-1]</span>, и сравниваем его продолжение с текущим символом <span class="font-mono text-indigo-300">s[i]</span>:
                 </p>
-                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300 font-medium mb-4">
-                    <li>Сначала смотрим на <b>цифру $\pi$-функции для предыдущего элемента ($\pi[i-1]$)</b> — она указывает длину совпавшего префикса спереди.</li>
-                    <li>Затем сравниваем символ на этой позиции с <b>НАШИМ текущим элементом ($s[i]$)</b>: если символы совпали — <span class="font-mono text-emerald-300">π[i] = π[i-1] + 1</span>. Если нет — делаем откат по значениям $\pi$ спереди!</li>
+                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300 mb-4">
+                    <li>Считаем значение <span class="font-mono text-indigo-300">π[i-1]</span> для предыдущего символа.</li>
+                    <li>Сравниваем следующий символ префикса с нашим текущим <span class="font-mono text-indigo-300">s[i]</span>: совпало — <span class="font-mono text-indigo-300">π[i] = π[i-1] + 1</span>, не совпало — откатываемся влево!</li>
                 </ol>
-
-                <div class="bg-slate-950 p-4 rounded-lg border border-indigo-500/40 font-mono text-sm">
-                    <div class="flex items-center justify-center gap-2 text-slate-200 font-bold tracking-wider flex-wrap">
-                        <span class="px-2.5 py-1 bg-indigo-600/70 text-white rounded border-2 border-indigo-400 animate-pulse shadow-md">← a b c (префикс спереди)</span>
-                        <span class="text-slate-500">|</span>
-                        <span class="px-2.5 py-1 bg-emerald-600/80 text-white rounded border-2 border-emerald-400">a b c</span>
-                        <span class="px-2.5 py-1 bg-rose-600/90 text-white rounded border-2 border-rose-400 font-black">i (НАШ)</span>
+                <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-sm text-center">
+                    <div class="inline-flex items-center gap-2 bg-slate-900 px-3 py-2 rounded-lg border border-indigo-500/40 flex-wrap justify-center">
+                        <span class="text-indigo-300 font-bold">← [0 ... i-1] (ПРЕФИКС СПЕРЕДИ)</span>
+                        <span class="text-slate-600">|</span>
+                        <span class="bg-indigo-600 text-white font-bold px-2.5 py-1 rounded">s[i] (ИНДЕКС i)</span>
                     </div>
-                    <p class="text-xs text-indigo-300 text-center mt-3 font-sans italic">
-                        ⬅️ Выделение расширяется ВЛЕВО (СПЕРЕДИ): сначала читаем цифру π[i-1] спереди, затем сравниваем наш элемент $s[i]$.
+                    <p class="text-xs text-indigo-300 mt-2 font-sans italic">
+                        ⬅️ Рамка смотрит ВЛЕВО: проверяем совпадение префикса спереди и добавляем элемент s[i]
                     </p>
                 </div>
             </div>
@@ -153,25 +153,22 @@ def kmp_via_concat(text, pattern):
                 <p class="text-xl font-mono text-white">Z[i] — длина наибольшего общего префикса между самой строкой (начинающейся с индекса 0) и её суффиксом, начинающимся с i.</p>
             </div>
             
-            <div class="bg-slate-800/90 p-5 rounded-xl border-2 border-emerald-500/60 my-6 shadow-md">
-                <h4 class="text-emerald-300 font-bold text-base mb-2">🍑 Главный секрет Z-функции — ЗАД (ZOPA / смотрим ВПРАВО позади индекса i):</h4>
-                <p class="text-slate-200 text-sm leading-relaxed mb-3">
-                    Буква <b>Z</b> запоминается как <b>«Зад» / «Zopa»</b>: встаем на индекс <span class="font-mono text-emerald-300 font-bold">i</span> и смотрим <b>ПОЗАДИ (вправо)</b> от него!
+            <div class="bg-slate-900 border border-emerald-500/40 p-5 rounded-xl my-6">
+                <h4 class="text-emerald-300 font-bold text-base mb-2">
+                    🍑 Z-функция Z[i] — смотрим ВПРАВО (ЗАД / ZOPA)
+                </h4>
+                <p class="text-slate-300 text-sm mb-4 leading-relaxed">
+                    Буква <b>Z</b> запоминается как <b>«Зад / Zopa»</b>: встаём на индекс <span class="font-mono text-emerald-300 font-bold">i</span> и подглядываем <b>ВПРАВО (ПОЗАДИ индекса i)</b> — насколько суффикс совпадает с началом всей строки <span class="font-mono text-emerald-300">s[0...]</span>.
                 </p>
-                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300 font-medium mb-4">
-                    <li>Встаём на индекс <span class="font-mono text-emerald-300">i</span> и смотрим на суффикс, идущий <b>СЗАДИ (ВПРАВО)</b> от этой позиции до конца строки.</li>
-                    <li>Сравниваем этот "задний" подмассив <span class="font-mono text-emerald-300">s[i …]</span> с самым началом всей строки <span class="font-mono text-emerald-300">s[0 …]</span>. Выделенная рамка расширяется <b>вправо позади индекса $i$</b>!</li>
-                </ol>
-
-                <div class="bg-slate-950 p-4 rounded-lg border border-emerald-500/40 font-mono text-sm">
-                    <div class="flex items-center justify-center gap-2 text-slate-200 font-bold tracking-wider flex-wrap">
-                        <span class="px-2.5 py-1 bg-slate-800 text-slate-400 rounded">0 .. i-1</span>
-                        <span class="px-2.5 py-1 bg-rose-600/90 text-white rounded border-2 border-rose-400 font-black">i (старт)</span>
-                        <span class="text-slate-500">|</span>
-                        <span class="px-2.5 py-1 bg-emerald-600/70 text-white rounded border-2 border-emerald-400 animate-pulse shadow-md">a b c d → (ЗАД / ZOPA вправо)</span>
+                <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-sm text-center">
+                    <div class="inline-flex items-center gap-2 bg-slate-900 px-3 py-2 rounded-lg border border-emerald-500/40 flex-wrap justify-center">
+                        <span class="text-slate-500">[0 ... i-1]</span>
+                        <span class="bg-emerald-600 text-white font-bold px-2.5 py-1 rounded">ИНДЕКС i</span>
+                        <span class="text-slate-600">|</span>
+                        <span class="text-emerald-300 font-bold">s[i ... i+Z[i]-1] (ЗАД / ZOPA ВПРАВО) →</span>
                     </div>
-                    <p class="text-xs text-emerald-300 text-center mt-3 font-sans italic">
-                        ➡️ Выделение расширяется ВПРАВО (ПОЗАДИ индекса i): подглядываем в ЗАД строки.
+                    <p class="text-xs text-emerald-300 mt-2 font-sans italic">
+                        ➡️ Рамка смотрит ВПРАВО: измеряем длину совпадения от индекса i вправо
                     </p>
                 </div>
             </div>

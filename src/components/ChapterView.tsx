@@ -203,13 +203,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
           </div>
         )}
 
-        <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 print:hidden">
-          <MousePointerClick className="w-4 h-4 shrink-0 text-indigo-400 mt-px" />
-          <span>
-            Подчёркнутые термины — интерактивные: наведите курсор (или тапните на телефоне), чтобы увидеть
-            объяснение на пальцах, мини-анимацию и кнопку запуска полного симулятора.
-          </span>
-        </p>
+
 
         {viz && (
           <section id="chapter-viz" className="mt-8 scroll-mt-24">
