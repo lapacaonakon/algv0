@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            15.09.2026, 13:15:58
+Дата генерации:            15.09.2026, 13:39:31
 Файлов исходного кода:     111
 Суммарный объём кода:      1.96 MB
 Глав/билетов в пособии:    36
@@ -8022,7 +8022,7 @@ def query(l, r):                     # сумма на полуинтервал�
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 27/111: src/data/tickets/ticket14_20.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1212 | РАЗМЕР: 126.4 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1218 | РАЗМЕР: 127.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -8072,6 +8072,9 @@ export const tickets14to20: Chapter[] = [
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         Аналогия 1: Декстер Дуглас и Фриказоид
+                    </div>
+                    <div class="my-3 rounded-lg overflow-hidden border border-blue-500/40 shadow-lg">
+                        <img src="assets/dijkstra-freakazoid.jpg" alt="Декстер Дуглас у CRT-монитора и вирус Фриказоид" class="w-full h-52 object-cover object-center" />
                     </div>
                     <p class="text-slate-300 text-sm mb-4">Декстер Дуглас пристально смотрит в винтажный <b>CRT-монитор</b> (пузатый ЭЛТ-телевизор). Ярко-синий электрический вирус <b>Фриказоид</b> молниеносно растекается по узлам граф-сети. Волна энергии Фриказоида переходит от текущего узла к самым близким непосещенным соседям. Так как веса рёбер неотрицательны (<span class="font-mono text-emerald-300">w ≥ 0</span>), зафиксированные вершины никогда не пересматриваются — вирус накрывает сеть строго по возрастанию расстояния!</p>
                 </div>
@@ -8375,6 +8378,9 @@ for _ in range(n):
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         Аналогия 1: Патруль Бэтмена на машине Форда
+                    </div>
+                    <div class="my-3 rounded-lg overflow-hidden border border-rose-500/40 shadow-lg">
+                        <img src="assets/bellman-ford-batman.jpg" alt="Бэтмен патрулирует Готэм в машине Генри Форда" class="w-full h-52 object-cover object-center" />
                     </div>
                     <p class="text-slate-300 text-sm mb-4">Бэтмен патрулирует Готэм <span class="font-mono text-emerald-300">n − 1</span> ночей подряд, объезжая абсолютно <b>все улицы</b> (рёбра) в кабине старой машины Генри Форда (не бэтмобиля!). У Бэтмена есть ровно <b>1 выходной в году</b>, когда он отдыхает и не возит преступников. На <span class="font-mono text-emerald-300">n</span>-ю ночь Бэтмен делает контрольный проезд: если за <span class="font-mono text-emerald-300">n</span>-ю ночь расстояние до какого-то района снова уменьшилось — значит, Джокер устроил бесконечную кормушку (отрицательный цикл)!</p>
                 </div>
@@ -11544,25 +11550,25 @@ export default function BfsViz() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 34/111: src/components/ChapterImage.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.5 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import dijkstraImg from '../assets/dijkstra-kind.jpg';
-import bellmanImg from '../assets/bellman-ford-truck.jpg';
+import dijkstraImg from '../assets/dijkstra-freakazoid.jpg';
+import bellmanImg from '../assets/bellman-ford-batman.jpg';
 import floydImg from '../assets/floyd-network.jpg';
 
 const imageMap: Record<string, { src: string; alt: string; caption: string; borderColor: string; captionColor: string }> = {
   dijkstra: {
     src: dijkstraImg,
-    alt: 'Фриказоид (Декстер Дуглас)',
-    caption: '⚡ Фриказоид (Декстер Дуглас) — работает только с неотрицательными весами!',
+    alt: 'Декстер Дуглас и Фриказоид',
+    caption: '⚡ Декстер Дуглас и Фриказоид — волна вируса распространяется строго по неотрицательным весам (w ≥ 0)!',
     borderColor: 'border-blue-500/30',
     captionColor: 'text-blue-400',
   },
   'bellman-ford': {
     src: bellmanImg,
-    alt: 'Фура по болоту',
-    caption: '🚚 Тяжёлая, но ей пофиг на ямы!',
+    alt: 'Бэтмен на машине Генри Форда',
+    caption: '🦇 Бэтмен на машине Форда — n-1 ночей патруля всех улиц и проверка n-й ночи на отрицательный цикл!',
     borderColor: 'border-rose-500/30',
     captionColor: 'text-rose-400',
   },
@@ -19023,22 +19029,22 @@ export function LiveDistTable({ dist, prev, done, demoIds, title = "Ваши р�
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 59/111: src/components/MnemonicCards.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 2.8 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 3.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-import dijkstraImg from '../assets/dijkstra-kind.jpg';
-import bellmanImg from '../assets/bellman-ford-truck.jpg';
+import dijkstraImg from '../assets/dijkstra-freakazoid.jpg';
+import bellmanImg from '../assets/bellman-ford-batman.jpg';
 import floydImg from '../assets/floyd-network.jpg';
 
 const cards = [
   {
     img: dijkstraImg,
-    alt: 'Фриказоид (Декстер Дуглас / Дейкстра)',
-    title: '⚡ Фриказоид (Декстер Дуглас)',
-    desc: 'Быстрый, жадный, но работает только с',
+    alt: 'Декстер Дуглас и Фриказоид (Дейкстра)',
+    title: '⚡ Фриказоид и Декстер Дуглас',
+    desc: 'Декстер смотрит в CRT-монитор; синий электрический вирус Фриказоид молниеносно растекается по сети с',
     highlight: 'неотрицательными',
     highlightColor: 'text-emerald-400',
-    rest: 'весами (w ≥ 0). Подсунь отрицательное ребро — гарантия оптимальности исчезает.',
+    rest: 'весами (w ≥ 0). Подсунь отрицательное ребро — фиксация сломается.',
     complexity: 'O((V+E) log V)',
     border: 'border-blue-500/30 hover:border-blue-400/60',
     titleColor: 'text-blue-400',
@@ -19046,12 +19052,12 @@ const cards = [
   },
   {
     img: bellmanImg,
-    alt: 'Фура по болоту Форд-Беллман',
-    title: '🚚 Фура по Болоту (Ф-Б)',
-    desc: 'Медленный, тяжёлый — зато тащит',
-    highlight: 'отрицательные',
+    alt: 'Бэтмен на машине Форда (Форд-Беллман)',
+    title: '🦇 Бэтмен на машине Форда',
+    desc: 'Патрулирует n-1 ночей в кабине машины Генри Форда. Имеет 1 выходной в году, а на n-ю ночь ловит',
+    highlight: 'отрицательные циклы',
     highlightColor: 'text-rose-400',
-    rest: 'веса и детектит отрицательные циклы за V-1 итераций.',
+    rest: '(бесконечную кормушку Джокера).',
     complexity: 'O(V · E)',
     border: 'border-rose-500/30 hover:border-rose-400/60',
     titleColor: 'text-rose-400',
@@ -32450,7 +32456,7 @@ console.log("Не встретились:", GLOSSARY.filter((g) => !used.has(g.i
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 92/111: scripts/export/build-guide-pdf.mjs
-КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 687 | РАЗМЕР: 31.0 KB
+КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 692 | РАЗМЕР: 31.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -32483,9 +32489,9 @@ const ENTRY = path.join(ROOT, "tmp", "guide-entry.ts");
 
 /** Картинки-иллюстрации страниц (те же, что показывает приложение). */
 const CHAPTER_IMAGES = {
-  dijkstra: "src/assets/dijkstra-kind.jpg",
-  "bellman-ford": "src/assets/bellman-ford-truck.jpg",
-  floyd: "src/assets/floyd-network.jpg",
+  dijkstra: "public/assets/dijkstra-freakazoid.jpg",
+  "bellman-ford": "public/assets/bellman-ford-batman.jpg",
+  floyd: "public/assets/floyd-network.jpg",
 };
 
 /** A4 в пунктах. */
@@ -33054,8 +33060,13 @@ async function main() {
     /* иллюстрация страницы */
     const img = CHAPTER_IMAGES[chapter.id];
     if (img && fs.existsSync(path.join(ROOT, img))) {
-      R.h2("Иллюстрация");
-      R.image(path.join(ROOT, img), { maxHeight: 300, caption: chapter.title });
+      R.h2("Иллюстрация-аналогия");
+      const captions = {
+        dijkstra: "⚡ Декстер Дуглас у CRT-монитора и вирус Фриказоид (неотрицательные веса)",
+        "bellman-ford": "🦇 Бэтмен патрулирует Готэм в машине Генри Форда (n-1 ночей и проверка n-й ночи)",
+        floyd: "🌐 Все вершины связаны со всеми",
+      };
+      R.image(path.join(ROOT, img), { maxHeight: 220, caption: captions[chapter.id] ?? chapter.title });
     }
 
     /* демонстрация: снимки + описание синхронизации с компилятором */
@@ -33282,7 +33293,7 @@ const browser = await puppeteer.launch({
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--font-render-hinting=none"],
 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1400, height: 1000, deviceScaleFactor: 1 });
+await page.setViewport({ width: 1400, height: 1000, deviceScaleFactor: 2 });
 
 let done = 0;
 let failed = 0;
@@ -36589,5 +36600,5 @@ export const myChapters: Chapter[] = [
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 15.09.2026, 13:15:58
+КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 15.09.2026, 13:39:31
 ==========================================================================================================================================
