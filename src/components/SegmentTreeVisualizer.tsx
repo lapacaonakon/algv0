@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, RefreshCw, Hammer, Search, Info } from 'lucide-react';
-import { useVizRuntime, vizNumber } from '../data/vizStepBus';
+import { useVizRuntime, vizNumber, vizArray } from '../data/vizStepBus';
 
 // ===== TYPES =====
 interface Step {
@@ -210,28 +210,45 @@ function Player({ steps, color }: { steps: Step[]; color: 'indigo' | 'emerald' |
 // ===== SIMULATION PANEL =====
 function SimPanel({ title, icon, steps, code, color, arr }: { title: string; icon: string; steps: Step[]; code: string[]; color: 'indigo' | 'emerald' | 'amber'; arr: number[] }) {
   const p = Player({ steps, color });
+  const runtime = useVizRuntime();
+  const liveV = vizNumber(runtime?.variables?.v);
+  const liveTree = vizArray(runtime?.variables?.tree);
+  const liveI = vizNumber(runtime?.variables?.i);
+
   if (!p) return null;
   const { step, idx, setIdx, playing, setPlaying, speed, setSpeed, clr, total } = p;
   const n = arr.length;
 
+  const fullTree = useMemo(() => buildTreeFull(arr), [arr]);
   const vTree = useMemo(() => buildVisualTree(step.treeState, n, 1, 0, n - 1), [step.treeState, n]);
 
   const renderNode = useCallback((nd: VNode): React.ReactElement => {
-    const isHigh = step.highlightNodes.includes(nd.v);
+    const isCompilerActive = liveV === nd.v;
+    const isHigh = step.highlightNodes.includes(nd.v) || isCompilerActive;
     const isChild = step.mergeChildren?.includes(nd.v);
-    const has = nd.val !== null;
+    
+    // Live compiler value or step value or pre-calculated full tree value
+    let displayVal: number | string = nd.val !== null ? nd.val : (fullTree[nd.v] ?? '·');
+    if (liveTree && liveTree[nd.v] !== undefined && typeof liveTree[nd.v] === 'number') {
+      displayVal = liveTree[nd.v] as number;
+    }
 
     let cls = 'bg-slate-800 border-slate-700 text-slate-400';
-    if (isHigh) cls = `${clr.ring} text-white ring-2 scale-105 shadow-lg z-10`;
+    if (isHigh) cls = `${clr.ring} text-white ring-2 scale-110 shadow-lg z-10 border-amber-400`;
     else if (isChild) cls = `${clr.childRing} text-amber-300 ring-2`;
-    else if (has) cls = `${clr.filled} text-slate-200`;
+    else cls = `${clr.filled} text-slate-200`;
 
     return (
       <div key={nd.v} className="flex flex-col items-center">
-        <div className={`flex flex-col items-center justify-center px-1 py-1 rounded-lg border-2 transition-all duration-200 min-w-[42px] ${cls}`}>
-          <span className="text-[7px] opacity-60 font-mono">v{nd.v}</span>
-          <span className="text-[9px] font-bold">[{nd.l}..{nd.r}]</span>
-          <span className="text-xs font-extrabold font-mono text-white">{has ? nd.val : '·'}</span>
+        <div className={`flex flex-col items-center justify-center px-1.5 py-1 rounded-lg border-2 transition-all duration-200 min-w-[48px] ${cls}`}>
+          <div className="flex items-center gap-1 text-[7px] font-mono opacity-80">
+            <span>v{nd.v}</span>
+            {isCompilerActive && <span className="bg-amber-500 text-slate-950 font-bold px-1 rounded text-[6px]">КОД</span>}
+          </div>
+          <span className="text-[9px] font-bold text-amber-300 font-mono">[{nd.l}..{nd.r}]</span>
+          <span className="text-xs font-black font-mono text-white mt-0.5">
+            {nd.l === nd.r ? `A[${nd.l}] = ${displayVal}` : `tree[${nd.v}] = ${displayVal}`}
+          </span>
         </div>
         {(nd.left || nd.right) && (
           <div className="flex flex-col items-center mt-1 w-full">
@@ -244,7 +261,7 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
         )}
       </div>
     );
-  }, [step, clr]);
+  }, [step, clr, fullTree, liveV, liveTree]);
 
   return (
     <div className={`rounded-2xl border overflow-hidden flex flex-col ${color === 'indigo' ? 'border-indigo-500/30' : color === 'emerald' ? 'border-emerald-500/30' : 'border-amber-500/30'}`}>
@@ -255,16 +272,23 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
       </div>
 
       {/* Array strip */}
-      <div className="px-3 py-2 bg-slate-950 border-b border-slate-800/50 flex flex-wrap gap-1 justify-center">
-        {arr.map((v, i) => {
-          const inRange = step.arrayHighlight && i >= step.arrayHighlight[0] && i <= step.arrayHighlight[1];
-          return (
-            <div key={i} className={`flex flex-col items-center px-1.5 py-0.5 rounded border transition-all ${inRange ? `${color === 'indigo' ? 'bg-indigo-950 border-indigo-500' : color === 'emerald' ? 'bg-emerald-950 border-emerald-500' : 'bg-amber-950 border-amber-500'} -translate-y-0.5` : 'bg-slate-900 border-slate-800'}`}>
-              <span className="text-[7px] text-slate-500 font-mono">{i}</span>
-              <span className="text-[11px] font-bold font-mono text-white">{v}</span>
-            </div>
-          );
-        })}
+      <div className="px-3 py-2 bg-slate-950 border-b border-slate-800/50 flex flex-col items-center gap-1.5">
+        <div className="text-[11px] font-bold text-slate-300 flex items-center gap-2 flex-wrap justify-center">
+          <span className="text-amber-400">Исходный массив A:</span>
+          <span className="text-slate-400 font-mono text-[10px]">A[i] — листья дерева (узел v = N + i)</span>
+        </div>
+        <div className="flex flex-wrap gap-1 justify-center">
+          {arr.map((v, i) => {
+            const inRange = step.arrayHighlight && i >= step.arrayHighlight[0] && i <= step.arrayHighlight[1];
+            const isLiveI = liveI === i;
+            return (
+              <div key={i} className={`flex flex-col items-center px-2 py-1 rounded border transition-all ${isLiveI ? 'bg-amber-950 border-amber-400 ring-2 ring-amber-400/40' : inRange ? `${color === 'indigo' ? 'bg-indigo-950 border-indigo-500' : color === 'emerald' ? 'bg-emerald-950 border-emerald-500' : 'bg-amber-950 border-amber-500'} -translate-y-0.5` : 'bg-slate-900 border-slate-800'}`}>
+                <span className="text-[8px] text-amber-300 font-mono font-bold">A[{i}]</span>
+                <span className="text-[12px] font-extrabold font-mono text-white">{v}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Tree */}
