@@ -60,6 +60,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
           )}
         </div>
         )}
+        {!compact && (
+          <span className="text-[10px] text-slate-500 italic block mt-1.5 px-1">
+            Порядок чтения: билеты 1 → 24
+          </span>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-4 overscroll-contain">
@@ -118,22 +123,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
             </div>
           </div>
         ))}
-      </div>
-
-      <div className={`shrink-0 m-3 mt-0 bg-gradient-to-br from-slate-800 to-slate-900 p-3 rounded-xl border border-slate-700/60 text-[11px] text-slate-300 space-y-1.5 hidden lg:block ${compact ? "!hidden" : ""}`}>
-        <div className="font-bold text-indigo-400 flex items-center gap-1.5 text-xs">
-          <Sparkles className="w-3.5 h-3.5" /> Как пользоваться
-        </div>
-        <p className="leading-relaxed">
-          <b className="text-slate-200">Порядок чтения — сверху вниз:</b> темы разбиты по разделам и идут по
-          номерам билетов 1 → 24, каждая опирается на предыдущую. Внизу страницы кнопки «Предыдущая /
-          Следующая тема» продолжают этот же порядок.
-        </p>
-        <p className="leading-relaxed">
-          Подчёркнутые термины в тексте раскрываются по наведению: короткое объяснение, мини-анимация и запуск
-          симулятора.
-        </p>
-        <p className="text-slate-400 italic">Стрелки ← → на клавиатуре листают темы.</p>
       </div>
     </aside>
   );
