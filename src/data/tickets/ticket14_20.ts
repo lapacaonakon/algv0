@@ -673,20 +673,20 @@ def spfa(n, adj, s):
 
             <p class="text-slate-300 text-sm mb-4">Флойд—Уоршелл считает <b>все пары</b> кратчайших расстояний за <span class="font-mono text-emerald-300">O(V³)</span> и <span class="font-mono text-emerald-300">O(V²)</span> памяти, работает с отрицательными весами (но не с отрицательными циклами) и пишется в <b>три строки</b>. Вход — матрица <span class="font-mono text-emerald-300">d</span> размера <span class="font-mono">V × V</span>: <span class="font-mono text-emerald-300">d[i][j] = w(i, j)</span> для существующих рёбер, <span class="font-mono text-emerald-300">0</span> на диагонали и <span class="font-mono text-emerald-300">∞</span> в остальных клетках.</p>
 
-            <div class="my-5 p-5 rounded-xl bg-slate-900/90 border border-purple-500/50 flex items-center gap-4 shadow-lg">
-                <div class="bg-black/60 p-3 rounded-lg border border-purple-500/70 shrink-0 text-center">
-                    <svg class="w-14 h-10 fill-purple-400 mx-auto" viewBox="0 0 100 60">
-                        <text x="50" y="42" font-family="sans-serif" font-weight="900" font-size="28" text-anchor="middle" fill="#c084fc">FN</text>
-                    </svg>
-                    <span class="text-[10px] font-bold text-purple-300 uppercase tracking-wider block mt-1">Fortnite</span>
+            <div class="my-5 p-5 rounded-xl bg-slate-900/90 border border-purple-500/50 shadow-lg">
+                <div class="mb-4 rounded-xl overflow-hidden border border-purple-500/50 shadow-xl">
+                    <img src="assets/floyd-network.jpg" alt="Fortnite Все против Всех (Флойд—Уоршелл)" class="w-full h-64 md:h-80 object-cover object-center" />
                 </div>
-                <div>
-                    <h4 class="text-purple-300 font-bold text-base flex items-center gap-2">
-                        🎮 «Фсе против Фсем» (Все против всех) — Fortnite Battle Royale
-                    </h4>
-                    <p class="text-slate-300 text-sm mt-1 leading-relaxed">
-                        Флойд—Уоршелл — это «Королевская битва» Fortnite: все вершины высаживаются на одну карту, и каждая вершина ищет кратчайший путь к абсолютно КАЖДОЙ другой вершине за <span class="font-mono text-purple-300">O(V³)</span>!
-                    </p>
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🎮</span>
+                    <div>
+                        <h4 class="text-purple-300 font-bold text-base">
+                            «Фсе против Фсем» (Все против всех) — Fortnite Battle Royale
+                        </h4>
+                        <p class="text-slate-300 text-sm mt-1 leading-relaxed">
+                            Флойд—Уоршелл — это «Королевская битва» Fortnite: все вершины высаживаются на одну карту, и каждая вершина ищет кратчайший путь к абсолютно КАЖДОЙ другой вершине за <span class="font-mono text-purple-300">O(V³)</span>!
+                        </p>
+                    </div>
                 </div>
             </div>
 

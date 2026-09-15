@@ -10,6 +10,8 @@ import { ChapterNav } from "./ChapterNav";
 import { ChapterQuiz } from "./ChapterQuiz";
 import { downloadChapterHtml } from "../utils/exportHtml";
 import { useTicketLinks } from "../utils/ticketLinks";
+import ChapterImage from "./ChapterImage";
+import MnemonicCards from "./MnemonicCards";
 
 interface Props {
   chapter: Chapter;
@@ -185,6 +187,21 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
           onFocus={handleFocus}
           dangerouslySetInnerHTML={{ __html: chapter.content }}
         />
+
+        {chapter.id === "intro" && (
+          <div className="my-8 print:hidden">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span>🧠</span> Мнемонические карточки кратчайших путей
+            </h3>
+            <MnemonicCards />
+          </div>
+        )}
+
+        {["dijkstra", "bellman-ford", "floyd"].includes(chapter.id) && (
+          <div className="my-6 print:hidden">
+            <ChapterImage vizType={chapter.id} />
+          </div>
+        )}
 
         <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500 bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 print:hidden">
           <MousePointerClick className="w-4 h-4 shrink-0 text-indigo-400 mt-px" />
