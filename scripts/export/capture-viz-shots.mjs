@@ -64,7 +64,7 @@ const browser = await puppeteer.launch({
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--font-render-hinting=none"],
 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1400, height: 1000, deviceScaleFactor: 1 });
+await page.setViewport({ width: 1400, height: 1000, deviceScaleFactor: 2 });
 
 let done = 0;
 let failed = 0;

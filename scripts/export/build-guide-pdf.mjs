@@ -28,9 +28,9 @@ const ENTRY = path.join(ROOT, "tmp", "guide-entry.ts");
 
 /** Картинки-иллюстрации страниц (те же, что показывает приложение). */
 const CHAPTER_IMAGES = {
-  dijkstra: "src/assets/dijkstra-kind.jpg",
-  "bellman-ford": "src/assets/bellman-ford-truck.jpg",
-  floyd: "src/assets/floyd-network.jpg",
+  dijkstra: "public/assets/dijkstra-freakazoid.jpg",
+  "bellman-ford": "public/assets/bellman-ford-batman.jpg",
+  floyd: "public/assets/floyd-network.jpg",
 };
 
 /** A4 в пунктах. */
@@ -599,8 +599,13 @@ async function main() {
     /* иллюстрация страницы */
     const img = CHAPTER_IMAGES[chapter.id];
     if (img && fs.existsSync(path.join(ROOT, img))) {
-      R.h2("Иллюстрация");
-      R.image(path.join(ROOT, img), { maxHeight: 300, caption: chapter.title });
+      R.h2("Иллюстрация-аналогия");
+      const captions = {
+        dijkstra: "⚡ Декстер Дуглас у CRT-монитора и вирус Фриказоид (неотрицательные веса)",
+        "bellman-ford": "🦇 Бэтмен патрулирует Готэм в машине Генри Форда (n-1 ночей и проверка n-й ночи)",
+        floyd: "🌐 Все вершины связаны со всеми",
+      };
+      R.image(path.join(ROOT, img), { maxHeight: 220, caption: captions[chapter.id] ?? chapter.title });
     }
 
     /* демонстрация: снимки + описание синхронизации с компилятором */

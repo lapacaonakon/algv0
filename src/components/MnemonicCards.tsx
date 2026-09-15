@@ -1,16 +1,16 @@
-import dijkstraImg from '../assets/dijkstra-kind.jpg';
-import bellmanImg from '../assets/bellman-ford-truck.jpg';
+import dijkstraImg from '../assets/dijkstra-freakazoid.jpg';
+import bellmanImg from '../assets/bellman-ford-batman.jpg';
 import floydImg from '../assets/floyd-network.jpg';
 
 const cards = [
   {
     img: dijkstraImg,
-    alt: 'Фриказоид (Декстер Дуглас / Дейкстра)',
-    title: '⚡ Фриказоид (Декстер Дуглас)',
-    desc: 'Быстрый, жадный, но работает только с',
+    alt: 'Декстер Дуглас и Фриказоид (Дейкстра)',
+    title: '⚡ Фриказоид и Декстер Дуглас',
+    desc: 'Декстер смотрит в CRT-монитор; синий электрический вирус Фриказоид молниеносно растекается по сети с',
     highlight: 'неотрицательными',
     highlightColor: 'text-emerald-400',
-    rest: 'весами (w ≥ 0). Подсунь отрицательное ребро — гарантия оптимальности исчезает.',
+    rest: 'весами (w ≥ 0). Подсунь отрицательное ребро — фиксация сломается.',
     complexity: 'O((V+E) log V)',
     border: 'border-blue-500/30 hover:border-blue-400/60',
     titleColor: 'text-blue-400',
@@ -18,12 +18,12 @@ const cards = [
   },
   {
     img: bellmanImg,
-    alt: 'Фура по болоту Форд-Беллман',
-    title: '🚚 Фура по Болоту (Ф-Б)',
-    desc: 'Медленный, тяжёлый — зато тащит',
-    highlight: 'отрицательные',
+    alt: 'Бэтмен на машине Форда (Форд-Беллман)',
+    title: '🦇 Бэтмен на машине Форда',
+    desc: 'Патрулирует n-1 ночей в кабине машины Генри Форда. Имеет 1 выходной в году, а на n-ю ночь ловит',
+    highlight: 'отрицательные циклы',
     highlightColor: 'text-rose-400',
-    rest: 'веса и детектит отрицательные циклы за V-1 итераций.',
+    rest: '(бесконечную кормушку Джокера).',
     complexity: 'O(V · E)',
     border: 'border-rose-500/30 hover:border-rose-400/60',
     titleColor: 'text-rose-400',

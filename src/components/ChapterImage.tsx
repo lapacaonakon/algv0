@@ -1,19 +1,19 @@
-import dijkstraImg from '../assets/dijkstra-kind.jpg';
-import bellmanImg from '../assets/bellman-ford-truck.jpg';
+import dijkstraImg from '../assets/dijkstra-freakazoid.jpg';
+import bellmanImg from '../assets/bellman-ford-batman.jpg';
 import floydImg from '../assets/floyd-network.jpg';
 
 const imageMap: Record<string, { src: string; alt: string; caption: string; borderColor: string; captionColor: string }> = {
   dijkstra: {
     src: dijkstraImg,
-    alt: 'Фриказоид (Декстер Дуглас)',
-    caption: '⚡ Фриказоид (Декстер Дуглас) — работает только с неотрицательными весами!',
+    alt: 'Декстер Дуглас и Фриказоид',
+    caption: '⚡ Декстер Дуглас и Фриказоид — волна вируса распространяется строго по неотрицательным весам (w ≥ 0)!',
     borderColor: 'border-blue-500/30',
     captionColor: 'text-blue-400',
   },
   'bellman-ford': {
     src: bellmanImg,
-    alt: 'Фура по болоту',
-    caption: '🚚 Тяжёлая, но ей пофиг на ямы!',
+    alt: 'Бэтмен на машине Генри Форда',
+    caption: '🦇 Бэтмен на машине Форда — n-1 ночей патруля всех улиц и проверка n-й ночи на отрицательный цикл!',
     borderColor: 'border-rose-500/30',
     captionColor: 'text-rose-400',
   },

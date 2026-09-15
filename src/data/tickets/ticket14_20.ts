@@ -46,6 +46,9 @@ export const tickets14to20: Chapter[] = [
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         Аналогия 1: Декстер Дуглас и Фриказоид
                     </div>
+                    <div class="my-3 rounded-lg overflow-hidden border border-blue-500/40 shadow-lg">
+                        <img src="assets/dijkstra-freakazoid.jpg" alt="Декстер Дуглас у CRT-монитора и вирус Фриказоид" class="w-full h-52 object-cover object-center" />
+                    </div>
                     <p class="text-slate-300 text-sm mb-4">Декстер Дуглас пристально смотрит в винтажный <b>CRT-монитор</b> (пузатый ЭЛТ-телевизор). Ярко-синий электрический вирус <b>Фриказоид</b> молниеносно растекается по узлам граф-сети. Волна энергии Фриказоида переходит от текущего узла к самым близким непосещенным соседям. Так как веса рёбер неотрицательны (<span class="font-mono text-emerald-300">w ≥ 0</span>), зафиксированные вершины никогда не пересматриваются — вирус накрывает сеть строго по возрастанию расстояния!</p>
                 </div>
 
@@ -348,6 +351,9 @@ for _ in range(n):
                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
                     <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
                         Аналогия 1: Патруль Бэтмена на машине Форда
+                    </div>
+                    <div class="my-3 rounded-lg overflow-hidden border border-rose-500/40 shadow-lg">
+                        <img src="assets/bellman-ford-batman.jpg" alt="Бэтмен патрулирует Готэм в машине Генри Форда" class="w-full h-52 object-cover object-center" />
                     </div>
                     <p class="text-slate-300 text-sm mb-4">Бэтмен патрулирует Готэм <span class="font-mono text-emerald-300">n − 1</span> ночей подряд, объезжая абсолютно <b>все улицы</b> (рёбра) в кабине старой машины Генри Форда (не бэтмобиля!). У Бэтмена есть ровно <b>1 выходной в году</b>, когда он отдыхает и не возит преступников. На <span class="font-mono text-emerald-300">n</span>-ю ночь Бэтмен делает контрольный проезд: если за <span class="font-mono text-emerald-300">n</span>-ю ночь расстояние до какого-то района снова уменьшилось — значит, Джокер устроил бесконечную кормушку (отрицательный цикл)!</p>
                 </div>
