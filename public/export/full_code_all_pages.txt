@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            15.09.2026, 21:26:51
+Дата генерации:            15.09.2026, 22:44:30
 Файлов исходного кода:     111
 Суммарный объём кода:      1.98 MB
 Глав/билетов в пособии:    36
@@ -2605,7 +2605,7 @@ declare module '*.png' {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 17/111: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1201 | РАЗМЕР: 109.5 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1195 | РАЗМЕР: 109.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2917,21 +2917,16 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-4">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Код: вставка, merge, erase (Скрыто)
+                    🔍 Код: универсальная вставка, merge, erase (Скрыто)
                 </summary>
                 <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <p class="text-xs text-amber-300"><b>Универсальная вставка через Split + Merge (гарантирует свойство кучи всегда):</b></p>
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def insert(root, key, pri):
-    if root is None:
-        return Node(key, pri)
-    if key &lt;= root.key:                # равные x — влево
-        root.left = insert(root.left, key, pri)
-    else:
-        root.right = insert(root.right, key, pri)
-    return root
-
-for key, pri in pairs_sorted_by_pri_desc:   # порядок задаёт y
-    root = insert(root, key, pri)</pre>
+def insert(root, node):
+    if not root: return node
+    L, R = split(root, node.key)
+    return merge(merge(L, node), R)</pre>
+                    <p class="text-xs text-slate-400"><i>Замечание:</i> Простой BST-спуск сохраняет свойства кучи без поворотов только если элементы подаются на вход, будучи заранее отсортированными по приоритету <span class="font-mono">pri</span> (по убыванию).</p>
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
 def merge(a, b):                   # все x в a &lt; всех x в b
     if not a or not b: return a or b
@@ -2939,11 +2934,10 @@ def merge(a, b):                   # все x в a &lt; всех x в b
         a.right = merge(a.right, b); return a
     b.left = merge(a, b.left); return b
 
-def erase(root, key):              # удалить произвольную точку
-    if key &lt; root.key:  root.left  = erase(root.left, key)
-    elif key &gt; root.key: root.right = erase(root.right, key)
-    else: root = merge(root.left, root.right)
-    return root</pre>
+def erase(root, key):              # удалить произвольную точку за O(log n)
+    L, R = split(root, key)
+    L_left, L_target = split(L, key - 1)
+    return merge(L_left, R)</pre>
                 </div>
             </details>
         </div>
@@ -2977,14 +2971,14 @@ def erase(root, key):              # удалить произвольную т�
                     <p class="text-slate-400 text-xs mt-1">гарантии на отдельный запрос нет</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-emerald-700/60">
-                    <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций</p>
-                    <p class="text-emerald-300 font-bold">стоят O(m·log n)</p>
+                    <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций над n узлами</p>
+                    <p class="text-emerald-300 font-bold">стоят O((m + n) log n)</p>
                     <p class="text-slate-400 text-xs mt-1">амортизированное O(log n) на операцию</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
                     <p class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Память</p>
-                    <p class="text-white font-bold">O(n): ключ + 2 ссылки</p>
-                    <p class="text-slate-400 text-xs mt-1">легче AVL и красно-чёрного</p>
+                    <p class="text-white font-bold">O(n): ключ + 3 указателя</p>
+                    <p class="text-slate-400 text-xs mt-1">left, right и parent для удобных поворотов вверх</p>
                 </div>
             </div>
 
@@ -3812,7 +3806,7 @@ for (int i = 1; i < n; i++) {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 18/111: src/data/content_temp.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 484 | РАЗМЕР: 40.7 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 484 | РАЗМЕР: 40.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import type { Chapter } from "../types";
@@ -4284,14 +4278,14 @@ void dfs(int v, int p = -1) {
         </details>
 
         <div class="bg-indigo-950/60 p-6 rounded-xl border-l-4 border-indigo-500 mt-6">
-            <h4 class="text-lg font-bold text-indigo-400 mb-2">🧠 Взаимосвязь с Компонентами сильной связности (SCC) из Билета 10</h4>
+            <h4 class="text-lg font-bold text-indigo-400 mb-2">🧠 Различие концепций: Неориентированные vs Ориентированные графы</h4>
             <p class="text-slate-300 text-sm mb-4">
-                Это глубокий дуальный мост между ориентированными и неориентированными графами:
+                Важно чётко различать тип графа при решении задач связности:
             </p>
             <ul class="list-disc list-inside text-sm text-slate-300 space-y-2">
-                <li><strong class="text-rose-400">Точки сочленения (Билет 12)</strong> определены на <strong>неориентированных графах</strong> и показывают физическую уязвимость связей — вынь одну вершину, и весь континент распадется на изолированные осколки.</li>
-                <li><strong class="text-emerald-400">SCC (Билет 10)</strong> склеивают <strong>ориентированные циклы</strong> в единые независимые "конгломераты".</li>
-                <li><strong>Как точка сочленения рушит SCC? (Конденсация графа)</strong> Если любой орграф максимально сжать по алгоритму Косарайю, свернув каждую SCC в одну супер-вершину, мы получим ациклический граф (DAG). Если мы снимем направление с его ребер (сделаем неориентированным), то любая <strong class="text-indigo-400">точка сочленения</strong> в этом полученном скелете — это и есть критическая SCC! Если удалить эту супер-вершину, то рухнет глобальный маршрут между другими клубами сильной связности. Одно слабое звено изолирует целые касты SCC навсегда.</li>
+                <li><strong class="text-rose-400">Точки сочленения и мосты (Билеты 11–12)</strong> определены ИСКЛЮЧИТЕЛЬНО для <strong>неориентированных графов</strong>. Они описывают связность и блоки (двусвязные компоненты).</li>
+                <li><strong class="text-emerald-400">SCC и конденсация (Билет 10)</strong> определены ИСКЛЮЧИТЕЛЬНО для <strong>ориентированных графов</strong>. Сжатие SCC даёт ориентированный ациклический граф (DAG).</li>
+                <li><strong>Внимание:</strong> Нельзя путать эти понятия! Конденсация SCC и точки сочленения — это абсолютно разные математические структуры для разных типов графов.</li>
             </ul>
         </div>
     </div>
@@ -4453,7 +4447,7 @@ export const activeVizIds = [
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 20/111: src/data/debugRunner.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 207 | РАЗМЕР: 9.8 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 212 | РАЗМЕР: 9.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -4608,7 +4602,12 @@ def __tracer(frame, event, arg):
 __err = ""
 try:
     __sys.settrace(__tracer)
-    exec(compile(__src, "<user-code>", "exec"), {"__name__": "__main__"})
+    __init_globals = {
+        "__name__": "__main__",
+        "A": [5, 8, 3, 12, 7, 2, 0, 0],
+        "a": [5, 8, 3, 12, 7, 2, 0, 0],
+    }
+    exec(compile(__src, "<user-code>", "exec"), __init_globals)
 except __TraceLimit:
     pass
 except Exception:
@@ -5311,7 +5310,7 @@ export const GLOSSARY_LABELS: { label: string; id: string }[] = GLOSSARY.flatMap
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 22/111: src/data/graphContent.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 520 | РАЗМЕР: 44.6 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 520 | РАЗМЕР: 44.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -5466,8 +5465,8 @@ tree = [None, 40, 20, 60, 10, 30, 50, 70]   # tree[0] не используем,
     </div>
 
     <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
-        <h3 class="text-xl font-bold text-emerald-400 mb-4">2. Куча: минимум на вершине за O(1), всё остальное за O(log n)</h3>
-        <p class="text-slate-300 text-sm mb-4"><b>Куча (min-heap)</b> — почти полное дерево в массиве из пункта 1, у которого каждый родитель ≤ своих детей. Отсюда магия: минимум всегда лежит в <span class="font-mono text-emerald-300">h[0]</span>, а вставка и снятие минимума стоят <span class="font-mono text-emerald-300">O(log n)</span> — элемент просачивается вверх или вниз по цепочке родителей/детей. Полностью сортировать кучу не нужно: ей достаточно держать кандидата на вершине.</p>
+        <h3 class="text-xl font-bold text-emerald-400 mb-4">2. Двоичная куча: минимум за O(1), heapify за O(n), поиск O(n)</h3>
+        <p class="text-slate-300 text-sm mb-4"><b>Куча (min-heap)</b> — почти полное дерево в массиве, у которого каждый родитель ≤ своих детей. Минимум всегда лежит в <span class="font-mono text-emerald-300">h[0]</span> (просмотр за <span class="font-mono">O(1)</span>), а вставка и извлечение минимума стоят <span class="font-mono text-emerald-300">O(log n)</span>. <b>Важно:</b> Построение кучи из готового массива (<span class="font-mono">heapify</span>) выполняется за <span class="font-mono text-emerald-300">O(n)</span> времени. Поиск <i>произвольного</i> элемента в двоичной куче не оптимизирован и требует <span class="font-mono text-rose-300">O(n)</span> линейного перебора!</p>
         <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
 import heapq
 h = []
@@ -5837,7 +5836,7 @@ void buildLinks() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 23/111: src/data/quizzes.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 200 | РАЗМЕР: 13.4 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 200 | РАЗМЕР: 13.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 export interface QuizQuestion {
@@ -6008,14 +6007,14 @@ export const quizzes: Record<string, QuizQuestion[]> = {
   ],
   "planarity-euler-formula": [
     {
-      question: "Планарный граф имеет V=6, E=12. Возможно ли это?",
+      question: "Может ли простой планарный граф иметь V=6, E=12?",
       options: [
-        "Да, если это двудольный граф",
-        "Нет, нарушается неравенство E ≤ 3V - 6",
-        "Да, если нет треугольных граней"
+        "Да, возможно (например, граф октаэдра: 3V - 6 = 12)",
+        "Нет, такое число рёбер невозможно ни для какого планарного графа",
+        "Да, только если граф двудольный"
       ],
-      correctIndex: 1,
-      explanation: "E ≤ 3V - 6 => 12 ≤ 12 — на грани проходит. Но если граф двудольный (нет треугольников), то E ≤ 2V - 4 = 8. А у нас 12. Так что такой граф непланарен."
+      correctIndex: 0,
+      explanation: "Формула E ≤ 3V - 6 при V=6 даёт E ≤ 12. Для простого планарного графа E=12 возможно (граница достигается, например, в октаэдре). Однако если бы граф был двудольным, действовало бы более строгое ограничение E ≤ 2V - 4 = 8."
     },
     {
       question: "Сколько граней у планарного графа с V=7 и E=10?",
@@ -6341,7 +6340,7 @@ export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 25/111: src/data/vizSync.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1557 | РАЗМЕР: 92.0 KB
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1566 | РАЗМЕР: 92.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -6378,15 +6377,24 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "segment-trees": {
     vizTitle: "Дерево отрезков",
     stepNote: "Шаг = спуск по вершине v: либо читаем tree[v], либо толкаем lazy к детям 2·v и 2·v+1.",
-    code: `n = 8                       # длина массива (демо)
-tree = [0] * (2 * n)
-i = 0                       # лист: tree[n + i]
+    code: `A = [5, 8, 3, 12, 7, 2, 0, 0] # исходный массив A
+a = A                          # псевдоним a
+n = len(A)                     # длина массива n=8
 
-v, l, r = 1, 0, n - 1       # вершина и её отрезок
-m = (l + r) // 2            # граница детей 2v, 2v+1
-print(f"v={v} [{l}..{r}] mid={m}")`,
+tree = [0] * (2 * n)
+for idx in range(n):
+    tree[n + idx] = A[idx]
+for v_idx in range(n - 1, 0, -1):
+    tree[v_idx] = tree[2 * v_idx] + tree[2 * v_idx + 1]
+
+i = 0                          # индекс элемента массива
+v, l, r = 1, 0, n - 1          # вершина и её отрезок
+m = (l + r) // 2               # граница детей 2v, 2v+1
+print(f"v={v} [{l}..{r}] tree[v]={tree[v]}")`,
     variables: [
+      { name: "A / a", role: "исходный массив элементов A[0..N-1]", range: "A = [5, 8, 3, 12, 7, 2, 0, 0]" },
       { name: "n", role: "длина исходного массива; листья дерева лежат в tree[n … 2·n − 1]", range: "n = 8 на демо" },
+      { name: "tree", role: "массив дерева отрезков; tree[1] — корень (сумма всего отрезка)", range: "длина 2·n" },
       { name: "i", role: "индекс элемента массива; его лист — tree[n + i]", range: "0 … n−1" },
       { name: "v", role: "текущая вершина дерева отрезков", range: "1 … 2·n−1" },
       { name: "l, r", role: "границы отрезка, за который отвечает вершина v", range: "0 … n−1" },
@@ -7908,7 +7916,7 @@ export function buildInitTemplate(chapterId: string, chapterTitle: string, demoI
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 26/111: src/data/tickets/ticket1_segtree.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 217 | РАЗМЕР: 21.4 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 218 | РАЗМЕР: 21.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -7945,7 +7953,7 @@ export const ticket1Segtree: Chapter[] = [
 
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
                 <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Каждая вершина v хранит агрегат своего отрезка [l, r]: tree[v] = merge(tree[2v], tree[2v+1]), где m = (l + r) / 2. Запрос и обновление — O(log n), память — 4n.</p>
+                <p class="text-xl font-mono text-white">Каждая вершина v хранит агрегат своего отрезка [l, r]: tree[v] = merge(tree[2v], tree[2v+1]), где m = (l + r) / 2. Запрос и обновление — O(log n). Память: 4n для дерева с рекурсией и Lazy Propagation (или 2n для итеративного bottom-up без lazy).</p>
             </div>
 
             <p class="text-slate-300 text-sm mb-4">Массив из n чисел накрывают двоичным деревом: <b>корень</b> отвечает за весь отрезок <span class="font-mono text-emerald-300">[0, n−1]</span>, каждый внутренний узел делит свой отрезок пополам и отдаёт половины детям <span class="font-mono text-emerald-300">2v</span> и <span class="font-mono text-emerald-300">2v+1</span>, а <b>листья</b> — это одиночные элементы массива. В узле лежит не «кусок массива», а <b>ответ</b> на нём: сумма, минимум, максимум, НОД, количество единиц, И/ИЛИ — любая операция, которая умеет склеивать два соседних ответа в один (<span class="font-mono">merge</span>).</p>
@@ -8008,7 +8016,8 @@ export const ticket1Segtree: Chapter[] = [
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Дерево отрезков и префиксные суммы</b> (билет 5): префиксы отвечают на запрос за O(1), но строются один раз и умирают при первом обновлении элемента. Дерево отрезков платит O(log n) и живёт под обновлениями.</p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Дерево отрезков и разреженная таблица</b> (билет 2): sparse table даёт O(1) на идемпотентные запросы (min, gcd, И) по статическому массиву; сумма — не идемпотентна, там только дерево отрезков.</p>
-                <p class="text-slate-400 text-sm mb-1">· <b>4n и 2n</b>: рекурсивное дерево на отрезке [0, n−1] с произвольным n требует 4n ячеек (не 2n!) — иначе на n = 6 поймать переполнение. Ровно 2n хватает только у итеративной версии, где листья лежат в tree[n … 2n−1] и n — степень двойки (или используется схема «снизу вверх» для любого n).</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>4n и 2n</b>: Рекурсивное дерево отрезков (особенно с Lazy Propagation) требует <span class="font-mono text-emerald-300">4n</span> памяти из-за округления верхних уровней. Итеративная схема «снизу вверх» (bottom-up без lazy) обходится ровно <span class="font-mono text-emerald-300">2n</span> элементами.</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>Условия на Lazy Propagation</b>: Операция объединения ответов должна быть <b>ассоциативной</b>, а функция массового обновления должна быть согласована с операцией на отрезке и допускать композицию обновлений <span class="font-mono">(f ∘ g)(x) = f(g(x))</span>.</p>
                 <p class="text-slate-400 text-sm">· <b>lazy не «применяется к детям сразу»</b>: push нужен ровно перед спуском. Проталкивать лень во всё дерево — это O(n) и весь смысл теряется.</p>
             </div>
 
@@ -8131,7 +8140,7 @@ def query(l, r):                     # сумма на полуинтервал�
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 27/111: src/data/tickets/ticket14_20.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1235 | РАЗМЕР: 128.4 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1237 | РАЗМЕР: 129.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -8192,7 +8201,7 @@ export const tickets14to20: Chapter[] = [
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         Ограничения: минус ломает жадность
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Дейкстра <b>не пересматривает</b> зафиксированные вершины. Три вершины: <span class="font-mono text-emerald-300">s→a = 2</span>, <span class="font-mono text-emerald-300">s→b = 3</span>, <span class="font-mono text-emerald-300">b→a = −2</span>. Верно <span class="font-mono text-emerald-300">d[a] = 1</span> (через b), но алгоритм сначала вытащит <span class="font-mono text-emerald-300">a</span> с двойкой и зафиксирует её, а улучшение <span class="font-mono text-emerald-300">3 − 2 = 1</span> придёт слишком поздно. Есть отрицательные веса — идите в Форда—Беллмана (билет 15) или в Джонсона (билет 17).</p>
+                    <p class="text-slate-300 text-sm mb-4">Дейкстра <b>не пересматривает</b> зафиксированные вершины (без повторного добавления в кучу). Допустим: <span class="font-mono text-emerald-300">s→a = 2</span>, <span class="font-mono text-emerald-300">s→b = 3</span>, <span class="font-mono text-emerald-300">b→a = −2</span>, <span class="font-mono text-emerald-300">a→t = 1</span>. Настоящий кратчайший путь до <span class="font-mono">t</span> — это <span class="font-mono">s → b → a → t</span> веса <span class="font-mono">3 − 2 + 1 = 2</span>. Но Дейкстра сначала зафиксирует <span class="font-mono">a</span> с <span class="font-mono">d[a] = 2</span> и установит <span class="font-mono">d[t] = 3</span>. Когда <span class="font-mono">b</span> прорелаксирует <span class="font-mono">b→a</span>, зафиксированная вершина <span class="font-mono">a</span> уже не обновит <span class="font-mono">t</span>, и алгоритм выдаст неверный ответ 3 вместо 2. Есть отрицательные веса — используйте Форда—Беллмана (билет 15) или Джонсона (билет 17).</p>
                 </div>
             </div>
         </div>
@@ -9037,11 +9046,13 @@ using namespace std;
 const long long INF = 4e18;
 
 int n;
-vector&lt;vector&lt;long long&gt;&gt; d(n, vector&lt;long long&gt;(n, INF));
+vector&lt;vector&lt;long long&gt;&gt; d;
 
-void floyd() {
+void init_and_floyd() {
+    d.assign(n, vector&lt;long long&gt;(n, INF));
     for (int i = 0; i &lt; n; ++i) d[i][i] = 0;
-    for (int k = 0; k &lt; n; ++k)                 // k — внешний
+    // занесение рёбер: d[u][v] = min(d[u][v], w);
+    for (int k = 0; k &lt; n; ++k)                 // k — строго внешний! (i и j можно менять местами)
         for (int i = 0; i &lt; n; ++i) {
             if (d[i][k] == INF) continue;       // защита от INF + w
             for (int j = 0; j &lt; n; ++j) {
@@ -9094,7 +9105,7 @@ int center() {                                  // вершина с миним�
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Транзитивное замыкание (достижимость)</td><td class="py-2 pr-2 font-mono">r[i][j] |= r[i][k] &amp;&amp; r[k][j]</td><td class="py-2 font-mono">r[i][j] = есть ребро; r[i][i] = true</td></tr>
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Минимакс (самое «узкое» место пути)</td><td class="py-2 pr-2 font-mono">d[i][j] = min(d[i][j], max(d[i][k], d[k][j]))</td><td class="py-2 font-mono">d[i][j] = w(i,j); d[i][i] = 0</td></tr>
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Максимальный путь в DAG-подобной сети</td><td class="py-2 pr-2 font-mono">d[i][j] = max(d[i][j], d[i][k] + d[k][j])</td><td class="py-2 font-mono">только при отсутствии положительных циклов</td></tr>
-                            <tr class="align-top"><td class="py-2 pr-2 font-bold">Число кратчайших путей</td><td class="py-2 pr-2 font-mono">if d[i][k]+d[k][j] == d[i][j]: cnt[i][j] += cnt[i][k]·cnt[k][j]</td><td class="py-2 font-mono">cnt = 1 на рёбрах; следите за переполнением</td></tr>
+                            <tr class="align-top"><td class="py-2 pr-2 font-bold">Число кратчайших путей (с оговоркой)</td><td class="py-2 pr-2 font-mono">при d[i][k]+d[k][j] == d[i][j]: см. оговорку!</td><td class="py-2 font-mono">⚠️ Простая прибавлка cnt[i][k]*cnt[k][j] двойно считает пути (multi-counting)! Нужен DAG DP или пересчёт при улучшении d[i][j]</td></tr>
                         </tbody>
                     </table>
                     <p class="text-slate-400 text-xs mt-3">Замыкание удобно ускорять битсетами: <span class="font-mono">r[i] |= r[k]</span> при <span class="font-mono">r[i][k]</span> — это <span class="font-mono">O(V³ / 64)</span> вместо <span class="font-mono">O(V³)</span>.</p>
@@ -9108,11 +9119,11 @@ int center() {                                  // вершина с миним�
             <div class="bg-rose-950/30 p-5 rounded-lg border border-rose-700/40">
                 <p class="text-sm font-bold text-rose-300 mb-3">Где обычно теряют баллы</p>
                 <ul class="list-disc pl-5 space-y-2 text-sm text-slate-300">
-                    <li><b>Порядок циклов.</b> <span class="font-mono text-emerald-300">k</span> — строго внешний. При <span class="font-mono">(i, j, k)</span> на демо-графе 4 клетки из 49 остаются ∞ вместо верных значений (например, <span class="font-mono">d[2][1] = 999</span> вместо 4).</li>
+                    <li><b>Порядок циклов.</b> <span class="font-mono text-emerald-300">k</span> — строго внешний цикл. Перебор <span class="font-mono">i</span> и <span class="font-mono">j</span> внутри цикла по <span class="font-mono">k</span> можно делать в любом порядке (<span class="font-mono">k, i, j</span> или <span class="font-mono">k, j, i</span>).</li>
                     <li><b>Диагональ.</b> <span class="font-mono text-emerald-300">d[i][i] = 0</span> до начала. Если оставить ∞, алгоритм «починит» её только при наличии цикла, а пересчёт на месте станет некорректным.</li>
                     <li><b>Переполнение INF.</b> <span class="font-mono">INF + INF</span> при <span class="font-mono">INF = INT_MAX</span> уходит в минус и «улучшает» всё подряд. Пропускайте пары с ∞ (как в коде выше) или берите INF ≈ 4·10¹⁸ с <span class="font-mono">long long</span>.</li>
                     <li><b>Параллельные рёбра.</b> Во входной матрице нужно оставить <b>минимальное</b> из них, иначе <span class="font-mono">d[u][v]</span> стартует с худшего веса.</li>
-                    <li><b>Отрицательные циклы.</b> Формула при <span class="font-mono">d[k][k] &lt; 0</span> расходится: для пар, связанных с циклом, ответ <span class="font-mono">−∞</span>. Сначала проверьте диагональ, затем пометьте такие пары: <span class="font-mono">d[i][j] = −∞</span>, если существует <span class="font-mono">k</span> с <span class="font-mono">d[k][k] &lt; 0</span>, <span class="font-mono">d[i][k] &lt; ∞</span>, <span class="font-mono">d[k][j] &lt; ∞</span>.</li>
+                    <li><b>Отрицательные циклы.</b> Если <span class="font-mono">d[k][k] &lt; 0</span>, то вершина <span class="font-mono">k</span> принадлежит отрицательному циклу. Расстояние <span class="font-mono text-rose-300">−∞</span> возникает у всех вершин, <b>достижимых ИЗ цикла в ПРЯМОМ графе</b>. Для их пометки запускается BFS/DFS из вершин цикла по <b>прямым рёбрам</b>.</li>
                     <li><b>Недостижимость ≠ 0.</b> В орграфе <span class="font-mono">d[i][j] = ∞</span> — обычный ответ (на демо-графе 11 таких пар из 49). Выводить 999 или 0 как «расстояние» нельзя.</li>
                     <li><b>Память.</b> <span class="font-mono">V²</span> клеток: при <span class="font-mono">V = 5000</span> это 25·10⁶ значений (≈100 МБ на <span class="font-mono">int</span>) — обычно уже за пределами ограничения. Для разреженных графов и одного истока берите Дейкстру.</li>
                     <li><b>Сам путь.</b> Матрица <span class="font-mono">d</span> даёт только длины. Нужен маршрут — ведите параллельно <span class="font-mono">nxt[i][j]</span> (как в коде) или восстанавливайте рекурсивно через посредников.</li>
@@ -9372,7 +9383,7 @@ def bfs01(g, s, n):                    # g[v] = [(to, w)], w ∈ {0, 1}
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 28/111: src/data/tickets/ticket18_20_mst.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 231 | РАЗМЕР: 20.8 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 231 | РАЗМЕР: 21.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -9410,7 +9421,7 @@ export const tickets18to20Mst: Chapter[] = [
                 <p class="text-xl font-mono text-white">Остовное дерево — подграф, в котором все V вершин, ровно V − 1 ребро, нет циклов и он связен. MST — такое остовное дерево, у которого сумма весов рёбер минимальна.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mb-4">Все три алгоритма — <b>жадные</b>, и все три опираются на одну теорему. <b>Свойство разреза (cut property):</b> разрежем вершины на две части как угодно; самое лёгкое ребро, пересекающее разрез, входит в некоторое MST. Алгоритмы отличаются только тем, <b>какой разрез</b> они выбирают на каждом шаге: Краскал — «одна вершина против всех», Прим — «выросшее дерево против остального графа», Борувка — «каждая компонента против всех сразу».</p>
+            <p class="text-slate-300 text-sm mb-4">Все три алгоритма — <b>жадные</b>, и все три опираются на одну теорему. <b>Свойство разреза (cut property):</b> для любого разреза <span class="font-mono">(S, V \ S)</span> самое лёгкое ребро, пересекающее разрез, входит в некоторое MST. Алгоритмы отличаются тем, <b>какой разрез</b> они выбирают: Краскал берёт минимальное ребро между двумя компонентами текущего леса (разрез — компонента против всех), Прим растёт от текущей компоненты дерева, а Борувка строит разрезы для всех компонент одновременно.</p>
 
             <div class="bg-slate-800 p-5 rounded-lg border border-amber-500/40 my-6">
                 <h4 class="text-amber-400 font-bold text-base mb-2">💡 Ассоциация: остоВ vs остРов</h4>
@@ -9419,7 +9430,7 @@ export const tickets18to20Mst: Chapter[] = [
                 <p class="text-slate-300 text-sm">Остов — это ещё и <b>скелет</b> (остов корабля, остов здания). Минимальный остов = скелет графа: минимум костей, чтобы всё держалось и не разваливалось. Добавишь кость — получишь цикл.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mb-4">Второй инструмент — <b>свойство цикла (cycle property):</b> самое тяжёлое ребро в цикле никогда не входит в MST. Именно его использует Краскал, когда отбрасывает ребро, замыкающее цикл: раз ребро самое тяжёлое в образовавшемся цикле (рёбра-то мы берём по возрастанию), оно лишнее.</p>
+            <p class="text-slate-300 text-sm mb-4">Второй инструмент — <b>свойство цикла (cycle property):</b> <b>строго самое тяжёлое</b> ребро в любом цикле никогда не входит ни в одно MST. (Если в цикле несколько рёбер с одинаковым максимальным весом, по крайней мере одно из них не входит в данный MST). Именно его использует Краскал, отбрасывая рёбра, замыкающие цикл.</p>
 
             <div class="overflow-x-auto my-6">
                 <table class="w-full text-xs text-left border-collapse min-w-[640px]">
@@ -9484,7 +9495,7 @@ export const tickets18to20Mst: Chapter[] = [
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-6">
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· <b>MST и кратчайшие пути — разные задачи.</b> Дейкстра (билет 14) минимизирует расстояние от одной вершины до каждой; MST минимизирует суммарный вес дерева. Дерево Прима похоже на дерево Дейкстры, но ключ в куче другой: у Прима — вес ребра к дереву, у Дейкстры — расстояние от старта. На графе с одним «длинным» ребром ответы расходятся.</p>
-                <p class="text-slate-400 text-sm mb-1">· <b>«MST единственно»</b> — единственно только при попарно различных весах. При равных весах деревьев может быть несколько, но их <i>суммарный вес</i> всегда один.</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>«MST единственно»</b> — попарная различность весов рёбер является <b>достаточным</b>, но НЕ необходимым условием единственности MST (граф с одинаковыми весами также может иметь единственное MST).</p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Краскал без DSU</b> превращается в O(E·V): проверка «не замыкает ли цикл» обходом вместо почти-константного find/union.</p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Рёбер в ответе V − 1</b>, а не V. Если в конце их меньше — граф был несвязный, и Краскал построил минимальный остовный <i>лес</i>.</p>
                 <p class="text-slate-400 text-sm">· <b>Борувка: два племени могут выбрать друг друга одновременно</b> — ребро добавится один раз, DSU спасает от дубля (find(u) == find(v) → пропускаем).</p>
@@ -9596,7 +9607,7 @@ print(total)</pre>
                     <p>· Чем Прим отличается от Дейкстры? — ключом в куче (вес ребра против расстояния от старта) и целью (дерево минимального веса против дерева кратчайших путей).</p>
                     <p>· Какой алгоритм лучше на плотном графе (E ≈ V²)? — Прим без кучи, O(V²): сортировка E рёбер у Краскала дороже.</p>
                     <p>· Зачем нужна Борувка, если есть Краскал? — она естественно параллельная: cheapest-рёбра для всех компонент ищутся независимо, поэтому её любят на GPU и в распределённых системах.</p>
-                    <p>· Что если граф несвязный? — все три построят минимальный остовный <b>лес</b>; рёбер будет V − (число компонент).</p>
+                    <p>· Что если граф несвязный? — Прим за один запуск от $s$ построит остов только для одной компоненты; для построения минимального остовного <b>леса</b> (MSF) Прим нужно обернуть во внешний цикл по непосещённым вершинам. Краскал и Борувка строят лес автоматически.</p>
                     <p>· Как найти второе по величине остовное дерево? — для каждого ребра не из MST добавляем его и убираем максимальное ребро на образовавшемся цикле (LCA + максимум на пути).</p>
                 </div>
             </details>
@@ -10056,7 +10067,7 @@ def is_bipartite(n, graph):
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 30/111: src/data/tickets/ticket6_13.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 576 | РАЗМЕР: 44.0 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 576 | РАЗМЕР: 44.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../../types";
@@ -10191,9 +10202,9 @@ while (!q.empty()) {
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-blue-400 mb-4">7.1 Планарность и формула Эйлера</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
-                <p class="text-lg text-blue-300 italic mb-2">Формула Эйлера (для связного плоского графа):</p>
+                <p class="text-lg text-blue-300 italic mb-2">Формула Эйлера (для связного плоского графа, c = 1):</p>
                 <p class="text-2xl font-mono text-white">V − E + F = 2</p>
-                <p class="text-xs text-slate-400 mt-1">(V — вершины, E — рёбра, F — грани, включая внешнюю бесконечную грань)</p>
+                <p class="text-xs text-slate-400 mt-1">(Если c компонент связности: V − E + F = 1 + c. V — вершины, E — рёбра, F — грани, включая внешнюю)</p>
             </div>
 
             <div class="space-y-4 text-slate-300 text-sm">
@@ -10229,7 +10240,7 @@ while (!q.empty()) {
             <div class="space-y-3 text-slate-300 text-sm">
                 <p><b>Сложность задачи раскраски:</b></p>
                 <ul class="list-disc list-inside space-y-2 ml-2">
-                    <li><b>k = 2 (2-раскрашиваемость):</b> задача проверки двудольности графа, решается за <b>полиномиальное время O(V + E)</b> обычным BFS/DFS обходом.</li>
+                    <li><b>k = 2 (2-раскрашиваемость):</b> граф является двудольным ⇔ <span class="font-mono text-emerald-300">χ(G) ≤ 2</span> ⇔ граф не содержит нечётных циклов. (Пустой граф без рёбер имеет <span class="font-mono">χ(G) = 1</span>; если есть хотя бы одно ребро — <span class="font-mono">χ(G) = 2</span>). Задача решается за <b>O(V + E)</b> с помощью BFS/DFS.</li>
                     <li><b>k ≥ 3 (k-colorability):</b> задача является <b>NP-полной</b> (decision-задача: можно ли раскрасить в k цветов).</li>
                 </ul>
 
@@ -22348,7 +22359,7 @@ export const SalmonAutomatonWidget: React.FC = () => {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 67/111: src/components/SegmentTreeVisualizer.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 558 | РАЗМЕР: 31.7 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 570 | РАЗМЕР: 32.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -22703,11 +22714,23 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 export function SegmentTreeVisualizer() {
   const runtime = useVizRuntime();
   const liveI = vizNumber(runtime?.variables?.i);
+  const liveA = vizArray(runtime?.variables?.A) || vizArray(runtime?.variables?.a);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
   const [qR, setQR] = useState(4);
   const [view, setView] = useState<'build' | 'queries' | 'theory'>('build');
+
+  // Update array from live compiler variables A / a if present
+  useEffect(() => {
+    if (liveA && Array.isArray(liveA)) {
+      const nums = liveA.filter((x): x is number => typeof x === 'number');
+      if (nums.length > 0) {
+        setArr(nums);
+        setCustomInput(nums.join(', '));
+      }
+    }
+  }, [liveA]);
 
   // Clamp query range when array changes
   useEffect(() => {
@@ -36927,5 +36950,5 @@ export const myChapters: Chapter[] = [
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 15.09.2026, 21:26:51
+КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 15.09.2026, 22:44:30
 ==========================================================================================================================================
