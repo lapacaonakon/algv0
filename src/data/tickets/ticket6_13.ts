@@ -130,9 +130,9 @@ while (!q.empty()) {
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-blue-400 mb-4">7.1 Планарность и формула Эйлера</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
-                <p class="text-lg text-blue-300 italic mb-2">Формула Эйлера (для связного плоского графа):</p>
+                <p class="text-lg text-blue-300 italic mb-2">Формула Эйлера (для связного плоского графа, c = 1):</p>
                 <p class="text-2xl font-mono text-white">V − E + F = 2</p>
-                <p class="text-xs text-slate-400 mt-1">(V — вершины, E — рёбра, F — грани, включая внешнюю бесконечную грань)</p>
+                <p class="text-xs text-slate-400 mt-1">(Если c компонент связности: V − E + F = 1 + c. V — вершины, E — рёбра, F — грани, включая внешнюю)</p>
             </div>
 
             <div class="space-y-4 text-slate-300 text-sm">
@@ -168,7 +168,7 @@ while (!q.empty()) {
             <div class="space-y-3 text-slate-300 text-sm">
                 <p><b>Сложность задачи раскраски:</b></p>
                 <ul class="list-disc list-inside space-y-2 ml-2">
-                    <li><b>k = 2 (2-раскрашиваемость):</b> задача проверки двудольности графа, решается за <b>полиномиальное время O(V + E)</b> обычным BFS/DFS обходом.</li>
+                    <li><b>k = 2 (2-раскрашиваемость):</b> граф является двудольным ⇔ <span class="font-mono text-emerald-300">χ(G) ≤ 2</span> ⇔ граф не содержит нечётных циклов. (Пустой граф без рёбер имеет <span class="font-mono">χ(G) = 1</span>; если есть хотя бы одно ребро — <span class="font-mono">χ(G) = 2</span>). Задача решается за <b>O(V + E)</b> с помощью BFS/DFS.</li>
                     <li><b>k ≥ 3 (k-colorability):</b> задача является <b>NP-полной</b> (decision-задача: можно ли раскрасить в k цветов).</li>
                 </ul>
 

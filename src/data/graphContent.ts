@@ -150,8 +150,8 @@ tree = [None, 40, 20, 60, 10, 30, 50, 70]   # tree[0] не используем,
     </div>
 
     <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
-        <h3 class="text-xl font-bold text-emerald-400 mb-4">2. Куча: минимум на вершине за O(1), всё остальное за O(log n)</h3>
-        <p class="text-slate-300 text-sm mb-4"><b>Куча (min-heap)</b> — почти полное дерево в массиве из пункта 1, у которого каждый родитель ≤ своих детей. Отсюда магия: минимум всегда лежит в <span class="font-mono text-emerald-300">h[0]</span>, а вставка и снятие минимума стоят <span class="font-mono text-emerald-300">O(log n)</span> — элемент просачивается вверх или вниз по цепочке родителей/детей. Полностью сортировать кучу не нужно: ей достаточно держать кандидата на вершине.</p>
+        <h3 class="text-xl font-bold text-emerald-400 mb-4">2. Двоичная куча: минимум за O(1), heapify за O(n), поиск O(n)</h3>
+        <p class="text-slate-300 text-sm mb-4"><b>Куча (min-heap)</b> — почти полное дерево в массиве, у которого каждый родитель ≤ своих детей. Минимум всегда лежит в <span class="font-mono text-emerald-300">h[0]</span> (просмотр за <span class="font-mono">O(1)</span>), а вставка и извлечение минимума стоят <span class="font-mono text-emerald-300">O(log n)</span>. <b>Важно:</b> Построение кучи из готового массива (<span class="font-mono">heapify</span>) выполняется за <span class="font-mono text-emerald-300">O(n)</span> времени. Поиск <i>произвольного</i> элемента в двоичной куче не оптимизирован и требует <span class="font-mono text-rose-300">O(n)</span> линейного перебора!</p>
         <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
 import heapq
 h = []

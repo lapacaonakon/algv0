@@ -307,21 +307,16 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-4">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Код: вставка, merge, erase (Скрыто)
+                    🔍 Код: универсальная вставка, merge, erase (Скрыто)
                 </summary>
                 <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <p class="text-xs text-amber-300"><b>Универсальная вставка через Split + Merge (гарантирует свойство кучи всегда):</b></p>
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def insert(root, key, pri):
-    if root is None:
-        return Node(key, pri)
-    if key &lt;= root.key:                # равные x — влево
-        root.left = insert(root.left, key, pri)
-    else:
-        root.right = insert(root.right, key, pri)
-    return root
-
-for key, pri in pairs_sorted_by_pri_desc:   # порядок задаёт y
-    root = insert(root, key, pri)</pre>
+def insert(root, node):
+    if not root: return node
+    L, R = split(root, node.key)
+    return merge(merge(L, node), R)</pre>
+                    <p class="text-xs text-slate-400"><i>Замечание:</i> Простой BST-спуск сохраняет свойства кучи без поворотов только если элементы подаются на вход, будучи заранее отсортированными по приоритету <span class="font-mono">pri</span> (по убыванию).</p>
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
 def merge(a, b):                   # все x в a &lt; всех x в b
     if not a or not b: return a or b
@@ -329,11 +324,10 @@ def merge(a, b):                   # все x в a &lt; всех x в b
         a.right = merge(a.right, b); return a
     b.left = merge(a, b.left); return b
 
-def erase(root, key):              # удалить произвольную точку
-    if key &lt; root.key:  root.left  = erase(root.left, key)
-    elif key &gt; root.key: root.right = erase(root.right, key)
-    else: root = merge(root.left, root.right)
-    return root</pre>
+def erase(root, key):              # удалить произвольную точку за O(log n)
+    L, R = split(root, key)
+    L_left, L_target = split(L, key - 1)
+    return merge(L_left, R)</pre>
                 </div>
             </details>
         </div>
@@ -367,14 +361,14 @@ def erase(root, key):              # удалить произвольную т�
                     <p class="text-slate-400 text-xs mt-1">гарантии на отдельный запрос нет</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-emerald-700/60">
-                    <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций</p>
-                    <p class="text-emerald-300 font-bold">стоят O(m·log n)</p>
+                    <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций над n узлами</p>
+                    <p class="text-emerald-300 font-bold">стоят O((m + n) log n)</p>
                     <p class="text-slate-400 text-xs mt-1">амортизированное O(log n) на операцию</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
                     <p class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Память</p>
-                    <p class="text-white font-bold">O(n): ключ + 2 ссылки</p>
-                    <p class="text-slate-400 text-xs mt-1">легче AVL и красно-чёрного</p>
+                    <p class="text-white font-bold">O(n): ключ + 3 указателя</p>
+                    <p class="text-slate-400 text-xs mt-1">left, right и parent для удобных поворотов вверх</p>
                 </div>
             </div>
 

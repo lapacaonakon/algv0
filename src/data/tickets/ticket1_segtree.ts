@@ -32,7 +32,7 @@ export const ticket1Segtree: Chapter[] = [
 
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
                 <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Каждая вершина v хранит агрегат своего отрезка [l, r]: tree[v] = merge(tree[2v], tree[2v+1]), где m = (l + r) / 2. Запрос и обновление — O(log n), память — 4n.</p>
+                <p class="text-xl font-mono text-white">Каждая вершина v хранит агрегат своего отрезка [l, r]: tree[v] = merge(tree[2v], tree[2v+1]), где m = (l + r) / 2. Запрос и обновление — O(log n). Память: 4n для дерева с рекурсией и Lazy Propagation (или 2n для итеративного bottom-up без lazy).</p>
             </div>
 
             <p class="text-slate-300 text-sm mb-4">Массив из n чисел накрывают двоичным деревом: <b>корень</b> отвечает за весь отрезок <span class="font-mono text-emerald-300">[0, n−1]</span>, каждый внутренний узел делит свой отрезок пополам и отдаёт половины детям <span class="font-mono text-emerald-300">2v</span> и <span class="font-mono text-emerald-300">2v+1</span>, а <b>листья</b> — это одиночные элементы массива. В узле лежит не «кусок массива», а <b>ответ</b> на нём: сумма, минимум, максимум, НОД, количество единиц, И/ИЛИ — любая операция, которая умеет склеивать два соседних ответа в один (<span class="font-mono">merge</span>).</p>
@@ -95,7 +95,8 @@ export const ticket1Segtree: Chapter[] = [
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Дерево отрезков и префиксные суммы</b> (билет 5): префиксы отвечают на запрос за O(1), но строются один раз и умирают при первом обновлении элемента. Дерево отрезков платит O(log n) и живёт под обновлениями.</p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Дерево отрезков и разреженная таблица</b> (билет 2): sparse table даёт O(1) на идемпотентные запросы (min, gcd, И) по статическому массиву; сумма — не идемпотентна, там только дерево отрезков.</p>
-                <p class="text-slate-400 text-sm mb-1">· <b>4n и 2n</b>: рекурсивное дерево на отрезке [0, n−1] с произвольным n требует 4n ячеек (не 2n!) — иначе на n = 6 поймать переполнение. Ровно 2n хватает только у итеративной версии, где листья лежат в tree[n … 2n−1] и n — степень двойки (или используется схема «снизу вверх» для любого n).</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>4n и 2n</b>: Рекурсивное дерево отрезков (особенно с Lazy Propagation) требует <span class="font-mono text-emerald-300">4n</span> памяти из-за округления верхних уровней. Итеративная схема «снизу вверх» (bottom-up без lazy) обходится ровно <span class="font-mono text-emerald-300">2n</span> элементами.</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>Условия на Lazy Propagation</b>: Операция объединения ответов должна быть <b>ассоциативной</b>, а функция массового обновления должна быть согласована с операцией на отрезке и допускать композицию обновлений <span class="font-mono">(f ∘ g)(x) = f(g(x))</span>.</p>
                 <p class="text-slate-400 text-sm">· <b>lazy не «применяется к детям сразу»</b>: push нужен ровно перед спуском. Проталкивать лень во всё дерево — это O(n) и весь смысл теряется.</p>
             </div>
 

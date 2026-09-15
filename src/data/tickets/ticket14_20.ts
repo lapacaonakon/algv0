@@ -56,7 +56,7 @@ export const tickets14to20: Chapter[] = [
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         Ограничения: минус ломает жадность
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Дейкстра <b>не пересматривает</b> зафиксированные вершины. Три вершины: <span class="font-mono text-emerald-300">s→a = 2</span>, <span class="font-mono text-emerald-300">s→b = 3</span>, <span class="font-mono text-emerald-300">b→a = −2</span>. Верно <span class="font-mono text-emerald-300">d[a] = 1</span> (через b), но алгоритм сначала вытащит <span class="font-mono text-emerald-300">a</span> с двойкой и зафиксирует её, а улучшение <span class="font-mono text-emerald-300">3 − 2 = 1</span> придёт слишком поздно. Есть отрицательные веса — идите в Форда—Беллмана (билет 15) или в Джонсона (билет 17).</p>
+                    <p class="text-slate-300 text-sm mb-4">Дейкстра <b>не пересматривает</b> зафиксированные вершины (без повторного добавления в кучу). Допустим: <span class="font-mono text-emerald-300">s→a = 2</span>, <span class="font-mono text-emerald-300">s→b = 3</span>, <span class="font-mono text-emerald-300">b→a = −2</span>, <span class="font-mono text-emerald-300">a→t = 1</span>. Настоящий кратчайший путь до <span class="font-mono">t</span> — это <span class="font-mono">s → b → a → t</span> веса <span class="font-mono">3 − 2 + 1 = 2</span>. Но Дейкстра сначала зафиксирует <span class="font-mono">a</span> с <span class="font-mono">d[a] = 2</span> и установит <span class="font-mono">d[t] = 3</span>. Когда <span class="font-mono">b</span> прорелаксирует <span class="font-mono">b→a</span>, зафиксированная вершина <span class="font-mono">a</span> уже не обновит <span class="font-mono">t</span>, и алгоритм выдаст неверный ответ 3 вместо 2. Есть отрицательные веса — используйте Форда—Беллмана (билет 15) или Джонсона (билет 17).</p>
                 </div>
             </div>
         </div>
@@ -901,11 +901,13 @@ using namespace std;
 const long long INF = 4e18;
 
 int n;
-vector&lt;vector&lt;long long&gt;&gt; d(n, vector&lt;long long&gt;(n, INF));
+vector&lt;vector&lt;long long&gt;&gt; d;
 
-void floyd() {
+void init_and_floyd() {
+    d.assign(n, vector&lt;long long&gt;(n, INF));
     for (int i = 0; i &lt; n; ++i) d[i][i] = 0;
-    for (int k = 0; k &lt; n; ++k)                 // k — внешний
+    // занесение рёбер: d[u][v] = min(d[u][v], w);
+    for (int k = 0; k &lt; n; ++k)                 // k — строго внешний! (i и j можно менять местами)
         for (int i = 0; i &lt; n; ++i) {
             if (d[i][k] == INF) continue;       // защита от INF + w
             for (int j = 0; j &lt; n; ++j) {
@@ -958,7 +960,7 @@ int center() {                                  // вершина с миним�
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Транзитивное замыкание (достижимость)</td><td class="py-2 pr-2 font-mono">r[i][j] |= r[i][k] &amp;&amp; r[k][j]</td><td class="py-2 font-mono">r[i][j] = есть ребро; r[i][i] = true</td></tr>
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Минимакс (самое «узкое» место пути)</td><td class="py-2 pr-2 font-mono">d[i][j] = min(d[i][j], max(d[i][k], d[k][j]))</td><td class="py-2 font-mono">d[i][j] = w(i,j); d[i][i] = 0</td></tr>
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Максимальный путь в DAG-подобной сети</td><td class="py-2 pr-2 font-mono">d[i][j] = max(d[i][j], d[i][k] + d[k][j])</td><td class="py-2 font-mono">только при отсутствии положительных циклов</td></tr>
-                            <tr class="align-top"><td class="py-2 pr-2 font-bold">Число кратчайших путей</td><td class="py-2 pr-2 font-mono">if d[i][k]+d[k][j] == d[i][j]: cnt[i][j] += cnt[i][k]·cnt[k][j]</td><td class="py-2 font-mono">cnt = 1 на рёбрах; следите за переполнением</td></tr>
+                            <tr class="align-top"><td class="py-2 pr-2 font-bold">Число кратчайших путей (с оговоркой)</td><td class="py-2 pr-2 font-mono">при d[i][k]+d[k][j] == d[i][j]: см. оговорку!</td><td class="py-2 font-mono">⚠️ Простая прибавлка cnt[i][k]*cnt[k][j] двойно считает пути (multi-counting)! Нужен DAG DP или пересчёт при улучшении d[i][j]</td></tr>
                         </tbody>
                     </table>
                     <p class="text-slate-400 text-xs mt-3">Замыкание удобно ускорять битсетами: <span class="font-mono">r[i] |= r[k]</span> при <span class="font-mono">r[i][k]</span> — это <span class="font-mono">O(V³ / 64)</span> вместо <span class="font-mono">O(V³)</span>.</p>
@@ -972,11 +974,11 @@ int center() {                                  // вершина с миним�
             <div class="bg-rose-950/30 p-5 rounded-lg border border-rose-700/40">
                 <p class="text-sm font-bold text-rose-300 mb-3">Где обычно теряют баллы</p>
                 <ul class="list-disc pl-5 space-y-2 text-sm text-slate-300">
-                    <li><b>Порядок циклов.</b> <span class="font-mono text-emerald-300">k</span> — строго внешний. При <span class="font-mono">(i, j, k)</span> на демо-графе 4 клетки из 49 остаются ∞ вместо верных значений (например, <span class="font-mono">d[2][1] = 999</span> вместо 4).</li>
+                    <li><b>Порядок циклов.</b> <span class="font-mono text-emerald-300">k</span> — строго внешний цикл. Перебор <span class="font-mono">i</span> и <span class="font-mono">j</span> внутри цикла по <span class="font-mono">k</span> можно делать в любом порядке (<span class="font-mono">k, i, j</span> или <span class="font-mono">k, j, i</span>).</li>
                     <li><b>Диагональ.</b> <span class="font-mono text-emerald-300">d[i][i] = 0</span> до начала. Если оставить ∞, алгоритм «починит» её только при наличии цикла, а пересчёт на месте станет некорректным.</li>
                     <li><b>Переполнение INF.</b> <span class="font-mono">INF + INF</span> при <span class="font-mono">INF = INT_MAX</span> уходит в минус и «улучшает» всё подряд. Пропускайте пары с ∞ (как в коде выше) или берите INF ≈ 4·10¹⁸ с <span class="font-mono">long long</span>.</li>
                     <li><b>Параллельные рёбра.</b> Во входной матрице нужно оставить <b>минимальное</b> из них, иначе <span class="font-mono">d[u][v]</span> стартует с худшего веса.</li>
-                    <li><b>Отрицательные циклы.</b> Формула при <span class="font-mono">d[k][k] &lt; 0</span> расходится: для пар, связанных с циклом, ответ <span class="font-mono">−∞</span>. Сначала проверьте диагональ, затем пометьте такие пары: <span class="font-mono">d[i][j] = −∞</span>, если существует <span class="font-mono">k</span> с <span class="font-mono">d[k][k] &lt; 0</span>, <span class="font-mono">d[i][k] &lt; ∞</span>, <span class="font-mono">d[k][j] &lt; ∞</span>.</li>
+                    <li><b>Отрицательные циклы.</b> Если <span class="font-mono">d[k][k] &lt; 0</span>, то вершина <span class="font-mono">k</span> принадлежит отрицательному циклу. Расстояние <span class="font-mono text-rose-300">−∞</span> возникает у всех вершин, <b>достижимых ИЗ цикла в ПРЯМОМ графе</b>. Для их пометки запускается BFS/DFS из вершин цикла по <b>прямым рёбрам</b>.</li>
                     <li><b>Недостижимость ≠ 0.</b> В орграфе <span class="font-mono">d[i][j] = ∞</span> — обычный ответ (на демо-графе 11 таких пар из 49). Выводить 999 или 0 как «расстояние» нельзя.</li>
                     <li><b>Память.</b> <span class="font-mono">V²</span> клеток: при <span class="font-mono">V = 5000</span> это 25·10⁶ значений (≈100 МБ на <span class="font-mono">int</span>) — обычно уже за пределами ограничения. Для разреженных графов и одного истока берите Дейкстру.</li>
                     <li><b>Сам путь.</b> Матрица <span class="font-mono">d</span> даёт только длины. Нужен маршрут — ведите параллельно <span class="font-mono">nxt[i][j]</span> (как в коде) или восстанавливайте рекурсивно через посредников.</li>
