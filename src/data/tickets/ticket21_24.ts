@@ -20,27 +20,15 @@ export const tickets21to24: Chapter[] = [
                 <p class="text-xl font-mono text-white">π[i] — максимальная длина такого префикса строки, который также является её суффиксом, оканчивающимся в позиции i.</p>
             </div>
             
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <!-- Аналогия 1 -->
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🤦‍♂️ Аналогия 1: Поиск без отката
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                      Мы идём по строке слева направо. В каждой позиции <i>i</i> мы спрашиваем: «Какой самый длинный кусок из начала всей строки СЕЙЧАС закончился под моим пальцем?»<br><br>
-                      Представь, ты ищешь в тексте слово <code>abacaba</code>. Ты дошел до <code>abacab</code>, и следующая буква — <code>x</code>. Тупой алгоритм начнет искать заново со второй буквы. КМП посмотрит и скажет: «Спокойно: у совпавшего куска <code>abacab</code> суффикс <code>ab</code> — это ровно начало нашего слова, π = 2. Не перечитываем текст, а продолжаем сравнение с 3-й буквы шаблона». Это поиск за O(N) без возвратов.
-                    </p>
-                </div>
-                
-                <!-- Аналогия 2 -->
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🤖 Аналогия 2: LLM стриминг
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        Для LLM, которая стримит токены по одному, это крутой способ искать запрещенку, не перелопачивая весь контекст на каждом шаге. Если мы частично совпали с запрещённым словом, но потом пришёл не тот токен, π-функция мгновенно говорит нам, с какого места этого слова мы можем продолжить поиск, не возвращаясь назад в потоке!
-                    </p>
-                </div>
+            <div class="bg-slate-800/90 p-5 rounded-xl border-2 border-indigo-500/60 my-6 shadow-md">
+                <h4 class="text-indigo-300 font-bold text-base mb-2">👁️ Главный секрет подглядывания в $\pi$-функции (смотрим СПРЕДИ):</h4>
+                <p class="text-slate-200 text-sm leading-relaxed mb-2">
+                    Чтобы узнать значение <span class="font-mono text-indigo-300">π[i]</span>, мы не перебираем строки с нуля. Мы подглядываем <b>СПРЕДИ</b> (в уже посчитанный префикс):
+                </p>
+                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300 font-medium">
+                    <li>Сначала смотрим на <b>цифру $\pi$-функции для предыдущего элемента ($\pi[i-1]$)</b> — она показывает длину совпавшего префикса спереди.</li>
+                    <li>Затем сравниваем символ на этой позиции с <b>НАШИМ текущим элементом ($s[i]$)</b>: если символы совпали — <span class="font-mono text-emerald-300">π[i] = π[i-1] + 1</span>. Если нет — делаем откат по уже посчитанным значениям $\pi$ спереди!</li>
+                </ol>
             </div>
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
@@ -153,27 +141,15 @@ def kmp_via_concat(text, pattern):
                 <p class="text-xl font-mono text-white">Z[i] — длина наибольшего общего префикса между самой строкой (начинающейся с индекса 0) и её суффиксом, начинающимся с i.</p>
             </div>
             
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <!-- Аналогия 1 -->
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        📏 Аналогия 1: Линейка-шаблон
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        Тут мы берём всю строку и «прикладываем» её к самой себе, начиная с каждой позиции <i>i</i>. Мы спрашиваем: «Если я начну читать строку отсюда, насколько длинный кусок совпадёт с самым началом строки?»<br><br>
-                        Это самый быстрый способ найти все вхождения подстроки в строку. Ты просто пишешь <code>Pattern + "$" + Text</code>, считаешь Z-функцию, и там, где <code>Z[i]</code> равно длине <code>Pattern</code> — там и есть вхождение.
-                    </p>
-                </div>
-                
-                <!-- Аналогия 2 -->
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🤯 Аналогия 2: LLM Самокопипаст
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        В LLM Z-функция может применяться для дедупликации или детекта зацикливаний. Если во время генерации вдруг <code>Z[i]</code> (где <i>i</i> указывает назад на тот же текст) выстреливает в большое значение — значит, модель начала копипастить сама себя.
-                    </p>
-                </div>
+            <div class="bg-slate-800/90 p-5 rounded-xl border-2 border-emerald-500/60 my-6 shadow-md">
+                <h4 class="text-emerald-300 font-bold text-base mb-2">🍑 Главный секрет Z-функции — подглядываем в ЗАД (ZAD / ZOPA):</h4>
+                <p class="text-slate-200 text-sm leading-relaxed mb-2">
+                    Если <span class="font-mono text-indigo-300">π-функция</span> смотрит на префикс спереди, то <b>Z-функция смотрит в ЗАД строки (начиная с индекса $i$ вправо)</b>:
+                </p>
+                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300 font-medium">
+                    <li>Встаём на индекс <span class="font-mono text-emerald-300">i</span> и смотрим на суффикс, идущий <b>СЗАДИ</b> от этой позиции до конца строки.</li>
+                    <li>Сравниваем этот "задний" подмассив <span class="font-mono text-emerald-300">s[i …]</span> с самым началом всей строки <span class="font-mono text-emerald-300">s[0 …]</span>. Длина совпавшего куска сзади — это и есть <span class="font-mono text-emerald-300">Z[i]</span>!</li>
+                </ol>
             </div>
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-6">
