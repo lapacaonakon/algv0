@@ -33,6 +33,117 @@ const CHAPTER_IMAGES = {
   floyd: "public/assets/floyd-network.jpg",
 };
 
+/** Векторные схемы графов и таблицы состояний для PDF без растровых скриншотов */
+const VECTOR_VISUALIZERS = {
+  dijkstra: {
+    title: "Векторный граф релаксации (Дейкстра)",
+    nodes: [
+      { id: "A", label: "A", x: 40, y: 60, dist: "0", status: "done" },
+      { id: "B", label: "B", x: 130, y: 30, dist: "3", status: "done" },
+      { id: "C", label: "C", x: 130, y: 90, dist: "2", status: "done" },
+      { id: "G", label: "G", x: 220, y: 90, dist: "5", status: "done" },
+      { id: "D", label: "D", x: 220, y: 30, dist: "6", status: "done" },
+      { id: "E", label: "E", x: 310, y: 90, dist: "7", status: "done" },
+      { id: "F", label: "F", x: 400, y: 60, dist: "8", status: "done" },
+    ],
+    edges: [
+      { u: "A", v: "B", w: 4, highlighted: true },
+      { u: "A", v: "C", w: 2, highlighted: true },
+      { u: "C", v: "B", w: 1, highlighted: true },
+      { u: "B", v: "D", w: 5 },
+      { u: "C", v: "G", w: 3, highlighted: true },
+      { u: "C", v: "E", w: 8 },
+      { u: "G", v: "D", w: 1, highlighted: true },
+      { u: "G", v: "E", w: 2, highlighted: true },
+      { u: "D", v: "F", w: 2 },
+      { u: "E", v: "F", w: 1, highlighted: true },
+    ],
+    table: [
+      ["Вершина", "Старт", "Кратчайшее dist", "Предшественник prev", "Статус"],
+      ["Пиццерия A", "s = A", "0", "—", "зафиксирована"],
+      ["Парк C", "из A", "2", "A", "зафиксирована"],
+      ["Дом 1 B", "из C", "3", "C", "зафиксирована"],
+      ["Метро G", "из C", "5", "C", "зафиксирована"],
+      ["Офис D", "из G", "6", "G", "зафиксирована"],
+      ["Дом 2 E", "из G", "7", "G", "зафиксирована"],
+      ["ТЦ F", "из E", "8", "E", "зафиксирована"],
+    ],
+  },
+  "bellman-ford": {
+    title: "Векторный граф релаксации (Форд—Беллман)",
+    nodes: [
+      { id: "S", label: "S", x: 40, y: 60, dist: "0", status: "done" },
+      { id: "A", label: "A", x: 130, y: 30, dist: "4", status: "done" },
+      { id: "B", label: "B", x: 130, y: 90, dist: "5", status: "done" },
+      { id: "C", label: "C", x: 220, y: 60, dist: "3", status: "done" },
+      { id: "D", label: "D", x: 310, y: 30, dist: "6", status: "done" },
+      { id: "E", label: "E", x: 310, y: 90, dist: "7", status: "done" },
+      { id: "F", label: "F", x: 400, y: 60, dist: "8", status: "done" },
+    ],
+    edges: [
+      { u: "S", v: "A", w: 4, highlighted: true },
+      { u: "S", v: "B", w: 5, highlighted: true },
+      { u: "B", v: "C", w: -2, highlighted: true },
+      { u: "A", v: "C", w: 1 },
+      { u: "C", v: "D", w: 3, highlighted: true },
+      { u: "C", v: "E", w: 4, highlighted: true },
+      { u: "D", v: "F", w: 2 },
+      { u: "E", v: "F", w: 1, highlighted: true },
+      { u: "D", v: "A", w: -2 },
+    ],
+    table: [
+      ["Проход (итерация)", "Рёбра в работе", "Изменения dist", "Контроль n-й ночи"],
+      ["Пара 1", "S→A, S→B", "dist[A]=4, dist[B]=5", "нормальный ход"],
+      ["Пара 2", "B→C (-2)", "dist[C]=3", "нормальный ход"],
+      ["Пара 3", "C→D, C→E", "dist[D]=6, dist[E]=7", "нормальный ход"],
+      ["Пара 4", "E→F (1)", "dist[F]=8", "нормальный ход"],
+      ["Итерация V-1", "все рёбра сошлись", "без изменений", "кратчайшие пути найдены"],
+      ["Итерация V (контроль)", "все рёбра", "без изменений", "отрицательных циклов нет"],
+    ],
+  },
+  floyd: {
+    title: "Матрица кратчайших путей (Флойд—Уоршелл)",
+    table: [
+      ["из \\ в", "S (0)", "A (1)", "B (2)", "C (3)", "D (4)"],
+      ["S (0)", "0", "4", "5", "3", "6"],
+      ["A (1)", "∞", "0", "∞", "1", "4"],
+      ["B (2)", "∞", "∞", "0", "-2", "1"],
+      ["C (3)", "∞", "∞", "∞", "0", "3"],
+      ["D (4)", "∞", "∞", "∞", "∞", "0"],
+    ],
+  },
+  mst: {
+    title: "Минимальный остов (Краскал / Прим / Борувка)",
+    nodes: [
+      { id: "1", label: "1", x: 50, y: 30, status: "done" },
+      { id: "2", label: "2", x: 150, y: 30, status: "done" },
+      { id: "3", label: "3", x: 250, y: 30, status: "done" },
+      { id: "4", label: "4", x: 50, y: 90, status: "done" },
+      { id: "5", label: "5", x: 150, y: 90, status: "done" },
+      { id: "6", label: "6", x: 250, y: 90, status: "done" },
+      { id: "7", label: "7", x: 350, y: 60, status: "done" },
+    ],
+    edges: [
+      { u: "1", v: "2", w: 2, highlighted: true },
+      { u: "2", v: "3", w: 3, highlighted: true },
+      { u: "1", v: "4", w: 1, highlighted: true },
+      { u: "4", v: "5", w: 4, highlighted: true },
+      { u: "2", v: "5", w: 5 },
+      { u: "3", v: "6", w: 2, highlighted: true },
+      { u: "5", v: "6", w: 6 },
+      { u: "6", v: "7", w: 3, highlighted: true },
+    ],
+    table: [
+      ["Ребро", "Вес w", "Краскал (DSU)", "Прим (Куча)", "Борувка (Фазы)"],
+      ["(1, 4)", "1", "добавлено (comp 1-4)", "добавлено первыми", "фаза 1 (comp 1)"],
+      ["(1, 2)", "2", "добавлено (comp 1-2-4)", "добавлено в дерево", "фаза 1 (comp 2)"],
+      ["(3, 6)", "2", "добавлено (comp 3-6)", "добавлено в дерево", "фаза 1 (comp 3)"],
+      ["(2, 3)", "3", "добавлено (объединение)", "добавлено в дерево", "фаза 2"],
+      ["(6, 7)", "3", "добавлено (финиш)", "добавлено в дерево", "фаза 2 (финиш)"],
+    ],
+  },
+};
+
 /** A4 в пунктах. */
 const PAGE = { width: 595.28, height: 841.89, margin: 44 };
 const CONTENT_W = PAGE.width - PAGE.margin * 2;
@@ -356,6 +467,90 @@ class Renderer {
     }
   }
 
+  vectorGraph(nodes = [], edges = [], { height = 130, title = "" } = {}) {
+    this.ensure(height + 20, 10);
+    const startY = this.cy;
+    const boxW = CONTENT_W;
+
+    this.doc
+      .roundedRect(PAGE.margin, startY, boxW, height, 6)
+      .fillAndStroke("#f8fafc", "#cbd5e1");
+
+    if (title) {
+      this.doc
+        .font(this.fonts.bold)
+        .fontSize(9.5)
+        .fillColor("#1e293b")
+        .text(title, PAGE.margin + 12, startY + 8);
+    }
+
+    // Рёбра графа
+    for (const e of edges) {
+      const fromNode = nodes.find((n) => n.id === e.u);
+      const toNode = nodes.find((n) => n.id === e.v);
+      if (!fromNode || !toNode) continue;
+
+      const x1 = PAGE.margin + fromNode.x;
+      const y1 = startY + fromNode.y;
+      const x2 = PAGE.margin + toNode.x;
+      const y2 = startY + toNode.y;
+
+      const strokeColor = e.highlighted ? "#059669" : "#94a3b8";
+      const strokeWidth = e.highlighted ? 2 : 1;
+
+      this.doc
+        .moveTo(x1, y1)
+        .lineTo(x2, y2)
+        .lineWidth(strokeWidth)
+        .strokeColor(strokeColor)
+        .stroke();
+
+      if (e.w !== undefined) {
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2;
+        this.doc
+          .circle(mx, my, 7)
+          .fillAndStroke("#ffffff", strokeColor);
+        this.doc
+          .font(this.fonts.bold)
+          .fontSize(7)
+          .fillColor("#0f172a")
+          .text(String(e.w), mx - 7, my - 3.5, { width: 14, align: "center" });
+      }
+    }
+
+    // Вершины графа
+    for (const n of nodes) {
+      const nx = PAGE.margin + n.x;
+      const ny = startY + n.y;
+      const r = 12;
+
+      const fillColor = n.status === "done" ? "#dcfce7" : n.status === "active" ? "#fef08a" : "#ffffff";
+      const strokeColor = n.status === "done" ? "#16a34a" : n.status === "active" ? "#ca8a04" : "#2563eb";
+
+      this.doc
+        .circle(nx, ny, r)
+        .lineWidth(1.5)
+        .fillAndStroke(fillColor, strokeColor);
+
+      this.doc
+        .font(this.fonts.bold)
+        .fontSize(8.5)
+        .fillColor("#0f172a")
+        .text(String(n.label ?? n.id), nx - r, ny - 4, { width: r * 2, align: "center" });
+
+      if (n.dist !== undefined) {
+        this.doc
+          .font(this.fonts.mono)
+          .fontSize(7)
+          .fillColor("#059669")
+          .text(`d=${n.dist}`, nx - 20, ny + r + 2, { width: 40, align: "center" });
+      }
+    }
+
+    this.cy = startY + height + 8;
+  }
+
   /** Таблица: строки режутся по страницам, заголовок повторяется. */
   table(rawRows, { size = 8.5 } = {}) {
     const rows = rawRows.map((r) => r.map((c) => plain(c)));
@@ -608,23 +803,25 @@ async function main() {
       R.image(path.join(ROOT, img), { maxHeight: 220, caption: captions[chapter.id] ?? chapter.title });
     }
 
-    /* демонстрация: снимки + описание синхронизации с компилятором */
+    /* демонстрация: интерактивная схема (векторные графы и таблицы) + связь с компилятором */
     const viz = VIZ_REGISTRY[chapter.id];
+    const vecViz = VECTOR_VISUALIZERS[chapter.id];
     const syncKeys = Object.keys(PAGE_SYNC).filter((k) => k === chapter.id || k.startsWith(`${chapter.id}#`));
-    if (viz || syncKeys.length) {
-      R.h2("Демонстрация и связь с компилятором");
+
+    if (viz || syncKeys.length || vecViz) {
+      R.h2("Демонстрация и интерактивная схема");
       if (viz) {
         R.para(viz.title, { size: 10.2, color: "#1e293b" });
         if (viz.hint) R.para(viz.hint, { size: 9.1, color: "#4b5563" });
       }
 
-      const shots = shotsFor(chapter.id);
-      shotsTotal += shots.length;
-      for (const shot of shots) {
-        R.image(shot.file, {
-          maxHeight: 300,
-          caption: shot.name ? `${viz?.title ?? chapter.id} · режим «${shot.name}»` : viz?.title ?? chapter.id,
-        });
+      if (vecViz) {
+        if (vecViz.nodes && vecViz.edges) {
+          R.vectorGraph(vecViz.nodes, vecViz.edges, { height: 130, title: vecViz.title });
+        }
+        if (vecViz.table) {
+          R.table(vecViz.table);
+        }
       }
 
       for (const key of syncKeys) {
@@ -634,15 +831,8 @@ async function main() {
         const lines = [];
         if (sync.stepNote) lines.push(`Шаг демонстрации: ${sync.stepNote}`);
         sync.variables.forEach((v) => lines.push(`• ${v.name} — ${v.role}${v.range ? ` (${v.range})` : ""}`));
-        lines.push("• Референсный код демонстрации в этот PDF не включён: он открывается в панели Python приложения.");
+        lines.push("• Референсный код открывается в интерактивной панели Python веб-приложения.");
         if (lines.length) R.box(title, lines);
-      }
-
-      if (!shots.length) {
-        R.para(
-          "Снимки демонстрации добавляются автоматически при сборке в CI (headless-браузер проходит по всем вкладкам). В локальной сборке без браузера здесь остаётся текстовое описание: что показывает демонстрация и какие переменные кода её перерисовывают.",
-          { size: 8.5, color: "#6b7280", italic: true }
-        );
       }
     }
 
