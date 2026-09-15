@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            15.09.2026, 16:01:57
+Дата генерации:            15.09.2026, 16:50:59
 Файлов исходного кода:     111
 Суммарный объём кода:      1.97 MB
 Глав/билетов в пособии:    36
@@ -8022,7 +8022,7 @@ def query(l, r):                     # сумма на полуинтервал�
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 27/111: src/data/tickets/ticket14_20.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1218 | РАЗМЕР: 127.1 KB
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1235 | РАЗМЕР: 128.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -8699,6 +8699,23 @@ def spfa(n, adj, s):
             </div>
 
             <p class="text-slate-300 text-sm mb-4">Флойд—Уоршелл считает <b>все пары</b> кратчайших расстояний за <span class="font-mono text-emerald-300">O(V³)</span> и <span class="font-mono text-emerald-300">O(V²)</span> памяти, работает с отрицательными весами (но не с отрицательными циклами) и пишется в <b>три строки</b>. Вход — матрица <span class="font-mono text-emerald-300">d</span> размера <span class="font-mono">V × V</span>: <span class="font-mono text-emerald-300">d[i][j] = w(i, j)</span> для существующих рёбер, <span class="font-mono text-emerald-300">0</span> на диагонали и <span class="font-mono text-emerald-300">∞</span> в остальных клетках.</p>
+
+            <div class="my-5 p-5 rounded-xl bg-slate-900/90 border border-purple-500/50 flex items-center gap-4 shadow-lg">
+                <div class="bg-black/60 p-3 rounded-lg border border-purple-500/70 shrink-0 text-center">
+                    <svg class="w-14 h-10 fill-purple-400 mx-auto" viewBox="0 0 100 60">
+                        <text x="50" y="42" font-family="sans-serif" font-weight="900" font-size="28" text-anchor="middle" fill="#c084fc">FN</text>
+                    </svg>
+                    <span class="text-[10px] font-bold text-purple-300 uppercase tracking-wider block mt-1">Fortnite</span>
+                </div>
+                <div>
+                    <h4 class="text-purple-300 font-bold text-base flex items-center gap-2">
+                        🎮 «Фсе против Фсем» (Все против всех) — Fortnite Battle Royale
+                    </h4>
+                    <p class="text-slate-300 text-sm mt-1 leading-relaxed">
+                        Флойд—Уоршелл — это «Королевская битва» Fortnite: все вершины высаживаются на одну карту, и каждая вершина ищет кратчайший путь к абсолютно КАЖДОЙ другой вершине за <span class="font-mono text-purple-300">O(V³)</span>!
+                    </p>
+                </div>
+            </div>
 
             <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 mb-6 relative pt-8">
                 <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
@@ -9508,25 +9525,25 @@ export const tickets21to24: Chapter[] = [
                 <p class="text-xl font-mono text-white">π[i] — максимальная длина такого префикса строки, который также является её суффиксом, оканчивающимся в позиции i.</p>
             </div>
             
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <!-- Аналогия 1 -->
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        🤦‍♂️ Аналогия 1: Поиск без отката
+            <div class="bg-slate-800/90 p-5 rounded-xl border-2 border-indigo-500/60 my-6 shadow-md">
+                <h4 class="text-indigo-300 font-bold text-base mb-2">👁️ Главный секрет подглядывания в $\pi$-функции (смотрим СПЕРЕДИ / ВЛЕВО):</h4>
+                <p class="text-slate-200 text-sm leading-relaxed mb-3">
+                    Чтобы узнать значение <span class="font-mono text-indigo-300">π[i]</span>, мы не перебираем строки с нуля. Мы подглядываем <b>СПЕРЕДИ (в уже посчитанный префикс слева от нас)</b>:
+                </p>
+                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300 font-medium mb-4">
+                    <li>Сначала смотрим на <b>цифру $\pi$-функции для предыдущего элемента ($\pi[i-1]$)</b> — она указывает длину совпавшего префикса спереди.</li>
+                    <li>Затем сравниваем символ на этой позиции с <b>НАШИМ текущим элементом ($s[i]$)</b>: если символы совпали — <span class="font-mono text-emerald-300">π[i] = π[i-1] + 1</span>. Если нет — делаем откат по значениям $\pi$ спереди!</li>
+                </ol>
+
+                <div class="bg-slate-950 p-4 rounded-lg border border-indigo-500/40 font-mono text-sm">
+                    <div class="flex items-center justify-center gap-2 text-slate-200 font-bold tracking-wider flex-wrap">
+                        <span class="px-2.5 py-1 bg-indigo-600/70 text-white rounded border-2 border-indigo-400 animate-pulse shadow-md">← a b c (префикс спереди)</span>
+                        <span class="text-slate-500">|</span>
+                        <span class="px-2.5 py-1 bg-emerald-600/80 text-white rounded border-2 border-emerald-400">a b c</span>
+                        <span class="px-2.5 py-1 bg-rose-600/90 text-white rounded border-2 border-rose-400 font-black">i (НАШ)</span>
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                      Мы идём по строке слева направо. В каждой позиции <i>i</i> мы спрашиваем: «Какой самый длинный кусок из начала всей строки СЕЙЧАС закончился под моим пальцем?»<br><br>
-                      Представь, ты ищешь в тексте слово <code>abacaba</code>. Ты дошел до <code>abacab</code>, и следующая буква — <code>x</code>. Тупой алгоритм начнет искать заново со второй буквы. КМП посмотрит и скажет: «Спокойно: у совпавшего куска <code>abacab</code> суффикс <code>ab</code> — это ровно начало нашего слова, π = 2. Не перечитываем текст, а продолжаем сравнение с 3-й буквы шаблона». Это поиск за O(N) без возвратов.
-                    </p>
-                </div>
-                
-                <!-- Аналогия 2 -->
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🤖 Аналогия 2: LLM стриминг
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        Для LLM, которая стримит токены по одному, это крутой способ искать запрещенку, не перелопачивая весь контекст на каждом шаге. Если мы частично совпали с запрещённым словом, но потом пришёл не тот токен, π-функция мгновенно говорит нам, с какого места этого слова мы можем продолжить поиск, не возвращаясь назад в потоке!
+                    <p class="text-xs text-indigo-300 text-center mt-3 font-sans italic">
+                        ⬅️ Выделение расширяется ВЛЕВО (СПЕРЕДИ): сначала читаем цифру π[i-1] спереди, затем сравниваем наш элемент $s[i]$.
                     </p>
                 </div>
             </div>
@@ -9641,25 +9658,25 @@ def kmp_via_concat(text, pattern):
                 <p class="text-xl font-mono text-white">Z[i] — длина наибольшего общего префикса между самой строкой (начинающейся с индекса 0) и её суффиксом, начинающимся с i.</p>
             </div>
             
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <!-- Аналогия 1 -->
-                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-slate-700 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-emerald-500 shadow-md">
-                        📏 Аналогия 1: Линейка-шаблон
+            <div class="bg-slate-800/90 p-5 rounded-xl border-2 border-emerald-500/60 my-6 shadow-md">
+                <h4 class="text-emerald-300 font-bold text-base mb-2">🍑 Главный секрет Z-функции — ЗАД (ZOPA / смотрим ВПРАВО позади индекса i):</h4>
+                <p class="text-slate-200 text-sm leading-relaxed mb-3">
+                    Буква <b>Z</b> запоминается как <b>«Зад» / «Zopa»</b>: встаем на индекс <span class="font-mono text-emerald-300 font-bold">i</span> и смотрим <b>ПОЗАДИ (вправо)</b> от него!
+                </p>
+                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300 font-medium mb-4">
+                    <li>Встаём на индекс <span class="font-mono text-emerald-300">i</span> и смотрим на суффикс, идущий <b>СЗАДИ (ВПРАВО)</b> от этой позиции до конца строки.</li>
+                    <li>Сравниваем этот "задний" подмассив <span class="font-mono text-emerald-300">s[i …]</span> с самым началом всей строки <span class="font-mono text-emerald-300">s[0 …]</span>. Выделенная рамка расширяется <b>вправо позади индекса $i$</b>!</li>
+                </ol>
+
+                <div class="bg-slate-950 p-4 rounded-lg border border-emerald-500/40 font-mono text-sm">
+                    <div class="flex items-center justify-center gap-2 text-slate-200 font-bold tracking-wider flex-wrap">
+                        <span class="px-2.5 py-1 bg-slate-800 text-slate-400 rounded">0 .. i-1</span>
+                        <span class="px-2.5 py-1 bg-rose-600/90 text-white rounded border-2 border-rose-400 font-black">i (старт)</span>
+                        <span class="text-slate-500">|</span>
+                        <span class="px-2.5 py-1 bg-emerald-600/70 text-white rounded border-2 border-emerald-400 animate-pulse shadow-md">a b c d → (ЗАД / ZOPA вправо)</span>
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        Тут мы берём всю строку и «прикладываем» её к самой себе, начиная с каждой позиции <i>i</i>. Мы спрашиваем: «Если я начну читать строку отсюда, насколько длинный кусок совпадёт с самым началом строки?»<br><br>
-                        Это самый быстрый способ найти все вхождения подстроки в строку. Ты просто пишешь <code>Pattern + "$" + Text</code>, считаешь Z-функцию, и там, где <code>Z[i]</code> равно длине <code>Pattern</code> — там и есть вхождение.
-                    </p>
-                </div>
-                
-                <!-- Аналогия 2 -->
-                <div class="bg-slate-900 p-6 rounded-lg border-2 border-dashed border-rose-500/50 relative pt-8">
-                    <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
-                        🤯 Аналогия 2: LLM Самокопипаст
-                    </div>
-                    <p class="text-slate-300 text-sm mb-4">
-                        В LLM Z-функция может применяться для дедупликации или детекта зацикливаний. Если во время генерации вдруг <code>Z[i]</code> (где <i>i</i> указывает назад на тот же текст) выстреливает в большое значение — значит, модель начала копипастить сама себя.
+                    <p class="text-xs text-emerald-300 text-center mt-3 font-sans italic">
+                        ➡️ Выделение расширяется ВПРАВО (ПОЗАДИ индекса i): подглядываем в ЗАД строки.
                     </p>
                 </div>
             </div>
@@ -11557,7 +11574,7 @@ export default function BfsViz() {
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 34/111: src/components/ChapterImage.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.7 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import dijkstraImg from '../assets/dijkstra-freakazoid.jpg';
@@ -11581,8 +11598,8 @@ const imageMap: Record<string, { src: string; alt: string; caption: string; bord
   },
   floyd: {
     src: floydImg,
-    alt: 'Фсе ко Фсем Флойд',
-    caption: '🌐 Все связаны со всеми!',
+    alt: 'Fortnite Все против Всех (Флойд—Уоршелл)',
+    caption: '🎮 Fortnite: Все против Всех — Флойд-Уоршелл за три цикла (k, i, j) находит кратчайшие пути от всех вершин ко всем!',
     borderColor: 'border-emerald-500/30',
     captionColor: 'text-emerald-400',
   },
@@ -19036,7 +19053,7 @@ export function LiveDistTable({ dist, prev, done, demoIds, title = "Ваши р�
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 59/111: src/components/MnemonicCards.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 3.0 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 3.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import dijkstraImg from '../assets/dijkstra-freakazoid.jpg';
@@ -19072,12 +19089,12 @@ const cards = [
   },
   {
     img: floydImg,
-    alt: 'Фсе-ко-Фсем Флойд',
-    title: '🌐 Фсе ко Фсем (Флойд)',
-    desc: 'Матрица + три цикла (',
+    alt: 'Fortnite Все против Всех (Флойд—Уоршелл)',
+    title: '🎮 Все против Всех / Fortnite (Флойд)',
+    desc: 'Матрица N×N + три цикла (',
     highlight: 'k, i, j',
     highlightColor: 'text-emerald-400',
-    rest: '). Ищет пути от всех ко всем.',
+    rest: '). Все против всех — ищет кратчайшие пути от каждой вершины ко всем.',
     complexity: 'O(V³)',
     border: 'border-emerald-500/30 hover:border-emerald-400/60',
     titleColor: 'text-emerald-400',
@@ -32463,7 +32480,7 @@ console.log("Не встретились:", GLOSSARY.filter((g) => !used.has(g.i
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 92/111: scripts/export/build-guide-pdf.mjs
-КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 882 | РАЗМЕР: 39.0 KB
+КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 865 | РАЗМЕР: 38.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -32494,12 +32511,7 @@ const GUIDE_PDF_PATH = path.join(OUT_DIR, "guide_lite.pdf");
 const SHOTS_DIR = path.join(ROOT, "tmp", "viz-shots");
 const ENTRY = path.join(ROOT, "tmp", "guide-entry.ts");
 
-/** Картинки-иллюстрации страниц (те же, что показывает приложение). */
-const CHAPTER_IMAGES = {
-  dijkstra: "public/assets/dijkstra-freakazoid.jpg",
-  "bellman-ford": "public/assets/bellman-ford-batman.jpg",
-  floyd: "public/assets/floyd-network.jpg",
-};
+
 
 /** Векторные схемы графов и таблицы состояний для PDF без растровых скриншотов */
 const VECTOR_VISUALIZERS = {
@@ -33257,18 +33269,6 @@ async function main() {
       } else {
         R.para(b.text);
       }
-    }
-
-    /* иллюстрация страницы */
-    const img = CHAPTER_IMAGES[chapter.id];
-    if (img && fs.existsSync(path.join(ROOT, img))) {
-      R.h2("Иллюстрация-аналогия");
-      const captions = {
-        dijkstra: "⚡ Декстер Дуглас у CRT-монитора и вирус Фриказоид (неотрицательные веса)",
-        "bellman-ford": "🦇 Бэтмен патрулирует Готэм в машине Генри Форда (n-1 ночей и проверка n-й ночи)",
-        floyd: "🌐 Все вершины связаны со всеми",
-      };
-      R.image(path.join(ROOT, img), { maxHeight: 220, caption: captions[chapter.id] ?? chapter.title });
     }
 
     /* демонстрация: интерактивная схема (векторные графы и таблицы) + связь с компилятором */
@@ -36797,5 +36797,5 @@ export const myChapters: Chapter[] = [
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 15.09.2026, 16:01:57
+КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 15.09.2026, 16:50:59
 ==========================================================================================================================================
