@@ -6,6 +6,7 @@ import { tickets21to24 } from "./tickets/ticket21_24";
 import { tickets6to13 } from "./tickets/ticket6_13";
 import { ticket1Segtree } from "./tickets/ticket1_segtree";
 import { tickets18to20Mst } from "./tickets/ticket18_20_mst";
+import { ticket25Cheatsheet } from "./tickets/ticket25_cheatsheet";
 import { chapters as newChapters } from "./content_temp";
 
 /**
@@ -27,6 +28,7 @@ const merged = [
   ...tickets21to24,
   ...ticket1Segtree,
   ...tickets18to20Mst,
+  ticket25Cheatsheet,
 ].filter((c) => c && c.id);
 
 /**
@@ -104,6 +106,7 @@ export const chapterTopics: Record<string, number[]> = {
   "string-z-func": [22],
   "aho-corasick": [23],
   "complexity-classes": [24],
+  "graph-cheatsheet": [25],
 };
 
 /**
@@ -122,7 +125,7 @@ export const SECTIONS: { id: string; title: string; from: number; to: number }[]
   { id: "graphs", title: "Графы: обходы и структура", from: 6, to: 13 },
   { id: "paths", title: "Графы: пути и остов", from: 14, to: 20 },
   { id: "strings", title: "Строки", from: 21, to: 23 },
-  { id: "theory", title: "Сложность и сведения", from: 24, to: 24 },
+  { id: "theory", title: "Сложность и шпаргалки", from: 24, to: 25 },
 ];
 
 /** Раздел страницы — по её первому билету (у `mst` их три: 18, 19, 20). */
@@ -141,4 +144,5 @@ export const activeVizIds = [
   "mst","string-kmp","string-z-func","segment-trees","sparse-table",
   "dynamic-programming","johnson-algo","graph-articulation","graph-components",
   "complexity-classes","treap","splay-tree","prefix-sums-2d",
+  "graph-cheatsheet",
 ];

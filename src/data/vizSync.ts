@@ -971,6 +971,48 @@ print("всего вхождений:", len(matches), matches)`,
       { name: "nodes", role: "сколько вершин в боре (корень = 0)", range: "10 на демо" },
     ],
   },
+  "graph-cheatsheet": {
+    vizTitle: "Быстрая шпаргалка: BFS — Прим — Декстер",
+    stepNote: "Шаг = вычисление x и релаксация ребер из x по единому списку edges[x] = [(y, w), ...].",
+    code: `# Быстрая шпаргалка: Декстер на едином шасси edges[x] = [(y, w), ...]
+edges = {
+    0: [(1, 4), (2, 2)],
+    1: [(0, 4), (2, 1), (3, 5)],
+    2: [(0, 2), (1, 1), (3, 8), (4, 10)],
+    3: [(1, 5), (2, 8), (4, 2)],
+    4: [(2, 10), (3, 2)]
+}
+n = 5
+start = 0
+
+min_way = [float('inf')] * n
+min_way[start] = 0
+seen = set()
+
+for _ in range(n):
+    x = -1
+    for i in range(n):
+        if i not in seen:
+            if x == -1 or min_way[i] < min_way[x]:
+                x = i
+
+    if x == -1 or min_way[x] == float('inf'):
+        break
+
+    seen.add(x)
+
+    for y in edges[x]:
+        if min_way[x] + y[1] < min_way[y[0]]:
+            min_way[y[0]] = min_way[x] + y[1]
+
+print("min_way:", min_way)`,
+    variables: [
+      { name: "x", role: "текущая выбранная вершина", range: "0 … n-1" },
+      { name: "min_way", role: "массив текущих минимальных расстояний / весов", range: "[0, 3, 2, 8, 10]" },
+      { name: "seen", role: "множество зафиксированных вершин", range: "{0, 1, 2, ...}" },
+      { name: "edges", role: "список смежности графа", range: "edges[x] = [(y, w), ...]" },
+    ],
+  },
   "complexity-classes": {
     vizTitle: "Классы сложности: рост по n и ops",
     stepNote: "Шаг = одна точка (n, ops): визуализация копит их и оценивает наклон в лог-лог координатах — полином или экспонента.",

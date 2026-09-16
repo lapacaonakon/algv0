@@ -70,7 +70,7 @@ for (const [id, tickets] of Object.entries(chapterTopics)) {
   ok(chapterIds.has(id), `chapterTopics ссылается на несуществующую страницу «${id}»`);
   tickets.forEach((n) => covered.add(n));
 }
-for (let n = 1; n <= 24; n += 1) {
+for (let n = 1; n <= 25; n += 1) {
   ok(covered.has(n), `билет ${n} не закрыт ни одной страницей`);
 }
 
@@ -119,7 +119,7 @@ for (const chapter of chapters) {
     const to = m[2] ? Number(m[2]) : from;
     mentionsHere += 1;
     for (let n = from; n <= to; n += 1) {
-      ok(n >= 1 && n <= 24 && covered.has(n), `«${chapter.id}»: упоминание «${m[0]}» ведёт в никуда — билета ${n} нет в пособии`);
+      ok(n >= 1 && n <= 25 && covered.has(n), `«${chapter.id}»: упоминание «${m[0]}» ведёт в никуда — билета ${n} нет в пособии`);
     }
   }
   ticketMentions += mentionsHere;

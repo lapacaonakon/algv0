@@ -28,6 +28,7 @@ import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
 import { TreapBuildViz } from "./TreapBuildViz";
+import { CheatSheetViz } from "./CheatSheetViz";
 
 export interface VizEntry {
   /** Заголовок панели/модалки. */
@@ -149,6 +150,11 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     title: "Интерактивный симулятор базовых структур: стек, очередь, куча",
     hint: "Проверь LIFO, FIFO и приоритетную очередь на живых примерах.",
     Component: Simulator,
+  },
+  "graph-cheatsheet": {
+    title: "Быстрая шпаргалка: BFS — Прим — Декстер",
+    hint: "Один граф, один формат edges[x] = [(y, w), ...]. Переключайте вкладки, чтобы сравнить логику релаксации Декстера, Примы и BFS.",
+    Component: CheatSheetViz,
   },
   "everyday-basics": {
     title: "Бытовой тренажёр: стек, очередь, куча",
