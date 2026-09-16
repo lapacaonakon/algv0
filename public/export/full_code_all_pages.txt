@@ -3,10 +3,10 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            15.09.2026, 21:26:51
-Файлов исходного кода:     111
-Суммарный объём кода:      1.98 MB
-Глав/билетов в пособии:    36
+Дата генерации:            16.09.2026, 10:57:01
+Файлов исходного кода:     113
+Суммарный объём кода:      2.02 MB
+Глав/билетов в пособии:    37
 
 ==========================================================================================================================================
                        ОГЛАВЛЕНИЕ: ГЛАВЫ И БИЛЕТЫ
@@ -40,13 +40,14 @@
    27. 22. Z-функция   [id: string-z-func]
    28. Билет 23. Алгоритм Ахо-Корасик   [id: aho-corasick]
    29. 24. Классы сложности, сведение задач   [id: complexity-classes]
-   30. Введение   [id: intro]
-   31. Массивы и деревья   [id: arrays]
-   32. Графы: обходы и структура   [id: graphs]
-   33. Графы: пути и остов   [id: paths]
-   34. Строки   [id: strings]
-   35. Сложность и сведения   [id: theory]
-   36. Алгоритмы на карте   [id: alg-map]
+   30. 25. Быстрая шпаргалка: BFS — Прим — Дейкстра   [id: graph-cheatsheet]
+   31. Введение   [id: intro]
+   32. Массивы и деревья   [id: arrays]
+   33. Графы: обходы и структура   [id: graphs]
+   34. Графы: пути и остов   [id: paths]
+   35. Строки   [id: strings]
+   36. Сложность и шпаргалки   [id: theory]
+   37. Алгоритмы на карте   [id: alg-map]
 
 ==========================================================================================================================================
                        ОГЛАВЛЕНИЕ: ФАЙЛЫ ИСХОДНОГО КОДА
@@ -88,102 +89,104 @@
    27. src/data/tickets/ticket14_20.ts
    28. src/data/tickets/ticket18_20_mst.ts
    29. src/data/tickets/ticket21_24.ts
-   30. src/data/tickets/ticket6_13.ts
+   30. src/data/tickets/ticket25_cheatsheet.ts
+   31. src/data/tickets/ticket6_13.ts
 
   # Интерактивные компоненты и симуляторы
-   31. src/components/ArticulationPointsViz.tsx
-   32. src/components/BellmanFordViz.tsx
-   33. src/components/BfsViz.tsx
-   34. src/components/ChapterImage.tsx
-   35. src/components/ChapterNav.tsx
-   36. src/components/ChapterQuiz.tsx
-   37. src/components/ChapterView.tsx
-   38. src/components/ComplexityViz.tsx
-   39. src/components/DfsBridgesSimulator.tsx
-   40. src/components/DijkstraViz.tsx
-   41. src/components/DPVisualizer.tsx
-   42. src/components/EulerSimulator.tsx
-   43. src/components/FloydViz.tsx
-   44. src/components/GraphComponentsViz.tsx
-   45. src/components/GraphTraversalViz.tsx
-   46. src/components/HeapViz.tsx
-   47. src/components/hints/demoKit.tsx
-   48. src/components/hints/demosExtra.tsx
-   49. src/components/hints/demosGraph.tsx
-   50. src/components/hints/demosStruct.tsx
-   51. src/components/hints/MiniDemo.tsx
-   52. src/components/hints/SimulatorModal.tsx
-   53. src/components/hints/TermPopover.tsx
-   54. src/components/JohnsonViz.tsx
-   55. src/components/KosarajuViz.tsx
-   56. src/components/KruskalSimulator.tsx
-   57. src/components/LiteGuide.tsx
-   58. src/components/LiveDistTable.tsx
-   59. src/components/MnemonicCards.tsx
-   60. src/components/MobileToc.tsx
-   61. src/components/Navbar.tsx
-   62. src/components/PlanarColoringViz.tsx
-   63. src/components/PlanarityDemo.tsx
-   64. src/components/PythonCompiler.tsx
-   65. src/components/QueueViz.tsx
-   66. src/components/SalmonAutomatonWidget.tsx
-   67. src/components/SegmentTreeVisualizer.tsx
-   68. src/components/Sidebar.tsx
-   69. src/components/Simulator.tsx
-   70. src/components/SplayPlayground.tsx
-   71. src/components/SplayRotationSandbox.tsx
-   72. src/components/SplayRotationsViz.tsx
-   73. src/components/SplayWalkViz.tsx
-   74. src/components/StackViz.tsx
-   75. src/components/StringAlgorithmsViz.tsx
-   76. src/components/Tooltip.tsx
-   77. src/components/TopologicalSortViz.tsx
-   78. src/components/TreapBuildViz.tsx
-   79. src/components/VizLiveStatus.tsx
-   80. src/components/vizRegistry.tsx
-   81. src/components/VizSourceBadge.tsx
-   82. src/components/WaterfallAnimationWidget.tsx
+   32. src/components/ArticulationPointsViz.tsx
+   33. src/components/BellmanFordViz.tsx
+   34. src/components/BfsViz.tsx
+   35. src/components/ChapterImage.tsx
+   36. src/components/ChapterNav.tsx
+   37. src/components/ChapterQuiz.tsx
+   38. src/components/ChapterView.tsx
+   39. src/components/CheatSheetViz.tsx
+   40. src/components/ComplexityViz.tsx
+   41. src/components/DfsBridgesSimulator.tsx
+   42. src/components/DijkstraViz.tsx
+   43. src/components/DPVisualizer.tsx
+   44. src/components/EulerSimulator.tsx
+   45. src/components/FloydViz.tsx
+   46. src/components/GraphComponentsViz.tsx
+   47. src/components/GraphTraversalViz.tsx
+   48. src/components/HeapViz.tsx
+   49. src/components/hints/demoKit.tsx
+   50. src/components/hints/demosExtra.tsx
+   51. src/components/hints/demosGraph.tsx
+   52. src/components/hints/demosStruct.tsx
+   53. src/components/hints/MiniDemo.tsx
+   54. src/components/hints/SimulatorModal.tsx
+   55. src/components/hints/TermPopover.tsx
+   56. src/components/JohnsonViz.tsx
+   57. src/components/KosarajuViz.tsx
+   58. src/components/KruskalSimulator.tsx
+   59. src/components/LiteGuide.tsx
+   60. src/components/LiveDistTable.tsx
+   61. src/components/MnemonicCards.tsx
+   62. src/components/MobileToc.tsx
+   63. src/components/Navbar.tsx
+   64. src/components/PlanarColoringViz.tsx
+   65. src/components/PlanarityDemo.tsx
+   66. src/components/PythonCompiler.tsx
+   67. src/components/QueueViz.tsx
+   68. src/components/SalmonAutomatonWidget.tsx
+   69. src/components/SegmentTreeVisualizer.tsx
+   70. src/components/Sidebar.tsx
+   71. src/components/Simulator.tsx
+   72. src/components/SplayPlayground.tsx
+   73. src/components/SplayRotationSandbox.tsx
+   74. src/components/SplayRotationsViz.tsx
+   75. src/components/SplayWalkViz.tsx
+   76. src/components/StackViz.tsx
+   77. src/components/StringAlgorithmsViz.tsx
+   78. src/components/Tooltip.tsx
+   79. src/components/TopologicalSortViz.tsx
+   80. src/components/TreapBuildViz.tsx
+   81. src/components/VizLiveStatus.tsx
+   82. src/components/vizRegistry.tsx
+   83. src/components/VizSourceBadge.tsx
+   84. src/components/WaterfallAnimationWidget.tsx
 
   # Визуализаторы (вложенные)
-   83. src/components/visualizers/PrefixSumViz.tsx
-   84. src/components/visualizers/SparseTableViz.tsx
+   85. src/components/visualizers/PrefixSumViz.tsx
+   86. src/components/visualizers/SparseTableViz.tsx
 
   # HTML-разметка (layout)
-   85. src/layout/footer.html
-   86. src/layout/header.html
+   87. src/layout/footer.html
+   88. src/layout/header.html
 
   # Утилиты
-   87. src/utils/cn.ts
-   88. src/utils/exportHtml.ts
-   89. src/utils/ticketLinks.ts
+   89. src/utils/cn.ts
+   90. src/utils/exportHtml.ts
+   91. src/utils/ticketLinks.ts
 
   # Скрипты сборки и экспорта
-   90. scripts/audit-coverage.mjs
-   91. scripts/audit-terms.mjs
-   92. scripts/export/build-guide-pdf.mjs
-   93. scripts/export/build-pdf.mjs
-   94. scripts/export/capture-viz-shots.mjs
-   95. scripts/export/collect-code.mjs
-   96. scripts/export/common.mjs
-   97. scripts/export/html-to-blocks.mjs
-   98. scripts/export/render-pages.mjs
-   99. scripts/verify/browser-checks.tsx
-  100. scripts/verify/check-links.mjs
-  101. scripts/verify/check-reference-code.mjs
-  102. scripts/verify/dom-env.mjs
-  103. scripts/verify/live-matrix.test.mjs
-  104. scripts/verify/probe-compiler.tsx
-  105. scripts/verify/README.md
-  106. scripts/verify/run-browser-checks.mjs
-  107. scripts/verify/run-probe.mjs
+   92. scripts/audit-coverage.mjs
+   93. scripts/audit-terms.mjs
+   94. scripts/export/build-guide-pdf.mjs
+   95. scripts/export/build-pdf.mjs
+   96. scripts/export/capture-viz-shots.mjs
+   97. scripts/export/collect-code.mjs
+   98. scripts/export/common.mjs
+   99. scripts/export/html-to-blocks.mjs
+  100. scripts/export/render-pages.mjs
+  101. scripts/verify/browser-checks.tsx
+  102. scripts/verify/check-links.mjs
+  103. scripts/verify/check-reference-code.mjs
+  104. scripts/verify/dom-env.mjs
+  105. scripts/verify/live-matrix.test.mjs
+  106. scripts/verify/probe-compiler.tsx
+  107. scripts/verify/README.md
+  108. scripts/verify/run-browser-checks.mjs
+  109. scripts/verify/run-probe.mjs
 
   # CI / автоматизация
-  108. .github/workflows/deploy-pages.yml
-  109. .github/workflows/rebuild-pdf.yml
-  110. .github/workflows/verify.yml
+  110. .github/workflows/deploy-pages.yml
+  111. .github/workflows/rebuild-pdf.yml
+  112. .github/workflows/verify.yml
 
   # Прочее
-  111. .ai_skills/universal_guide_authoring/SKILL.md
+  113. .ai_skills/universal_guide_authoring/SKILL.md
 
 
 ==========================================================================================================================================
@@ -191,7 +194,7 @@
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 1/111: add.md
+ФАЙЛ 1/113: add.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 1224 | РАЗМЕР: 48.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1421,7 +1424,7 @@ index c0456e7..e19d945 100644
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 2/111: AGENTS.md
+ФАЙЛ 2/113: AGENTS.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 12 | РАЗМЕР: 728 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1439,7 +1442,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 3/111: GEMINI.md
+ФАЙЛ 3/113: GEMINI.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 16 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1461,7 +1464,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 4/111: index.html
+ФАЙЛ 4/113: index.html
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 14 | РАЗМЕР: 601 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1481,7 +1484,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 5/111: metadata.json
+ФАЙЛ 5/113: metadata.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 8 | РАЗМЕР: 310 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1496,7 +1499,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 6/111: package.json
+ФАЙЛ 6/113: package.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 54 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1556,7 +1559,7 @@ Do NOT generate plain markdown chapters or invent new HTML structures without co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 7/111: README.md
+ФАЙЛ 7/113: README.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 115 | РАЗМЕР: 7.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1677,7 +1680,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 8/111: TOPICS_AUDIT.md
+ФАЙЛ 8/113: TOPICS_AUDIT.md
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 106 | РАЗМЕР: 8.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1789,7 +1792,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 9/111: tsconfig.json
+ФАЙЛ 9/113: tsconfig.json
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 32 | РАЗМЕР: 681 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1827,7 +1830,7 @@ public/export/         — сгенерированные TXT и PDF (обнов
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 10/111: vite.config.ts
+ФАЙЛ 10/113: vite.config.ts
 КАТЕГОРИЯ: Конфигурация проекта | СТРОК: 36 | РАЗМЕР: 1.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1873,7 +1876,7 @@ export default defineConfig({
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 11/111: src/App.tsx
+ФАЙЛ 11/113: src/App.tsx
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 218 | РАЗМЕР: 11.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2097,7 +2100,7 @@ export default function App() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 12/111: src/hooks/useTermHints.ts
+ФАЙЛ 12/113: src/hooks/useTermHints.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 129 | РАЗМЕР: 5.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2232,7 +2235,7 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 13/111: src/index.css
+ФАЙЛ 13/113: src/index.css
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 305 | РАЗМЕР: 8.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2543,7 +2546,7 @@ export function useTermHints(ref: React.RefObject<HTMLElement | null>, deps: unk
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 14/111: src/main.tsx
+ФАЙЛ 14/113: src/main.tsx
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 11 | РАЗМЕР: 230 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2560,7 +2563,7 @@ createRoot(document.getElementById("root")!).render(
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 15/111: src/types.ts
+ФАЙЛ 15/113: src/types.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 9 | РАЗМЕР: 153 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2575,7 +2578,7 @@ export interface Chapter {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 16/111: src/vite-env.d.ts
+ФАЙЛ 16/113: src/vite-env.d.ts
 КАТЕГОРИЯ: Ядро приложения | СТРОК: 19 | РАЗМЕР: 324 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2604,8 +2607,8 @@ declare module '*.png' {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 17/111: src/data/additionalTickets.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1201 | РАЗМЕР: 109.5 KB
+ФАЙЛ 17/113: src/data/additionalTickets.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1195 | РАЗМЕР: 109.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -2917,21 +2920,16 @@ pair&lt;Node*, Node*&gt; split(Node* t, int x) {
 
             <details class="bg-slate-900/40 rounded-lg border border-slate-700/50 group cursor-pointer mt-4">
                 <summary class="p-4 font-bold text-slate-400 outline-none select-none hover:text-white transition-colors group-open:border-b border-slate-700/50">
-                    🔍 Код: вставка, merge, erase (Скрыто)
+                    🔍 Код: универсальная вставка, merge, erase (Скрыто)
                 </summary>
                 <div class="p-5 text-sm text-slate-300 space-y-4">
+                    <p class="text-xs text-amber-300"><b>Универсальная вставка через Split + Merge (гарантирует свойство кучи всегда):</b></p>
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
-def insert(root, key, pri):
-    if root is None:
-        return Node(key, pri)
-    if key &lt;= root.key:                # равные x — влево
-        root.left = insert(root.left, key, pri)
-    else:
-        root.right = insert(root.right, key, pri)
-    return root
-
-for key, pri in pairs_sorted_by_pri_desc:   # порядок задаёт y
-    root = insert(root, key, pri)</pre>
+def insert(root, node):
+    if not root: return node
+    L, R = split(root, node.key)
+    return merge(merge(L, node), R)</pre>
+                    <p class="text-xs text-slate-400"><i>Замечание:</i> Простой BST-спуск сохраняет свойства кучи без поворотов только если элементы подаются на вход, будучи заранее отсортированными по приоритету <span class="font-mono">pri</span> (по убыванию).</p>
                     <pre class="bg-slate-950 p-4 rounded overflow-x-auto text-xs font-mono text-slate-200 border border-slate-800">
 def merge(a, b):                   # все x в a &lt; всех x в b
     if not a or not b: return a or b
@@ -2939,11 +2937,10 @@ def merge(a, b):                   # все x в a &lt; всех x в b
         a.right = merge(a.right, b); return a
     b.left = merge(a, b.left); return b
 
-def erase(root, key):              # удалить произвольную точку
-    if key &lt; root.key:  root.left  = erase(root.left, key)
-    elif key &gt; root.key: root.right = erase(root.right, key)
-    else: root = merge(root.left, root.right)
-    return root</pre>
+def erase(root, key):              # удалить произвольную точку за O(log n)
+    L, R = split(root, key)
+    L_left, L_target = split(L, key - 1)
+    return merge(L_left, R)</pre>
                 </div>
             </details>
         </div>
@@ -2977,14 +2974,14 @@ def erase(root, key):              # удалить произвольную т�
                     <p class="text-slate-400 text-xs mt-1">гарантии на отдельный запрос нет</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-emerald-700/60">
-                    <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций</p>
-                    <p class="text-emerald-300 font-bold">стоят O(m·log n)</p>
+                    <p class="text-xs uppercase tracking-wider text-emerald-500 font-bold mb-1">Любые m операций над n узлами</p>
+                    <p class="text-emerald-300 font-bold">стоят O((m + n) log n)</p>
                     <p class="text-slate-400 text-xs mt-1">амортизированное O(log n) на операцию</p>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 border border-slate-700">
                     <p class="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Память</p>
-                    <p class="text-white font-bold">O(n): ключ + 2 ссылки</p>
-                    <p class="text-slate-400 text-xs mt-1">легче AVL и красно-чёрного</p>
+                    <p class="text-white font-bold">O(n): ключ + 3 указателя</p>
+                    <p class="text-slate-400 text-xs mt-1">left, right и parent для удобных поворотов вверх</p>
                 </div>
             </div>
 
@@ -3811,8 +3808,8 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 18/111: src/data/content_temp.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 484 | РАЗМЕР: 40.7 KB
+ФАЙЛ 18/113: src/data/content_temp.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 484 | РАЗМЕР: 40.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import type { Chapter } from "../types";
@@ -4284,14 +4281,14 @@ void dfs(int v, int p = -1) {
         </details>
 
         <div class="bg-indigo-950/60 p-6 rounded-xl border-l-4 border-indigo-500 mt-6">
-            <h4 class="text-lg font-bold text-indigo-400 mb-2">🧠 Взаимосвязь с Компонентами сильной связности (SCC) из Билета 10</h4>
+            <h4 class="text-lg font-bold text-indigo-400 mb-2">🧠 Различие концепций: Неориентированные vs Ориентированные графы</h4>
             <p class="text-slate-300 text-sm mb-4">
-                Это глубокий дуальный мост между ориентированными и неориентированными графами:
+                Важно чётко различать тип графа при решении задач связности:
             </p>
             <ul class="list-disc list-inside text-sm text-slate-300 space-y-2">
-                <li><strong class="text-rose-400">Точки сочленения (Билет 12)</strong> определены на <strong>неориентированных графах</strong> и показывают физическую уязвимость связей — вынь одну вершину, и весь континент распадется на изолированные осколки.</li>
-                <li><strong class="text-emerald-400">SCC (Билет 10)</strong> склеивают <strong>ориентированные циклы</strong> в единые независимые "конгломераты".</li>
-                <li><strong>Как точка сочленения рушит SCC? (Конденсация графа)</strong> Если любой орграф максимально сжать по алгоритму Косарайю, свернув каждую SCC в одну супер-вершину, мы получим ациклический граф (DAG). Если мы снимем направление с его ребер (сделаем неориентированным), то любая <strong class="text-indigo-400">точка сочленения</strong> в этом полученном скелете — это и есть критическая SCC! Если удалить эту супер-вершину, то рухнет глобальный маршрут между другими клубами сильной связности. Одно слабое звено изолирует целые касты SCC навсегда.</li>
+                <li><strong class="text-rose-400">Точки сочленения и мосты (Билеты 11–12)</strong> определены ИСКЛЮЧИТЕЛЬНО для <strong>неориентированных графов</strong>. Они описывают связность и блоки (двусвязные компоненты).</li>
+                <li><strong class="text-emerald-400">SCC и конденсация (Билет 10)</strong> определены ИСКЛЮЧИТЕЛЬНО для <strong>ориентированных графов</strong>. Сжатие SCC даёт ориентированный ациклический граф (DAG).</li>
+                <li><strong>Внимание:</strong> Нельзя путать эти понятия! Конденсация SCC и точки сочленения — это абсолютно разные математические структуры для разных типов графов.</li>
             </ul>
         </div>
     </div>
@@ -4301,8 +4298,8 @@ void dfs(int v, int p = -1) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 19/111: src/data/content.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 145 | РАЗМЕР: 6.3 KB
+ФАЙЛ 19/113: src/data/content.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 149 | РАЗМЕР: 6.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -4313,6 +4310,7 @@ import { tickets21to24 } from "./tickets/ticket21_24";
 import { tickets6to13 } from "./tickets/ticket6_13";
 import { ticket1Segtree } from "./tickets/ticket1_segtree";
 import { tickets18to20Mst } from "./tickets/ticket18_20_mst";
+import { ticket25Cheatsheet } from "./tickets/ticket25_cheatsheet";
 import { chapters as newChapters } from "./content_temp";
 
 /**
@@ -4334,6 +4332,7 @@ const merged = [
   ...tickets21to24,
   ...ticket1Segtree,
   ...tickets18to20Mst,
+  ticket25Cheatsheet,
 ].filter((c) => c && c.id);
 
 /**
@@ -4411,6 +4410,7 @@ export const chapterTopics: Record<string, number[]> = {
   "string-z-func": [22],
   "aho-corasick": [23],
   "complexity-classes": [24],
+  "graph-cheatsheet": [25],
 };
 
 /**
@@ -4429,7 +4429,7 @@ export const SECTIONS: { id: string; title: string; from: number; to: number }[]
   { id: "graphs", title: "Графы: обходы и структура", from: 6, to: 13 },
   { id: "paths", title: "Графы: пути и остов", from: 14, to: 20 },
   { id: "strings", title: "Строки", from: 21, to: 23 },
-  { id: "theory", title: "Сложность и сведения", from: 24, to: 24 },
+  { id: "theory", title: "Сложность и шпаргалки", from: 24, to: 25 },
 ];
 
 /** Раздел страницы — по её первому билету (у `mst` их три: 18, 19, 20). */
@@ -4448,12 +4448,13 @@ export const activeVizIds = [
   "mst","string-kmp","string-z-func","segment-trees","sparse-table",
   "dynamic-programming","johnson-algo","graph-articulation","graph-components",
   "complexity-classes","treap","splay-tree","prefix-sums-2d",
+  "graph-cheatsheet",
 ];
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 20/111: src/data/debugRunner.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 207 | РАЗМЕР: 9.8 KB
+ФАЙЛ 20/113: src/data/debugRunner.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 212 | РАЗМЕР: 9.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -4608,7 +4609,12 @@ def __tracer(frame, event, arg):
 __err = ""
 try:
     __sys.settrace(__tracer)
-    exec(compile(__src, "<user-code>", "exec"), {"__name__": "__main__"})
+    __init_globals = {
+        "__name__": "__main__",
+        "A": [5, 8, 3, 12, 7, 2, 0, 0],
+        "a": [5, 8, 3, 12, 7, 2, 0, 0],
+    }
+    exec(compile(__src, "<user-code>", "exec"), __init_globals)
 except __TraceLimit:
     pass
 except Exception:
@@ -4665,7 +4671,7 @@ export function orderVars(
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 21/111: src/data/glossary.ts
+ФАЙЛ 21/113: src/data/glossary.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 639 | РАЗМЕР: 41.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5310,8 +5316,8 @@ export const GLOSSARY_LABELS: { label: string; id: string }[] = GLOSSARY.flatMap
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 22/111: src/data/graphContent.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 520 | РАЗМЕР: 44.6 KB
+ФАЙЛ 22/113: src/data/graphContent.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 520 | РАЗМЕР: 44.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../types";
@@ -5466,8 +5472,8 @@ tree = [None, 40, 20, 60, 10, 30, 50, 70]   # tree[0] не используем,
     </div>
 
     <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
-        <h3 class="text-xl font-bold text-emerald-400 mb-4">2. Куча: минимум на вершине за O(1), всё остальное за O(log n)</h3>
-        <p class="text-slate-300 text-sm mb-4"><b>Куча (min-heap)</b> — почти полное дерево в массиве из пункта 1, у которого каждый родитель ≤ своих детей. Отсюда магия: минимум всегда лежит в <span class="font-mono text-emerald-300">h[0]</span>, а вставка и снятие минимума стоят <span class="font-mono text-emerald-300">O(log n)</span> — элемент просачивается вверх или вниз по цепочке родителей/детей. Полностью сортировать кучу не нужно: ей достаточно держать кандидата на вершине.</p>
+        <h3 class="text-xl font-bold text-emerald-400 mb-4">2. Двоичная куча: минимум за O(1), heapify за O(n), поиск O(n)</h3>
+        <p class="text-slate-300 text-sm mb-4"><b>Куча (min-heap)</b> — почти полное дерево в массиве, у которого каждый родитель ≤ своих детей. Минимум всегда лежит в <span class="font-mono text-emerald-300">h[0]</span> (просмотр за <span class="font-mono">O(1)</span>), а вставка и извлечение минимума стоят <span class="font-mono text-emerald-300">O(log n)</span>. <b>Важно:</b> Построение кучи из готового массива (<span class="font-mono">heapify</span>) выполняется за <span class="font-mono text-emerald-300">O(n)</span> времени. Поиск <i>произвольного</i> элемента в двоичной куче не оптимизирован и требует <span class="font-mono text-rose-300">O(n)</span> линейного перебора!</p>
         <pre class="bg-slate-950 border border-slate-700 rounded-lg p-4 text-[12px] leading-5 text-slate-300 mb-4">
 import heapq
 h = []
@@ -5836,8 +5842,8 @@ void buildLinks() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 23/111: src/data/quizzes.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 200 | РАЗМЕР: 13.4 KB
+ФАЙЛ 23/113: src/data/quizzes.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 200 | РАЗМЕР: 13.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 export interface QuizQuestion {
@@ -6008,14 +6014,14 @@ export const quizzes: Record<string, QuizQuestion[]> = {
   ],
   "planarity-euler-formula": [
     {
-      question: "Планарный граф имеет V=6, E=12. Возможно ли это?",
+      question: "Может ли простой планарный граф иметь V=6, E=12?",
       options: [
-        "Да, если это двудольный граф",
-        "Нет, нарушается неравенство E ≤ 3V - 6",
-        "Да, если нет треугольных граней"
+        "Да, возможно (например, граф октаэдра: 3V - 6 = 12)",
+        "Нет, такое число рёбер невозможно ни для какого планарного графа",
+        "Да, только если граф двудольный"
       ],
-      correctIndex: 1,
-      explanation: "E ≤ 3V - 6 => 12 ≤ 12 — на грани проходит. Но если граф двудольный (нет треугольников), то E ≤ 2V - 4 = 8. А у нас 12. Так что такой граф непланарен."
+      correctIndex: 0,
+      explanation: "Формула E ≤ 3V - 6 при V=6 даёт E ≤ 12. Для простого планарного графа E=12 возможно (граница достигается, например, в октаэдре). Однако если бы граф был двудольным, действовало бы более строгое ограничение E ≤ 2V - 4 = 8."
     },
     {
       question: "Сколько граней у планарного графа с V=7 и E=10?",
@@ -6042,7 +6048,7 @@ export const quizzes: Record<string, QuizQuestion[]> = {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 24/111: src/data/vizStepBus.ts
+ФАЙЛ 24/113: src/data/vizStepBus.ts
 КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 292 | РАЗМЕР: 12.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6340,8 +6346,8 @@ export function onVizDemo(chapterId: string, cb: (demoId: string) => void) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 25/111: src/data/vizSync.ts
-КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1557 | РАЗМЕР: 92.0 KB
+ФАЙЛ 25/113: src/data/vizSync.ts
+КАТЕГОРИЯ: Контент и данные пособия | СТРОК: 1608 | РАЗМЕР: 94.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -6378,15 +6384,24 @@ export const PAGE_SYNC: Record<string, PageSync> = {
   "segment-trees": {
     vizTitle: "Дерево отрезков",
     stepNote: "Шаг = спуск по вершине v: либо читаем tree[v], либо толкаем lazy к детям 2·v и 2·v+1.",
-    code: `n = 8                       # длина массива (демо)
-tree = [0] * (2 * n)
-i = 0                       # лист: tree[n + i]
+    code: `A = [5, 8, 3, 12, 7, 2, 0, 0] # исходный массив A
+a = A                          # псевдоним a
+n = len(A)                     # длина массива n=8
 
-v, l, r = 1, 0, n - 1       # вершина и её отрезок
-m = (l + r) // 2            # граница детей 2v, 2v+1
-print(f"v={v} [{l}..{r}] mid={m}")`,
+tree = [0] * (2 * n)
+for idx in range(n):
+    tree[n + idx] = A[idx]
+for v_idx in range(n - 1, 0, -1):
+    tree[v_idx] = tree[2 * v_idx] + tree[2 * v_idx + 1]
+
+i = 0                          # индекс элемента массива
+v, l, r = 1, 0, n - 1          # вершина и её отрезок
+m = (l + r) // 2               # граница детей 2v, 2v+1
+print(f"v={v} [{l}..{r}] tree[v]={tree[v]}")`,
     variables: [
+      { name: "A / a", role: "исходный массив элементов A[0..N-1]", range: "A = [5, 8, 3, 12, 7, 2, 0, 0]" },
       { name: "n", role: "длина исходного массива; листья дерева лежат в tree[n … 2·n − 1]", range: "n = 8 на демо" },
+      { name: "tree", role: "массив дерева отрезков; tree[1] — корень (сумма всего отрезка)", range: "длина 2·n" },
       { name: "i", role: "индекс элемента массива; его лист — tree[n + i]", range: "0 … n−1" },
       { name: "v", role: "текущая вершина дерева отрезков", range: "1 … 2·n−1" },
       { name: "l, r", role: "границы отрезка, за который отвечает вершина v", range: "0 … n−1" },
@@ -7308,6 +7323,48 @@ print("всего вхождений:", len(matches), matches)`,
       { name: "nodes", role: "сколько вершин в боре (корень = 0)", range: "10 на демо" },
     ],
   },
+  "graph-cheatsheet": {
+    vizTitle: "Быстрая шпаргалка: BFS — Прим — Декстер",
+    stepNote: "Шаг = вычисление x и релаксация ребер из x по единому списку edges[x] = [(y, w), ...].",
+    code: `# Быстрая шпаргалка: Декстер на едином шасси edges[x] = [(y, w), ...]
+edges = {
+    0: [(1, 4), (2, 2)],
+    1: [(0, 4), (2, 1), (3, 5)],
+    2: [(0, 2), (1, 1), (3, 8), (4, 10)],
+    3: [(1, 5), (2, 8), (4, 2)],
+    4: [(2, 10), (3, 2)]
+}
+n = 5
+start = 0
+
+min_way = [float('inf')] * n
+min_way[start] = 0
+seen = set()
+
+for _ in range(n):
+    x = -1
+    for i in range(n):
+        if i not in seen:
+            if x == -1 or min_way[i] < min_way[x]:
+                x = i
+
+    if x == -1 or min_way[x] == float('inf'):
+        break
+
+    seen.add(x)
+
+    for y in edges[x]:
+        if min_way[x] + y[1] < min_way[y[0]]:
+            min_way[y[0]] = min_way[x] + y[1]
+
+print("min_way:", min_way)`,
+    variables: [
+      { name: "x", role: "текущая выбранная вершина", range: "0 … n-1" },
+      { name: "min_way", role: "массив текущих минимальных расстояний / весов", range: "[0, 3, 2, 8, 10]" },
+      { name: "seen", role: "множество зафиксированных вершин", range: "{0, 1, 2, ...}" },
+      { name: "edges", role: "список смежности графа", range: "edges[x] = [(y, w), ...]" },
+    ],
+  },
   "complexity-classes": {
     vizTitle: "Классы сложности: рост по n и ops",
     stepNote: "Шаг = одна точка (n, ops): визуализация копит их и оценивает наклон в лог-лог координатах — полином или экспонента.",
@@ -7907,8 +7964,8 @@ export function buildInitTemplate(chapterId: string, chapterTitle: string, demoI
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 26/111: src/data/tickets/ticket1_segtree.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 217 | РАЗМЕР: 21.4 KB
+ФАЙЛ 26/113: src/data/tickets/ticket1_segtree.ts
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 218 | РАЗМЕР: 21.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -7945,7 +8002,7 @@ export const ticket1Segtree: Chapter[] = [
 
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
                 <p class="text-lg text-blue-300 italic mb-2">Строгое правило / Формула:</p>
-                <p class="text-xl font-mono text-white">Каждая вершина v хранит агрегат своего отрезка [l, r]: tree[v] = merge(tree[2v], tree[2v+1]), где m = (l + r) / 2. Запрос и обновление — O(log n), память — 4n.</p>
+                <p class="text-xl font-mono text-white">Каждая вершина v хранит агрегат своего отрезка [l, r]: tree[v] = merge(tree[2v], tree[2v+1]), где m = (l + r) / 2. Запрос и обновление — O(log n). Память: 4n для дерева с рекурсией и Lazy Propagation (или 2n для итеративного bottom-up без lazy).</p>
             </div>
 
             <p class="text-slate-300 text-sm mb-4">Массив из n чисел накрывают двоичным деревом: <b>корень</b> отвечает за весь отрезок <span class="font-mono text-emerald-300">[0, n−1]</span>, каждый внутренний узел делит свой отрезок пополам и отдаёт половины детям <span class="font-mono text-emerald-300">2v</span> и <span class="font-mono text-emerald-300">2v+1</span>, а <b>листья</b> — это одиночные элементы массива. В узле лежит не «кусок массива», а <b>ответ</b> на нём: сумма, минимум, максимум, НОД, количество единиц, И/ИЛИ — любая операция, которая умеет склеивать два соседних ответа в один (<span class="font-mono">merge</span>).</p>
@@ -8008,7 +8065,8 @@ export const ticket1Segtree: Chapter[] = [
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Дерево отрезков и префиксные суммы</b> (билет 5): префиксы отвечают на запрос за O(1), но строются один раз и умирают при первом обновлении элемента. Дерево отрезков платит O(log n) и живёт под обновлениями.</p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Дерево отрезков и разреженная таблица</b> (билет 2): sparse table даёт O(1) на идемпотентные запросы (min, gcd, И) по статическому массиву; сумма — не идемпотентна, там только дерево отрезков.</p>
-                <p class="text-slate-400 text-sm mb-1">· <b>4n и 2n</b>: рекурсивное дерево на отрезке [0, n−1] с произвольным n требует 4n ячеек (не 2n!) — иначе на n = 6 поймать переполнение. Ровно 2n хватает только у итеративной версии, где листья лежат в tree[n … 2n−1] и n — степень двойки (или используется схема «снизу вверх» для любого n).</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>4n и 2n</b>: Рекурсивное дерево отрезков (особенно с Lazy Propagation) требует <span class="font-mono text-emerald-300">4n</span> памяти из-за округления верхних уровней. Итеративная схема «снизу вверх» (bottom-up без lazy) обходится ровно <span class="font-mono text-emerald-300">2n</span> элементами.</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>Условия на Lazy Propagation</b>: Операция объединения ответов должна быть <b>ассоциативной</b>, а функция массового обновления должна быть согласована с операцией на отрезке и допускать композицию обновлений <span class="font-mono">(f ∘ g)(x) = f(g(x))</span>.</p>
                 <p class="text-slate-400 text-sm">· <b>lazy не «применяется к детям сразу»</b>: push нужен ровно перед спуском. Проталкивать лень во всё дерево — это O(n) и весь смысл теряется.</p>
             </div>
 
@@ -8130,8 +8188,8 @@ def query(l, r):                     # сумма на полуинтервал�
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 27/111: src/data/tickets/ticket14_20.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1235 | РАЗМЕР: 128.4 KB
+ФАЙЛ 27/113: src/data/tickets/ticket14_20.ts
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 1237 | РАЗМЕР: 129.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -8192,7 +8250,7 @@ export const tickets14to20: Chapter[] = [
                     <div class="absolute -top-3 left-4 bg-rose-900 text-rose-300 text-xs px-3 py-1 rounded-full font-bold uppercase border border-rose-500 shadow-md">
                         Ограничения: минус ломает жадность
                     </div>
-                    <p class="text-slate-300 text-sm mb-4">Дейкстра <b>не пересматривает</b> зафиксированные вершины. Три вершины: <span class="font-mono text-emerald-300">s→a = 2</span>, <span class="font-mono text-emerald-300">s→b = 3</span>, <span class="font-mono text-emerald-300">b→a = −2</span>. Верно <span class="font-mono text-emerald-300">d[a] = 1</span> (через b), но алгоритм сначала вытащит <span class="font-mono text-emerald-300">a</span> с двойкой и зафиксирует её, а улучшение <span class="font-mono text-emerald-300">3 − 2 = 1</span> придёт слишком поздно. Есть отрицательные веса — идите в Форда—Беллмана (билет 15) или в Джонсона (билет 17).</p>
+                    <p class="text-slate-300 text-sm mb-4">Дейкстра <b>не пересматривает</b> зафиксированные вершины (без повторного добавления в кучу). Допустим: <span class="font-mono text-emerald-300">s→a = 2</span>, <span class="font-mono text-emerald-300">s→b = 3</span>, <span class="font-mono text-emerald-300">b→a = −2</span>, <span class="font-mono text-emerald-300">a→t = 1</span>. Настоящий кратчайший путь до <span class="font-mono">t</span> — это <span class="font-mono">s → b → a → t</span> веса <span class="font-mono">3 − 2 + 1 = 2</span>. Но Дейкстра сначала зафиксирует <span class="font-mono">a</span> с <span class="font-mono">d[a] = 2</span> и установит <span class="font-mono">d[t] = 3</span>. Когда <span class="font-mono">b</span> прорелаксирует <span class="font-mono">b→a</span>, зафиксированная вершина <span class="font-mono">a</span> уже не обновит <span class="font-mono">t</span>, и алгоритм выдаст неверный ответ 3 вместо 2. Есть отрицательные веса — используйте Форда—Беллмана (билет 15) или Джонсона (билет 17).</p>
                 </div>
             </div>
         </div>
@@ -9037,11 +9095,13 @@ using namespace std;
 const long long INF = 4e18;
 
 int n;
-vector&lt;vector&lt;long long&gt;&gt; d(n, vector&lt;long long&gt;(n, INF));
+vector&lt;vector&lt;long long&gt;&gt; d;
 
-void floyd() {
+void init_and_floyd() {
+    d.assign(n, vector&lt;long long&gt;(n, INF));
     for (int i = 0; i &lt; n; ++i) d[i][i] = 0;
-    for (int k = 0; k &lt; n; ++k)                 // k — внешний
+    // занесение рёбер: d[u][v] = min(d[u][v], w);
+    for (int k = 0; k &lt; n; ++k)                 // k — строго внешний! (i и j можно менять местами)
         for (int i = 0; i &lt; n; ++i) {
             if (d[i][k] == INF) continue;       // защита от INF + w
             for (int j = 0; j &lt; n; ++j) {
@@ -9094,7 +9154,7 @@ int center() {                                  // вершина с миним�
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Транзитивное замыкание (достижимость)</td><td class="py-2 pr-2 font-mono">r[i][j] |= r[i][k] &amp;&amp; r[k][j]</td><td class="py-2 font-mono">r[i][j] = есть ребро; r[i][i] = true</td></tr>
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Минимакс (самое «узкое» место пути)</td><td class="py-2 pr-2 font-mono">d[i][j] = min(d[i][j], max(d[i][k], d[k][j]))</td><td class="py-2 font-mono">d[i][j] = w(i,j); d[i][i] = 0</td></tr>
                             <tr class="border-b border-slate-800 align-top"><td class="py-2 pr-2 font-bold">Максимальный путь в DAG-подобной сети</td><td class="py-2 pr-2 font-mono">d[i][j] = max(d[i][j], d[i][k] + d[k][j])</td><td class="py-2 font-mono">только при отсутствии положительных циклов</td></tr>
-                            <tr class="align-top"><td class="py-2 pr-2 font-bold">Число кратчайших путей</td><td class="py-2 pr-2 font-mono">if d[i][k]+d[k][j] == d[i][j]: cnt[i][j] += cnt[i][k]·cnt[k][j]</td><td class="py-2 font-mono">cnt = 1 на рёбрах; следите за переполнением</td></tr>
+                            <tr class="align-top"><td class="py-2 pr-2 font-bold">Число кратчайших путей (с оговоркой)</td><td class="py-2 pr-2 font-mono">при d[i][k]+d[k][j] == d[i][j]: см. оговорку!</td><td class="py-2 font-mono">⚠️ Простая прибавлка cnt[i][k]*cnt[k][j] двойно считает пути (multi-counting)! Нужен DAG DP или пересчёт при улучшении d[i][j]</td></tr>
                         </tbody>
                     </table>
                     <p class="text-slate-400 text-xs mt-3">Замыкание удобно ускорять битсетами: <span class="font-mono">r[i] |= r[k]</span> при <span class="font-mono">r[i][k]</span> — это <span class="font-mono">O(V³ / 64)</span> вместо <span class="font-mono">O(V³)</span>.</p>
@@ -9108,11 +9168,11 @@ int center() {                                  // вершина с миним�
             <div class="bg-rose-950/30 p-5 rounded-lg border border-rose-700/40">
                 <p class="text-sm font-bold text-rose-300 mb-3">Где обычно теряют баллы</p>
                 <ul class="list-disc pl-5 space-y-2 text-sm text-slate-300">
-                    <li><b>Порядок циклов.</b> <span class="font-mono text-emerald-300">k</span> — строго внешний. При <span class="font-mono">(i, j, k)</span> на демо-графе 4 клетки из 49 остаются ∞ вместо верных значений (например, <span class="font-mono">d[2][1] = 999</span> вместо 4).</li>
+                    <li><b>Порядок циклов.</b> <span class="font-mono text-emerald-300">k</span> — строго внешний цикл. Перебор <span class="font-mono">i</span> и <span class="font-mono">j</span> внутри цикла по <span class="font-mono">k</span> можно делать в любом порядке (<span class="font-mono">k, i, j</span> или <span class="font-mono">k, j, i</span>).</li>
                     <li><b>Диагональ.</b> <span class="font-mono text-emerald-300">d[i][i] = 0</span> до начала. Если оставить ∞, алгоритм «починит» её только при наличии цикла, а пересчёт на месте станет некорректным.</li>
                     <li><b>Переполнение INF.</b> <span class="font-mono">INF + INF</span> при <span class="font-mono">INF = INT_MAX</span> уходит в минус и «улучшает» всё подряд. Пропускайте пары с ∞ (как в коде выше) или берите INF ≈ 4·10¹⁸ с <span class="font-mono">long long</span>.</li>
                     <li><b>Параллельные рёбра.</b> Во входной матрице нужно оставить <b>минимальное</b> из них, иначе <span class="font-mono">d[u][v]</span> стартует с худшего веса.</li>
-                    <li><b>Отрицательные циклы.</b> Формула при <span class="font-mono">d[k][k] &lt; 0</span> расходится: для пар, связанных с циклом, ответ <span class="font-mono">−∞</span>. Сначала проверьте диагональ, затем пометьте такие пары: <span class="font-mono">d[i][j] = −∞</span>, если существует <span class="font-mono">k</span> с <span class="font-mono">d[k][k] &lt; 0</span>, <span class="font-mono">d[i][k] &lt; ∞</span>, <span class="font-mono">d[k][j] &lt; ∞</span>.</li>
+                    <li><b>Отрицательные циклы.</b> Если <span class="font-mono">d[k][k] &lt; 0</span>, то вершина <span class="font-mono">k</span> принадлежит отрицательному циклу. Расстояние <span class="font-mono text-rose-300">−∞</span> возникает у всех вершин, <b>достижимых ИЗ цикла в ПРЯМОМ графе</b>. Для их пометки запускается BFS/DFS из вершин цикла по <b>прямым рёбрам</b>.</li>
                     <li><b>Недостижимость ≠ 0.</b> В орграфе <span class="font-mono">d[i][j] = ∞</span> — обычный ответ (на демо-графе 11 таких пар из 49). Выводить 999 или 0 как «расстояние» нельзя.</li>
                     <li><b>Память.</b> <span class="font-mono">V²</span> клеток: при <span class="font-mono">V = 5000</span> это 25·10⁶ значений (≈100 МБ на <span class="font-mono">int</span>) — обычно уже за пределами ограничения. Для разреженных графов и одного истока берите Дейкстру.</li>
                     <li><b>Сам путь.</b> Матрица <span class="font-mono">d</span> даёт только длины. Нужен маршрут — ведите параллельно <span class="font-mono">nxt[i][j]</span> (как в коде) или восстанавливайте рекурсивно через посредников.</li>
@@ -9371,8 +9431,8 @@ def bfs01(g, s, n):                    # g[v] = [(to, w)], w ∈ {0, 1}
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 28/111: src/data/tickets/ticket18_20_mst.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 231 | РАЗМЕР: 20.8 KB
+ФАЙЛ 28/113: src/data/tickets/ticket18_20_mst.ts
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 231 | РАЗМЕР: 21.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from '../../types';
@@ -9410,7 +9470,7 @@ export const tickets18to20Mst: Chapter[] = [
                 <p class="text-xl font-mono text-white">Остовное дерево — подграф, в котором все V вершин, ровно V − 1 ребро, нет циклов и он связен. MST — такое остовное дерево, у которого сумма весов рёбер минимальна.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mb-4">Все три алгоритма — <b>жадные</b>, и все три опираются на одну теорему. <b>Свойство разреза (cut property):</b> разрежем вершины на две части как угодно; самое лёгкое ребро, пересекающее разрез, входит в некоторое MST. Алгоритмы отличаются только тем, <b>какой разрез</b> они выбирают на каждом шаге: Краскал — «одна вершина против всех», Прим — «выросшее дерево против остального графа», Борувка — «каждая компонента против всех сразу».</p>
+            <p class="text-slate-300 text-sm mb-4">Все три алгоритма — <b>жадные</b>, и все три опираются на одну теорему. <b>Свойство разреза (cut property):</b> для любого разреза <span class="font-mono">(S, V \ S)</span> самое лёгкое ребро, пересекающее разрез, входит в некоторое MST. Алгоритмы отличаются тем, <b>какой разрез</b> они выбирают: Краскал берёт минимальное ребро между двумя компонентами текущего леса (разрез — компонента против всех), Прим растёт от текущей компоненты дерева, а Борувка строит разрезы для всех компонент одновременно.</p>
 
             <div class="bg-slate-800 p-5 rounded-lg border border-amber-500/40 my-6">
                 <h4 class="text-amber-400 font-bold text-base mb-2">💡 Ассоциация: остоВ vs остРов</h4>
@@ -9419,7 +9479,7 @@ export const tickets18to20Mst: Chapter[] = [
                 <p class="text-slate-300 text-sm">Остов — это ещё и <b>скелет</b> (остов корабля, остов здания). Минимальный остов = скелет графа: минимум костей, чтобы всё держалось и не разваливалось. Добавишь кость — получишь цикл.</p>
             </div>
 
-            <p class="text-slate-300 text-sm mb-4">Второй инструмент — <b>свойство цикла (cycle property):</b> самое тяжёлое ребро в цикле никогда не входит в MST. Именно его использует Краскал, когда отбрасывает ребро, замыкающее цикл: раз ребро самое тяжёлое в образовавшемся цикле (рёбра-то мы берём по возрастанию), оно лишнее.</p>
+            <p class="text-slate-300 text-sm mb-4">Второй инструмент — <b>свойство цикла (cycle property):</b> <b>строго самое тяжёлое</b> ребро в любом цикле никогда не входит ни в одно MST. (Если в цикле несколько рёбер с одинаковым максимальным весом, по крайней мере одно из них не входит в данный MST). Именно его использует Краскал, отбрасывая рёбра, замыкающие цикл.</p>
 
             <div class="overflow-x-auto my-6">
                 <table class="w-full text-xs text-left border-collapse min-w-[640px]">
@@ -9484,7 +9544,7 @@ export const tickets18to20Mst: Chapter[] = [
             <div class="bg-slate-900/40 rounded-lg border border-slate-700/50 p-4 mt-6">
                 <p class="text-slate-300 text-sm mb-2">💀 <b>Ты путаешь:</b></p>
                 <p class="text-slate-400 text-sm mb-1">· <b>MST и кратчайшие пути — разные задачи.</b> Дейкстра (билет 14) минимизирует расстояние от одной вершины до каждой; MST минимизирует суммарный вес дерева. Дерево Прима похоже на дерево Дейкстры, но ключ в куче другой: у Прима — вес ребра к дереву, у Дейкстры — расстояние от старта. На графе с одним «длинным» ребром ответы расходятся.</p>
-                <p class="text-slate-400 text-sm mb-1">· <b>«MST единственно»</b> — единственно только при попарно различных весах. При равных весах деревьев может быть несколько, но их <i>суммарный вес</i> всегда один.</p>
+                <p class="text-slate-400 text-sm mb-1">· <b>«MST единственно»</b> — попарная различность весов рёбер является <b>достаточным</b>, но НЕ необходимым условием единственности MST (граф с одинаковыми весами также может иметь единственное MST).</p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Краскал без DSU</b> превращается в O(E·V): проверка «не замыкает ли цикл» обходом вместо почти-константного find/union.</p>
                 <p class="text-slate-400 text-sm mb-1">· <b>Рёбер в ответе V − 1</b>, а не V. Если в конце их меньше — граф был несвязный, и Краскал построил минимальный остовный <i>лес</i>.</p>
                 <p class="text-slate-400 text-sm">· <b>Борувка: два племени могут выбрать друг друга одновременно</b> — ребро добавится один раз, DSU спасает от дубля (find(u) == find(v) → пропускаем).</p>
@@ -9596,7 +9656,7 @@ print(total)</pre>
                     <p>· Чем Прим отличается от Дейкстры? — ключом в куче (вес ребра против расстояния от старта) и целью (дерево минимального веса против дерева кратчайших путей).</p>
                     <p>· Какой алгоритм лучше на плотном графе (E ≈ V²)? — Прим без кучи, O(V²): сортировка E рёбер у Краскала дороже.</p>
                     <p>· Зачем нужна Борувка, если есть Краскал? — она естественно параллельная: cheapest-рёбра для всех компонент ищутся независимо, поэтому её любят на GPU и в распределённых системах.</p>
-                    <p>· Что если граф несвязный? — все три построят минимальный остовный <b>лес</b>; рёбер будет V − (число компонент).</p>
+                    <p>· Что если граф несвязный? — Прим за один запуск от $s$ построит остов только для одной компоненты; для построения минимального остовного <b>леса</b> (MSF) Прим нужно обернуть во внешний цикл по непосещённым вершинам. Краскал и Борувка строят лес автоматически.</p>
                     <p>· Как найти второе по величине остовное дерево? — для каждого ребра не из MST добавляем его и убираем максимальное ребро на образовавшемся цикле (LCA + максимум на пути).</p>
                 </div>
             </details>
@@ -9608,7 +9668,7 @@ print(total)</pre>
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 29/111: src/data/tickets/ticket21_24.ts
+ФАЙЛ 29/113: src/data/tickets/ticket21_24.ts
 КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 441 | РАЗМЕР: 40.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -10055,8 +10115,306 @@ def is_bipartite(n, graph):
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 30/111: src/data/tickets/ticket6_13.ts
-КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 576 | РАЗМЕР: 44.0 KB
+ФАЙЛ 30/113: src/data/tickets/ticket25_cheatsheet.ts
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 292 | РАЗМЕР: 19.3 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import { Chapter } from "../types";
+
+export const ticket25Cheatsheet: Chapter = {
+  id: "graph-cheatsheet",
+  title: "25. Быстрая шпаргалка: BFS — Прим — Дейкстра",
+  type: "html",
+  category: "Шпаргалки и карточки",
+  description: "Единый формат списка смежности edges[x] = [(y, w), ...], сопоставление Декстера, Примы и BFS на одном шасси, и итоговая мнемокарточка всех графовых алгоритмов.",
+  content: `
+<section id="graph-cheatsheet" class="mb-12 scroll-mt-10">
+    <div class="flex items-center mb-6 flex-wrap gap-3">
+        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold">Билет 25 / Шпаргалка</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">Быстрая шпаргалка: BFS — Прим — Дейкстра</h2>
+    </div>
+
+    <div class="space-y-8">
+        <!-- Единый формат ввода -->
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-indigo-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-indigo-400 mb-3">1. Единый формат списка смежности</h3>
+            <p class="text-slate-300 text-sm mb-4">
+                Фиксируем один формат, чтобы граф больше не переодевался посреди кода:
+            </p>
+            <div class="bg-slate-950 p-4 rounded-lg border border-indigo-500/30 text-center font-mono text-emerald-300 text-base sm:text-lg mb-4">
+                edges[x] = [(y, w), ...]
+            </div>
+            <p class="text-slate-300 text-xs sm:text-sm">
+                То есть <span class="font-mono text-emerald-300">edges</span> — уже готовый список смежности:
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-slate-300 text-xs sm:text-sm mt-2 ml-2">
+                <li><span class="font-mono text-emerald-300">x</span> — текущая вершина;</li>
+                <li><span class="font-mono text-emerald-300">y[0]</span> — вершина-сосед;</li>
+                <li><span class="font-mono text-emerald-300">y[1]</span> — вес дороги (длина ребра).</li>
+            </ul>
+        </div>
+
+        <!-- Исправленный Декстер -->
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-emerald-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-emerald-400 mb-3">2. Декстер (Дейкстра) — полный чек</h3>
+            <p class="text-slate-300 text-sm mb-4">
+                Убираем сортировку: <span class="font-mono text-emerald-300">min_way</span> меняется во время исполнения, поэтому заранее правильный порядок вершин неизвестен.
+            </p>
+
+            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-emerald-400 border border-slate-800 leading-relaxed mb-4">def dexter(edges, n, start):
+    min_way = [float('inf')] * n
+    min_way[start] = 0
+    seen = set()
+
+    for _ in range(n):
+        x = -1
+
+        # Ищем непосещённую вершину
+        # с минимальной ПОЛНОЙ ценой от start
+        for i in range(n):
+            if i not in seen:
+                if x == -1 or min_way[i] &lt; min_way[x]:
+                    x = i
+
+        # Оставшиеся вершины недостижимы
+        if x == -1 or min_way[x] == float('inf'):
+            break
+
+        seen.add(x)
+
+        # Проверяем дороги из выбранной вершины
+        for y in edges[x]:
+            if min_way[x] + y[1] &lt; min_way[y[0]]:
+                min_way[y[0]] = min_way[x] + y[1]
+
+    return min_way</pre>
+
+            <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 text-xs sm:text-sm text-slate-300 space-y-2">
+                <p className="font-bold text-amber-300">Это именно твоя задумка:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li><span className="font-mono text-emerald-300">min_way</span> — массив наименьших полных расстояний;</li>
+                    <li><span className="font-mono text-emerald-300">seen</span> — множество зафиксированных вершин;</li>
+                    <li><span className="font-mono text-emerald-300">edges[x]</span> — соседи вершины <span className="font-mono">x</span>;</li>
+                    <li>просмотр вершин циклом и улучшение пути (релаксация) через текущую вершину.</li>
+                </ul>
+                <p className="text-slate-400 text-xs mt-2">
+                    Правило Дейкстры: путь до текущей вершины плюс вес ребра сравнивается со старым путём до соседа. Применимо при неотрицательных весах.
+                </p>
+            </div>
+        </div>
+
+        <!-- Рядом Прима -->
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-amber-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-amber-400 mb-3">3. Прима — следующий укус плесени</h3>
+            <p class="text-slate-300 text-sm mb-4">
+                Здесь <span class="font-mono text-amber-300">min_way[y]</span> означает уже не весь путь от старта, а <b>самое дешёвое отдельное ребро</b>, которым вершину <span class="font-mono">y</span> можно присоединить к остову.
+            </p>
+
+            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-amber-300 border border-slate-800 leading-relaxed mb-4">def prima(edges, n, start=0):
+    min_way = [float('inf')] * n
+    min_way[start] = 0
+
+    seen = set()
+    pred = [-1] * n
+    ostov = []
+
+    for _ in range(n):
+        x = -1
+
+        # Выбираем вершину, которую дешевле всего
+        # присоединить к остову
+        for i in range(n):
+            if i not in seen:
+                if x == -1 or min_way[i] &lt; min_way[x]:
+                    x = i
+
+        if x == -1 or min_way[x] == float('inf'):
+            break
+
+        seen.add(x)
+
+        if pred[x] != -1:
+            ostov.append((pred[x], x, min_way[x]))
+
+        for y in edges[x]:
+            if y[0] not in seen and y[1] &lt; min_way[y[0]]:
+                min_way[y[0]] = y[1]
+                pred[y[0]] = x
+
+    return ostov</pre>
+
+            <p class="text-slate-300 text-xs sm:text-sm">
+                В конспекте Прима именно так и определена: растёт одним связным куском и каждый раз присоединяет самое лёгкое ребро из посещённой части наружу.
+            </p>
+        </div>
+
+        <!-- Код BFS на том же шасси -->
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-sky-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-sky-400 mb-3">4. BFS (Обход в ширину) на том же шасси</h3>
+            <p class="text-slate-300 text-sm mb-4">
+                В BFS каждое ребро имеет единичный вес (<span class="font-mono text-sky-300">w = 1</span>). Вместо поиска минимума циклом используется очередь FIFO (<span class="font-mono text-sky-300">collections.deque</span>).
+            </p>
+
+            <pre class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono text-sky-300 border border-slate-800 leading-relaxed mb-4">from collections import deque
+
+def bfs(edges, n, start=0):
+    min_way = [float('inf')] * n
+    min_way[start] = 0
+
+    seen = {start}
+    queue = deque([start])
+
+    while queue:
+        x = queue.popleft()
+
+        for y in edges[x]:
+            neighbor = y[0]
+            if neighbor not in seen:
+                seen.add(neighbor)
+                min_way[neighbor] = min_way[x] + 1
+                queue.append(neighbor)
+
+    return min_way</pre>
+        </div>
+
+        <!-- Вся разница в одной строке -->
+        <div class="bg-slate-900/90 p-6 rounded-xl border-2 border-indigo-500 shadow-xl">
+            <h3 class="text-xl font-bold text-white mb-4 text-center">⚡ Вся разница — в одной строке!</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="bg-slate-950 p-4 rounded-lg border border-emerald-500/50 text-center">
+                    <p class="text-emerald-400 font-bold mb-2">💳 Декстер (Полный чек):</p>
+                    <code class="text-emerald-300 font-mono font-bold text-base block bg-slate-900 p-2 rounded">min_way[x] + y[1]</code>
+                    <p class="text-slate-400 text-xs mt-2">Помнит всю стоимость пути от стартовой вершины.</p>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-lg border border-amber-500/50 text-center">
+                    <p class="text-amber-400 font-bold mb-2">🥩 Прима (Следующий укус):</p>
+                    <code class="text-amber-300 font-mono font-bold text-base block bg-slate-900 p-2 rounded">y[1]</code>
+                    <p class="text-slate-400 text-xs mt-2">Смотрит только на стоимость отдельного ребра наружу.</p>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-lg border border-sky-500/50 text-center">
+                    <p class="text-sky-400 font-bold mb-2">🌊 BFS (Единичная шаг-цена):</p>
+                    <code class="text-sky-300 font-mono font-bold text-base block bg-slate-900 p-2 rounded">min_way[x] + 1</code>
+                    <p class="text-slate-400 text-xs mt-2">Каждое ребро стоит ровно 1 шаг.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 bg-slate-950/60 p-4 rounded-lg border border-slate-800 text-slate-300 text-xs sm:text-sm">
+                <p className="font-bold text-indigo-300 mb-2">Итак, главный вывод:</p>
+                <ul className="list-disc list-inside space-y-1">
+                    <li><b>Декстер:</b> плесень, которая помнит <b>всю стоимость пути от старта</b>.</li>
+                    <li><b>Прима:</b> плесень, которая смотрит только на <b>стоимость следующего ребра</b>.</li>
+                    <li><b>BFS:</b> плесень, для которой каждое ребро стоит ровно <b>1</b>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Мнемокарточка графовых алгоритмов -->
+        <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-indigo-500 scroll-mt-10">
+            <h3 class="text-xl font-bold text-indigo-300 mb-4 flex items-center gap-2">
+                <span>🗺️</span> Мнемокарточка графовых алгоритмов
+            </h3>
+            <p class="text-slate-300 text-xs sm:text-sm mb-4">Пусть <span class="font-mono">n</span> — вершины, <span class="font-mono">m</span> — рёбра.</p>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse bg-slate-900 border border-slate-700 rounded-xl overflow-hidden text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-950 text-indigo-300 border-b border-slate-700">
+                            <th class="p-3 font-bold">Алгоритм</th>
+                            <th class="p-3 font-bold">Сортировка / формат входа</th>
+                            <th class="p-3 font-bold text-right">Сложность</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 text-slate-300">
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">DFS — упрямый проход</td>
+                            <td class="p-3">Набор рёбер ➔ <code class="text-emerald-300">adj</code>; сортировка не нужна</td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(n + m)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">BFS — волна</td>
+                            <td class="p-3">Набор рёбер ➔ <code class="text-emerald-300">adj</code>; обычная очередь</td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(n + m)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">CC — отдельные острова</td>
+                            <td class="p-3">Неориентированный <code class="text-emerald-300">adj</code>; внешний цикл + DFS</td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(n + m)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Топсорт — из варяг в греки</td>
+                            <td class="p-3">Ориентированный <code class="text-emerald-300">adj</code>; <b>не sort()</b>, а запись при выходе + разворот</td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(n + m)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Косарайю — косые районы, кварталы, жилые массивы</td>
+                            <td class="p-3"><code class="text-emerald-300">adj</code> + перевёрнутый <code class="text-emerald-300">adj_rev</code>; два DFS</td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(n + m)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 bg-indigo-950/30">
+                            <td class="p-3 font-bold text-emerald-300">Декстер — полный чек</td>
+                            <td class="p-3">Взвешенный <code class="text-emerald-300">adj</code>; заранее <b>не сортируем</b></td>
+                            <td class="p-3 font-mono text-right text-amber-300">O(n² + m) <span class="text-slate-500 font-sans text-xs">(в нашем коде)</span></td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50 bg-indigo-950/30">
+                            <td class="p-3 font-bold text-amber-300">Прима — следующий укус плесени</td>
+                            <td class="p-3">Неориентированный взвешенный <code class="text-emerald-300">adj</code>; заранее <b>не сортируем</b></td>
+                            <td class="p-3 font-mono text-right text-amber-300">O(n² + m) <span class="text-slate-500 font-sans text-xs">(в нашем коде)</span></td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Форд–Беллман — ночной объезд</td>
+                            <td class="p-3">Удобен набор <code class="text-emerald-300">(x, y, w)</code>; сортировка не нужна</td>
+                            <td class="p-3 font-mono text-right text-rose-400">O(n · m)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Флойд — посредник снаружи</td>
+                            <td class="p-3">Матрица расстояний; никаких <code class="text-emerald-300">adj</code> и <code class="text-emerald-300">edges</code></td>
+                            <td class="p-3 font-mono text-right text-rose-400">O(n³)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Краскал — раскраска империи</td>
+                            <td class="p-3">Набор <code class="text-emerald-300">(x, y, w)</code>; <b>обязательно сортируем по w</b></td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(m log m) с DSU</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Краскал с твоим <code class="text-amber-300">color</code></td>
+                            <td class="p-3">Та же сортировка, но перекраска циклом</td>
+                            <td class="p-3 font-mono text-right text-amber-300">O(m log m + m · n)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Борувка — коллективизация</td>
+                            <td class="p-3">Все рёбра просматриваются в каждом раунде; сортировки нет</td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(m log n) с DSU</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 font-bold text-white">Эйлер — пройти каждое ребро</td>
+                            <td class="p-3"><code class="text-emerald-300">adj</code>, желательно с номерами рёбер; сортировка не нужна</td>
+                            <td class="p-3 font-mono text-right text-emerald-400">O(n + m)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Главное замечание: Особенно не перепутать -->
+            <div class="mt-6 bg-slate-950 p-4 rounded-xl border border-rose-500/50 text-xs sm:text-sm">
+                <p class="font-bold text-rose-400 mb-2">🚨 Особенно не перепутать:</p>
+                <pre class="font-mono text-slate-200 leading-relaxed bg-slate-900 p-3 rounded">Краскал: sort всех рёбер.
+Декстер: не sort; каждый раз ищет минимум min_way.
+Прима: не sort; каждый раз ищет дешёвое присоединение.
+Топсорт: вообще не сортирует через sort().</pre>
+            </div>
+        </div>
+    </div>
+</section>
+  `,
+};
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 31/113: src/data/tickets/ticket6_13.ts
+КАТЕГОРИЯ: Билеты (учебный контент) | СТРОК: 576 | РАЗМЕР: 44.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { Chapter } from "../../types";
@@ -10191,9 +10549,9 @@ while (!q.empty()) {
         <div class="bg-slate-700/50 p-6 rounded-xl border-l-4 border-blue-500 scroll-mt-10">
             <h3 class="text-xl font-bold text-blue-400 mb-4">7.1 Планарность и формула Эйлера</h3>
             <div class="bg-slate-900 p-4 rounded-lg mb-6 text-center border border-blue-500/30">
-                <p class="text-lg text-blue-300 italic mb-2">Формула Эйлера (для связного плоского графа):</p>
+                <p class="text-lg text-blue-300 italic mb-2">Формула Эйлера (для связного плоского графа, c = 1):</p>
                 <p class="text-2xl font-mono text-white">V − E + F = 2</p>
-                <p class="text-xs text-slate-400 mt-1">(V — вершины, E — рёбра, F — грани, включая внешнюю бесконечную грань)</p>
+                <p class="text-xs text-slate-400 mt-1">(Если c компонент связности: V − E + F = 1 + c. V — вершины, E — рёбра, F — грани, включая внешнюю)</p>
             </div>
 
             <div class="space-y-4 text-slate-300 text-sm">
@@ -10229,7 +10587,7 @@ while (!q.empty()) {
             <div class="space-y-3 text-slate-300 text-sm">
                 <p><b>Сложность задачи раскраски:</b></p>
                 <ul class="list-disc list-inside space-y-2 ml-2">
-                    <li><b>k = 2 (2-раскрашиваемость):</b> задача проверки двудольности графа, решается за <b>полиномиальное время O(V + E)</b> обычным BFS/DFS обходом.</li>
+                    <li><b>k = 2 (2-раскрашиваемость):</b> граф является двудольным ⇔ <span class="font-mono text-emerald-300">χ(G) ≤ 2</span> ⇔ граф не содержит нечётных циклов. (Пустой граф без рёбер имеет <span class="font-mono">χ(G) = 1</span>; если есть хотя бы одно ребро — <span class="font-mono">χ(G) = 2</span>). Задача решается за <b>O(V + E)</b> с помощью BFS/DFS.</li>
                     <li><b>k ≥ 3 (k-colorability):</b> задача является <b>NP-полной</b> (decision-задача: можно ли раскрасить в k цветов).</li>
                 </ul>
 
@@ -10641,7 +10999,7 @@ void find_euler(int v) {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 31/111: src/components/ArticulationPointsViz.tsx
+ФАЙЛ 32/113: src/components/ArticulationPointsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 379 | РАЗМЕР: 12.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11026,7 +11384,7 @@ export const ArticulationPointsViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 32/111: src/components/BellmanFordViz.tsx
+ФАЙЛ 33/113: src/components/BellmanFordViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 335 | РАЗМЕР: 18.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11367,7 +11725,7 @@ export default function BellmanFordViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 33/111: src/components/BfsViz.tsx
+ФАЙЛ 34/113: src/components/BfsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 306 | РАЗМЕР: 11.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11679,7 +12037,7 @@ export default function BfsViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 34/111: src/components/ChapterImage.tsx
+ФАЙЛ 35/113: src/components/ChapterImage.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 42 | РАЗМЕР: 1.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11727,7 +12085,7 @@ export default function ChapterImage({ vizType }: { vizType: string }) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 35/111: src/components/ChapterNav.tsx
+ФАЙЛ 36/113: src/components/ChapterNav.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 77 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11810,7 +12168,7 @@ export const ChapterNav: React.FC<Props> = ({ prev, next, index, total, onGo, co
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 36/111: src/components/ChapterQuiz.tsx
+ФАЙЛ 37/113: src/components/ChapterQuiz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 154 | РАЗМЕР: 6.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -11970,7 +12328,7 @@ export default ChapterQuiz;
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 37/111: src/components/ChapterView.tsx
+ФАЙЛ 38/113: src/components/ChapterView.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 260 | РАЗМЕР: 10.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12236,7 +12594,450 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 38/111: src/components/ComplexityViz.tsx
+ФАЙЛ 39/113: src/components/CheatSheetViz.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 437 | РАЗМЕР: 17.6 KB
+------------------------------------------------------------------------------------------------------------------------------------------
+
+import { useState, useEffect } from 'react';
+import { useVizRuntime, vizArray, vizNumber, vizRecord } from '../data/vizStepBus';
+import { LiveDistTable } from './LiveDistTable';
+
+interface GraphNode { id: number; x: number; y: number; name: string; }
+interface GraphEdge { u: number; v: number; w: number; }
+
+interface Step {
+  x: number | null;
+  checkingEdge: { u: number; v: number; w: number } | null;
+  minWay: number[];
+  seen: number[];
+  pred?: number[];
+  ostov?: [number, number, number][];
+  queue?: number[];
+  log: string;
+}
+
+export function CheatSheetViz() {
+  const [activeTab, setActiveTab] = useState<'dexter' | 'prima' | 'bfs'>('dexter');
+
+  const nodes: GraphNode[] = [
+    { id: 0, x: 70, y: 150, name: '0 (Старт)' },
+    { id: 1, x: 190, y: 70, name: '1' },
+    { id: 2, x: 190, y: 230, name: '2' },
+    { id: 3, x: 330, y: 70, name: '3' },
+    { id: 4, x: 330, y: 230, name: '4' },
+  ];
+
+  const rawEdges: GraphEdge[] = [
+    { u: 0, v: 1, w: 4 },
+    { u: 0, v: 2, w: 2 },
+    { u: 1, v: 2, w: 1 },
+    { u: 1, v: 3, w: 5 },
+    { u: 2, v: 3, w: 8 },
+    { u: 2, v: 4, w: 10 },
+    { u: 3, v: 4, w: 2 },
+  ];
+
+  const n = nodes.length;
+  const adjList: { [key: number]: [number, number][] } = {};
+  for (let i = 0; i < n; i++) adjList[i] = [];
+  rawEdges.forEach(({ u, v, w }) => {
+    adjList[u].push([v, w]);
+    adjList[v].push([u, w]);
+  });
+
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [stepIdx, setStepIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const runtime = useVizRuntime();
+
+  useEffect(() => {
+    const simSteps: Step[] = [];
+
+    if (activeTab === 'dexter') {
+      const minWay = Array(n).fill(999);
+      minWay[0] = 0;
+      const seen = new Set<number>();
+
+      simSteps.push({
+        x: null, checkingEdge: null,
+        minWay: [...minWay], seen: Array.from(seen),
+        log: '🏁 Декстер: min_way[0] = 0, остальные ∞. Готовы искать вершины с мин. ПОЛНОЙ стоимостью пути.'
+      });
+
+      for (let iter = 0; iter < n; iter++) {
+        let x = -1;
+        for (let i = 0; i < n; i++) {
+          if (!seen.has(i)) {
+            if (x === -1 || minWay[i] < minWay[x]) x = i;
+          }
+        }
+        if (x === -1 || minWay[x] === 999) break;
+
+        seen.add(x);
+        simSteps.push({
+          x, checkingEdge: null,
+          minWay: [...minWay], seen: Array.from(seen),
+          log: `📍 Извлечена вершина x=${x} с min_way[${x}] = ${minWay[x]}. Фиксируем в seen.`
+        });
+
+        for (const [neighbor, w] of adjList[x]) {
+          simSteps.push({
+            x, checkingEdge: { u: x, v: neighbor, w },
+            minWay: [...minWay], seen: Array.from(seen),
+            log: `👀 Проверяем ребро (${x} ➔ ${neighbor}, w=${w}). Сравниваем min_way[${x}] + ${w} = ${minWay[x] + w} с min_way[${neighbor}] = ${minWay[neighbor] === 999 ? '∞' : minWay[neighbor]}.`
+          });
+
+          if (minWay[x] + w < minWay[neighbor]) {
+            minWay[neighbor] = minWay[x] + w;
+            simSteps.push({
+              x, checkingEdge: { u: x, v: neighbor, w },
+              minWay: [...minWay], seen: Array.from(seen),
+              log: `⚡ Улучшение (полный чек)! min_way[${neighbor}] = ${minWay[neighbor]}.`
+            });
+          }
+        }
+      }
+      simSteps.push({
+        x: null, checkingEdge: null,
+        minWay: [...minWay], seen: Array.from(seen),
+        log: '✅ Декстер завершил работу. Найдены кратчайшие расстояния до всех вершин.'
+      });
+    } else if (activeTab === 'prima') {
+      const minWay = Array(n).fill(999);
+      minWay[0] = 0;
+      const seen = new Set<number>();
+      const pred = Array(n).fill(-1);
+      const ostov: [number, number, number][] = [];
+
+      simSteps.push({
+        x: null, checkingEdge: null,
+        minWay: [...minWay], seen: Array.from(seen), pred: [...pred], ostov: [...ostov],
+        log: '🏁 Прима: min_way[0] = 0 (стоимость отдельного ребра), остальные ∞. Остов пуст.'
+      });
+
+      for (let iter = 0; iter < n; iter++) {
+        let x = -1;
+        for (let i = 0; i < n; i++) {
+          if (!seen.has(i)) {
+            if (x === -1 || minWay[i] < minWay[x]) x = i;
+          }
+        }
+        if (x === -1 || minWay[x] === 999) break;
+
+        seen.add(x);
+        if (pred[x] !== -1) {
+          ostov.push([pred[x], x, minWay[x]]);
+        }
+
+        simSteps.push({
+          x, checkingEdge: null,
+          minWay: [...minWay], seen: Array.from(seen), pred: [...pred], ostov: [...ostov],
+          log: `📍 Вершина x=${x} присоединена к остову самым дешёвым ребром веса ${minWay[x]}.`
+        });
+
+        for (const [neighbor, w] of adjList[x]) {
+          if (!seen.has(neighbor)) {
+            simSteps.push({
+              x, checkingEdge: { u: x, v: neighbor, w },
+              minWay: [...minWay], seen: Array.from(seen), pred: [...pred], ostov: [...ostov],
+              log: `👀 Проверяем укус ребра (${x} ➔ ${neighbor}, w=${w}). Сравниваем вес ребра ${w} с тек. min_way[${neighbor}] = ${minWay[neighbor] === 999 ? '∞' : minWay[neighbor]}.`
+            });
+
+            if (w < minWay[neighbor]) {
+              minWay[neighbor] = w;
+              pred[neighbor] = x;
+              simSteps.push({
+                x, checkingEdge: { u: x, v: neighbor, w },
+                minWay: [...minWay], seen: Array.from(seen), pred: [...pred], ostov: [...ostov],
+                log: `🥩 Следующий укус! min_way[${neighbor}] = ${w} (запомнили родителя pred[${neighbor}] = ${x}).`
+              });
+            }
+          }
+        }
+      }
+      simSteps.push({
+        x: null, checkingEdge: null,
+        minWay: [...minWay], seen: Array.from(seen), pred: [...pred], ostov: [...ostov],
+        log: `✅ Прима завершила работу. Построено остовное дерево из ${ostov.length} рёбер.`
+      });
+    } else {
+      // BFS
+      const minWay = Array(n).fill(999);
+      minWay[0] = 0;
+      const seen = new Set<number>([0]);
+      const queue = [0];
+
+      simSteps.push({
+        x: null, checkingEdge: null,
+        minWay: [...minWay], seen: Array.from(seen), queue: [...queue],
+        log: '🏁 BFS: min_way[0] = 0, очередь = [0]. Каждое ребро стоит ровно 1.'
+      });
+
+      while (queue.length > 0) {
+        const x = queue.shift()!;
+        simSteps.push({
+          x, checkingEdge: null,
+          minWay: [...minWay], seen: Array.from(seen), queue: [...queue],
+          log: `🌊 Извлечена вершина x=${x} из очереди.`
+        });
+
+        for (const [neighbor, w] of adjList[x]) {
+          if (!seen.has(neighbor)) {
+            seen.add(neighbor);
+            minWay[neighbor] = minWay[x] + 1;
+            queue.push(neighbor);
+
+            simSteps.push({
+              x, checkingEdge: { u: x, v: neighbor, w },
+              minWay: [...minWay], seen: Array.from(seen), queue: [...queue],
+              log: `🌊 Волна накрывает соседа ${neighbor}: min_way[${neighbor}] = min_way[${x}] + 1 = ${minWay[neighbor]}.`
+            });
+          }
+        }
+      }
+      simSteps.push({
+        x: null, checkingEdge: null,
+        minWay: [...minWay], seen: Array.from(seen), queue: [...queue],
+        log: '✅ BFS завершил работу. Рассчитаны расстояния в шагах.'
+      });
+    }
+
+    setSteps(simSteps);
+    setStepIndex(0);
+    setIsPlaying(false);
+  }, [activeTab]);
+
+  useEffect(() => {
+    let timer: any = null;
+    if (isPlaying && stepIdx < steps.length - 1) {
+      timer = setTimeout(() => setStepIndex((prev) => prev + 1), 1300);
+    } else if (stepIdx >= steps.length - 1) {
+      setIsPlaying(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isPlaying, stepIdx, steps.length]);
+
+  const baseStep = steps[stepIdx] || null;
+  const vars = runtime?.variables;
+
+  // Compiler live vars
+  const liveX = vizNumber(vars?.x);
+  const liveMinWay = vizArray(vars?.min_way) ?? vizArray(vars?.dist);
+  const liveSeen = vizArray(vars?.seen);
+  const compilerLinked = liveX !== null || !!liveMinWay;
+
+  const currentStep: Step = compilerLinked
+    ? {
+        x: liveX,
+        checkingEdge: null,
+        minWay: nodes.map((_, i) => vizNumber(liveMinWay?.[i]) ?? 999),
+        seen: nodes.map((_, i) => i).filter((i) => liveSeen?.includes(i)),
+        log: `Компилятор: x=${liveX ?? "—"}, min_way читается из Python.`,
+      }
+    : baseStep ?? { x: null, checkingEdge: null, minWay: Array(n).fill(999), seen: [], log: "" };
+
+  return (
+    <div className="bg-slate-800/90 p-6 rounded-2xl border border-slate-700 shadow-xl max-w-6xl mx-auto my-4">
+      {/* Шапка и вкладки */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-700 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-600/30">
+            <span className="text-2xl">⚡</span>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-white">Тренажёр: Декстер vs Прима vs BFS</h3>
+            <p className="text-sm text-indigo-300">Один граф, один список смежности <code>edges[x] = [(y, w), ...]</code></p>
+          </div>
+        </div>
+
+        {/* Переключатель алгоритма */}
+        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
+          <button
+            onClick={() => setActiveTab('dexter')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'dexter' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Декстер (Полный чек)
+          </button>
+          <button
+            onClick={() => setActiveTab('prima')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'prima' ? 'bg-amber-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Прима (Следующий укус)
+          </button>
+          <button
+            onClick={() => setActiveTab('bfs')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'bfs' ? 'bg-sky-600 text-white shadow' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            BFS (Ребро = 1)
+          </button>
+        </div>
+
+        {/* Управление */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setIsPlaying(false); setStepIndex(0); }}
+            disabled={compilerLinked}
+            className="bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+          >
+            Сброс
+          </button>
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            disabled={compilerLinked}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium text-white ${
+              isPlaying ? 'bg-amber-600 hover:bg-amber-500' : 'bg-emerald-600 hover:bg-emerald-500'
+            }`}
+          >
+            {isPlaying ? 'Пауза' : 'Пуск'}
+          </button>
+          <button
+            onClick={() => { setIsPlaying(false); if (stepIdx < steps.length - 1) setStepIndex(stepIdx + 1); }}
+            disabled={compilerLinked || stepIdx >= steps.length - 1}
+            className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+          >
+            Шаг
+          </button>
+        </div>
+      </div>
+
+      <LiveDistTable
+        dist={liveMinWay}
+        done={currentStep.seen}
+        demoIds={nodes.map((node) => String(node.id))}
+        title="Массив min_way из вашего кода"
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Граф */}
+        <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-700 flex flex-col items-center justify-center relative min-h-[320px]">
+          <div className="absolute top-3 left-3 bg-indigo-900/80 text-xs px-3 py-1 rounded-full text-indigo-200 border border-indigo-500 font-bold shadow-sm">
+            Шаг {stepIdx + 1} из {steps.length}
+          </div>
+
+          <svg className="w-full h-auto max-h-[280px]" viewBox="0 0 400 280">
+            {/* Рёбра */}
+            {rawEdges.map((e, idx) => {
+              const uNode = nodes.find((n) => n.id === e.u)!;
+              const vNode = nodes.find((n) => n.id === e.v)!;
+
+              const isChecking =
+                currentStep.checkingEdge &&
+                ((currentStep.checkingEdge.u === e.u && currentStep.checkingEdge.v === e.v) ||
+                  (currentStep.checkingEdge.u === e.v && currentStep.checkingEdge.v === e.u));
+
+              const inOstov = currentStep.ostov?.some(
+                ([p, c]) => (p === e.u && c === e.v) || (p === e.v && c === e.u)
+              );
+
+              return (
+                <g key={idx}>
+                  <line
+                    x1={uNode.x} y1={uNode.y}
+                    x2={vNode.x} y2={vNode.y}
+                    stroke={isChecking ? '#f59e0b' : inOstov ? '#10b981' : '#475569'}
+                    strokeWidth={isChecking ? 4 : inOstov ? 4 : 2}
+                  />
+                  <circle
+                    cx={(uNode.x + vNode.x) / 2} cy={(uNode.y + vNode.y) / 2}
+                    r="10" fill="#1e293b" stroke={isChecking ? '#f59e0b' : '#64748b'} strokeWidth="1.5"
+                  />
+                  <text
+                    x={(uNode.x + vNode.x) / 2} y={(uNode.y + vNode.y) / 2 + 3.5}
+                    fill={isChecking ? '#f59e0b' : '#cbd5e1'}
+                    fontSize="10" fontWeight="bold" textAnchor="middle"
+                  >
+                    {e.w}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Вершины */}
+            {nodes.map((node) => {
+              const isX = currentStep.x === node.id;
+              const isSeen = currentStep.seen.includes(node.id);
+              const val = currentStep.minWay[node.id];
+
+              return (
+                <g key={node.id}>
+                  <circle
+                    cx={node.x} cy={node.y}
+                    r={isX ? 20 : 16}
+                    fill={isX ? '#4f46e5' : isSeen ? '#059669' : '#334155'}
+                    stroke={isX ? '#a5b4fc' : isSeen ? '#34d399' : '#64748b'}
+                    strokeWidth={isX ? 4 : 2}
+                  />
+                  <text x={node.x} y={node.y + 4} fill="#ffffff" fontSize="12" fontWeight="bold" textAnchor="middle">
+                    {node.id}
+                  </text>
+                  <text
+                    x={node.x} y={node.y - 24}
+                    fill={val === 999 ? '#94a3b8' : '#38bdf8'}
+                    fontSize="11" fontWeight="bold" textAnchor="middle"
+                  >
+                    {val === 999 ? '∞' : activeTab === 'bfs' ? `${val} шаг` : `w=${val}`}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+
+          <div className="w-full bg-slate-950/80 p-3 rounded-lg border border-slate-700 mt-2 text-xs text-slate-200">
+            <p className="font-semibold text-amber-400 mb-1">Ход работы:</p>
+            <p className="min-h-[32px] flex items-center">{currentStep.log}</p>
+          </div>
+        </div>
+
+        {/* Список смежности & состояние */}
+        <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-700 flex flex-col justify-between">
+          <div>
+            <h4 className="text-sm font-bold text-slate-300 mb-2">Формат списка: <code>edges[x] = [(y, w), ...]</code></h4>
+            <div className="space-y-1.5 font-mono text-xs mb-4">
+              {Object.keys(adjList).map((key) => {
+                const u = Number(key);
+                const isX = currentStep.x === u;
+                return (
+                  <div
+                    key={u}
+                    className={`p-2 rounded border flex items-center gap-2 ${
+                      isX ? 'bg-indigo-900/60 border-indigo-400 text-white font-bold' : 'bg-slate-950/60 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <span className="text-amber-300 font-bold">edges[{u}] =</span>
+                    <span>
+                      [{adjList[u].map(([y, w]) => `(${y}, ${w})`).join(', ')}]
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs text-slate-300 space-y-1">
+            <p><span className="text-indigo-400 font-bold">min_way:</span> [{currentStep.minWay.map((v) => (v === 999 ? '∞' : v)).join(', ')}]</p>
+            <p><span className="text-emerald-400 font-bold">seen:</span> &#123;{currentStep.seen.join(', ')}&#125;</p>
+            {activeTab === 'prima' && currentStep.ostov && (
+              <p><span className="text-amber-400 font-bold">ostov:</span> [{currentStep.ostov.map(([u, v, w]) => `(${u}–${v}: ${w})`).join(', ')}]</p>
+            )}
+            {activeTab === 'bfs' && currentStep.queue && (
+              <p><span className="text-sky-400 font-bold">queue:</span> [{currentStep.queue.join(', ')}]</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+ФАЙЛ 40/113: src/components/ComplexityViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 439 | РАЗМЕР: 28.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12681,7 +13482,7 @@ export default ComplexityViz;
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 39/111: src/components/DfsBridgesSimulator.tsx
+ФАЙЛ 41/113: src/components/DfsBridgesSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 364 | РАЗМЕР: 16.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13051,7 +13852,7 @@ export function DfsBridgesSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 40/111: src/components/DijkstraViz.tsx
+ФАЙЛ 42/113: src/components/DijkstraViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 423 | РАЗМЕР: 20.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13480,7 +14281,7 @@ export default function DijkstraViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 41/111: src/components/DPVisualizer.tsx
+ФАЙЛ 43/113: src/components/DPVisualizer.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 350 | РАЗМЕР: 14.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -13836,7 +14637,7 @@ export function DPVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 42/111: src/components/EulerSimulator.tsx
+ФАЙЛ 44/113: src/components/EulerSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 237 | РАЗМЕР: 13.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14079,7 +14880,7 @@ export function EulerSimulator() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 43/111: src/components/FloydViz.tsx
+ФАЙЛ 45/113: src/components/FloydViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 327 | РАЗМЕР: 18.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14412,7 +15213,7 @@ export default function FloydViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 44/111: src/components/GraphComponentsViz.tsx
+ФАЙЛ 46/113: src/components/GraphComponentsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 390 | РАЗМЕР: 19.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14808,7 +15609,7 @@ export default GraphComponentsViz;
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 45/111: src/components/GraphTraversalViz.tsx
+ФАЙЛ 47/113: src/components/GraphTraversalViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 268 | РАЗМЕР: 13.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15082,7 +15883,7 @@ export function GraphTraversalViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 46/111: src/components/HeapViz.tsx
+ФАЙЛ 48/113: src/components/HeapViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 436 | РАЗМЕР: 19.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15524,7 +16325,7 @@ export const HeapViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 47/111: src/components/hints/demoKit.tsx
+ФАЙЛ 49/113: src/components/hints/demoKit.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 102 | РАЗМЕР: 3.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15632,7 +16433,7 @@ export const Edge: React.FC<{
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 48/111: src/components/hints/demosExtra.tsx
+ФАЙЛ 50/113: src/components/hints/demosExtra.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 240 | РАЗМЕР: 9.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15878,7 +16679,7 @@ export const ZigZagDemo: React.FC = () => (
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 49/111: src/components/hints/demosGraph.tsx
+ФАЙЛ 51/113: src/components/hints/demosGraph.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 192 | РАЗМЕР: 8.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16076,7 +16877,7 @@ export const SccDemo: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 50/111: src/components/hints/demosStruct.tsx
+ФАЙЛ 52/113: src/components/hints/demosStruct.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 310 | РАЗМЕР: 14.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16392,7 +17193,7 @@ export const DpDemo: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 51/111: src/components/hints/MiniDemo.tsx
+ФАЙЛ 53/113: src/components/hints/MiniDemo.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 71 | РАЗМЕР: 2.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16469,7 +17270,7 @@ export const MiniDemo: React.FC<{ kind: DemoKind }> = ({ kind }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 52/111: src/components/hints/SimulatorModal.tsx
+ФАЙЛ 54/113: src/components/hints/SimulatorModal.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 61 | РАЗМЕР: 2.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16536,7 +17337,7 @@ export const SimulatorModal: React.FC<Props> = ({ vizId, onClose }) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 53/111: src/components/hints/TermPopover.tsx
+ФАЙЛ 55/113: src/components/hints/TermPopover.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 123 | РАЗМЕР: 4.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16665,7 +17466,7 @@ export const TermPopover: React.FC<Props> = ({ anchor, onClose, onOpenSimulator,
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 54/111: src/components/JohnsonViz.tsx
+ФАЙЛ 56/113: src/components/JohnsonViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 320 | РАЗМЕР: 17.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -16991,7 +17792,7 @@ export function JohnsonViz() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 55/111: src/components/KosarajuViz.tsx
+ФАЙЛ 57/113: src/components/KosarajuViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 517 | РАЗМЕР: 16.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -17514,7 +18315,7 @@ export const KosarajuViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 56/111: src/components/KruskalSimulator.tsx
+ФАЙЛ 58/113: src/components/KruskalSimulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1349 | РАЗМЕР: 69.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18869,7 +19670,7 @@ def prim(graph, start):
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 57/111: src/components/LiteGuide.tsx
+ФАЙЛ 59/113: src/components/LiteGuide.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 189 | РАЗМЕР: 9.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19064,7 +19865,7 @@ export default LiteGuide;
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 58/111: src/components/LiveDistTable.tsx
+ФАЙЛ 60/113: src/components/LiveDistTable.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 99 | РАЗМЕР: 5.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19169,7 +19970,7 @@ export function LiveDistTable({ dist, prev, done, demoIds, title = "Ваши р�
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 59/111: src/components/MnemonicCards.tsx
+ФАЙЛ 61/113: src/components/MnemonicCards.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 68 | РАЗМЕР: 3.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19243,7 +20044,7 @@ export default function MnemonicCards() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 60/111: src/components/MobileToc.tsx
+ФАЙЛ 62/113: src/components/MobileToc.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 81 | РАЗМЕР: 3.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19330,7 +20131,7 @@ export const MobileToc: React.FC<Props> = ({ selectedChapterId, setSelectedChapt
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 61/111: src/components/Navbar.tsx
+ФАЙЛ 63/113: src/components/Navbar.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 126 | РАЗМЕР: 6.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19462,7 +20263,7 @@ export const Navbar: React.FC<NavbarProps> = ({ compilerOpen, onToggleCompiler }
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 62/111: src/components/PlanarColoringViz.tsx
+ФАЙЛ 64/113: src/components/PlanarColoringViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 452 | РАЗМЕР: 26.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19920,7 +20721,7 @@ export default PlanarColoringViz;
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 63/111: src/components/PlanarityDemo.tsx
+ФАЙЛ 65/113: src/components/PlanarityDemo.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 129 | РАЗМЕР: 6.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20055,7 +20856,7 @@ export function PlanarityDemo() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 64/111: src/components/PythonCompiler.tsx
+ФАЙЛ 66/113: src/components/PythonCompiler.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1234 | РАЗМЕР: 65.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -21295,7 +22096,7 @@ export function PythonCompiler({ chapterId, chapterTitle, width, height, onWidth
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 65/111: src/components/QueueViz.tsx
+ФАЙЛ 67/113: src/components/QueueViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 320 | РАЗМЕР: 17.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -21621,7 +22422,7 @@ export const QueueViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 66/111: src/components/SalmonAutomatonWidget.tsx
+ФАЙЛ 68/113: src/components/SalmonAutomatonWidget.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 720 | РАЗМЕР: 31.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -22347,8 +23148,8 @@ export const SalmonAutomatonWidget: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 67/111: src/components/SegmentTreeVisualizer.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 558 | РАЗМЕР: 31.7 KB
+ФАЙЛ 69/113: src/components/SegmentTreeVisualizer.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 570 | РАЗМЕР: 32.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -22703,11 +23504,23 @@ function SimPanel({ title, icon, steps, code, color, arr }: { title: string; ico
 export function SegmentTreeVisualizer() {
   const runtime = useVizRuntime();
   const liveI = vizNumber(runtime?.variables?.i);
+  const liveA = vizArray(runtime?.variables?.A) || vizArray(runtime?.variables?.a);
   const [arr, setArr] = useState<number[]>([5, 8, 3, 12, 7, 2]);
   const [customInput, setCustomInput] = useState('5, 8, 3, 12, 7, 2');
   const [qL, setQL] = useState(1);
   const [qR, setQR] = useState(4);
   const [view, setView] = useState<'build' | 'queries' | 'theory'>('build');
+
+  // Update array from live compiler variables A / a if present
+  useEffect(() => {
+    if (liveA && Array.isArray(liveA)) {
+      const nums = liveA.filter((x): x is number => typeof x === 'number');
+      if (nums.length > 0) {
+        setArr(nums);
+        setCustomInput(nums.join(', '));
+      }
+    }
+  }, [liveA]);
 
   // Clamp query range when array changes
   useEffect(() => {
@@ -22911,7 +23724,7 @@ export function SegmentTreeVisualizer() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 68/111: src/components/Sidebar.tsx
+ФАЙЛ 70/113: src/components/Sidebar.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 130 | РАЗМЕР: 6.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23047,7 +23860,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedChapterId, setSelected
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 69/111: src/components/Simulator.tsx
+ФАЙЛ 71/113: src/components/Simulator.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 587 | РАЗМЕР: 29.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23640,7 +24453,7 @@ export const Simulator: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 70/111: src/components/SplayPlayground.tsx
+ФАЙЛ 72/113: src/components/SplayPlayground.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 72 | РАЗМЕР: 3.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -23718,7 +24531,7 @@ export default SplayPlayground;
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 71/111: src/components/SplayRotationSandbox.tsx
+ФАЙЛ 73/113: src/components/SplayRotationSandbox.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 368 | РАЗМЕР: 13.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -24092,7 +24905,7 @@ export const SplayRotationSandbox: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 72/111: src/components/SplayRotationsViz.tsx
+ФАЙЛ 74/113: src/components/SplayRotationsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 566 | РАЗМЕР: 25.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -24664,7 +25477,7 @@ export const SplayRotationsViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 73/111: src/components/SplayWalkViz.tsx
+ФАЙЛ 75/113: src/components/SplayWalkViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 749 | РАЗМЕР: 32.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -25419,7 +26232,7 @@ export default SplayWalkViz;
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 74/111: src/components/StackViz.tsx
+ФАЙЛ 76/113: src/components/StackViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 304 | РАЗМЕР: 15.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -25729,7 +26542,7 @@ export const StackViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 75/111: src/components/StringAlgorithmsViz.tsx
+ФАЙЛ 77/113: src/components/StringAlgorithmsViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 346 | РАЗМЕР: 20.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26081,7 +26894,7 @@ for (int i = 1; i < n; i++) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 76/111: src/components/Tooltip.tsx
+ФАЙЛ 78/113: src/components/Tooltip.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 47 | РАЗМЕР: 1.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26134,7 +26947,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, side = "top
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 77/111: src/components/TopologicalSortViz.tsx
+ФАЙЛ 79/113: src/components/TopologicalSortViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 396 | РАЗМЕР: 13.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26536,7 +27349,7 @@ export const TopologicalSortViz: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 78/111: src/components/TreapBuildViz.tsx
+ФАЙЛ 80/113: src/components/TreapBuildViz.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 1501 | РАЗМЕР: 78.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28043,7 +28856,7 @@ export const TreapBuildViz = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 79/111: src/components/VizLiveStatus.tsx
+ФАЙЛ 81/113: src/components/VizLiveStatus.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 49 | РАЗМЕР: 2.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28098,8 +28911,8 @@ export function VizLiveStatus({ demoTitle, className = "" }: VizLiveStatusProps)
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 80/111: src/components/vizRegistry.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 161 | РАЗМЕР: 8.5 KB
+ФАЙЛ 82/113: src/components/vizRegistry.tsx
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 167 | РАЗМЕР: 8.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import React from "react";
@@ -28132,6 +28945,7 @@ import { Simulator } from "./Simulator";
 import { PrefixSumViz } from "./visualizers/PrefixSumViz";
 import { SparseTableViz } from "./visualizers/SparseTableViz";
 import { TreapBuildViz } from "./TreapBuildViz";
+import { CheatSheetViz } from "./CheatSheetViz";
 
 export interface VizEntry {
   /** Заголовок панели/модалки. */
@@ -28254,6 +29068,11 @@ export const VIZ_REGISTRY: Record<string, VizEntry> = {
     hint: "Проверь LIFO, FIFO и приоритетную очередь на живых примерах.",
     Component: Simulator,
   },
+  "graph-cheatsheet": {
+    title: "Быстрая шпаргалка: BFS — Прим — Декстер",
+    hint: "Один граф, один формат edges[x] = [(y, w), ...]. Переключайте вкладки, чтобы сравнить логику релаксации Декстера, Примы и BFS.",
+    Component: CheatSheetViz,
+  },
   "everyday-basics": {
     title: "Бытовой тренажёр: стек, очередь, куча",
     hint: "Тарелки, очередь в столовой и мешок гипотез — три базовые структуры на житейских примерах.",
@@ -28265,7 +29084,7 @@ export const getViz = (id?: string): VizEntry | undefined => (id ? VIZ_REGISTRY[
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 81/111: src/components/VizSourceBadge.tsx
+ФАЙЛ 83/113: src/components/VizSourceBadge.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 80 | РАЗМЕР: 4.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28351,7 +29170,7 @@ export function VizSourceBadge({ linked, awaiting = false, line, detail, demoTit
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 82/111: src/components/WaterfallAnimationWidget.tsx
+ФАЙЛ 84/113: src/components/WaterfallAnimationWidget.tsx
 КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 846 | РАЗМЕР: 46.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -29207,7 +30026,7 @@ export const WaterfallAnimationWidget: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 83/111: src/components/visualizers/PrefixSumViz.tsx
+ФАЙЛ 85/113: src/components/visualizers/PrefixSumViz.tsx
 КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 466 | РАЗМЕР: 21.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -29679,7 +30498,7 @@ const Prefix2D: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 84/111: src/components/visualizers/SparseTableViz.tsx
+ФАЙЛ 86/113: src/components/visualizers/SparseTableViz.tsx
 КАТЕГОРИЯ: Визуализаторы (вложенные) | СТРОК: 899 | РАЗМЕР: 56.8 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -30588,7 +31407,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 85/111: src/layout/footer.html
+ФАЙЛ 87/113: src/layout/footer.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 137 | РАЗМЕР: 7.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -30731,7 +31550,7 @@ const Viz2DQuery: React.FC = () => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 86/111: src/layout/header.html
+ФАЙЛ 88/113: src/layout/header.html
 КАТЕГОРИЯ: HTML-разметка (layout) | СТРОК: 1169 | РАЗМЕР: 89.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -31911,7 +32730,7 @@ const Viz2DQuery: React.FC = () => {
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 87/111: src/utils/cn.ts
+ФАЙЛ 89/113: src/utils/cn.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 7 | РАЗМЕР: 169 B
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -31924,7 +32743,7 @@ export function cn(...inputs: ClassValue[]) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 88/111: src/utils/exportHtml.ts
+ФАЙЛ 90/113: src/utils/exportHtml.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 341 | РАЗМЕР: 15.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32271,7 +33090,7 @@ export async function downloadBookHtml(chapters: Chapter[]): Promise<void> {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 89/111: src/utils/ticketLinks.ts
+ФАЙЛ 91/113: src/utils/ticketLinks.ts
 КАТЕГОРИЯ: Утилиты | СТРОК: 165 | РАЗМЕР: 7.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32446,7 +33265,7 @@ export function useTicketLinks(
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 90/111: scripts/audit-coverage.mjs
+ФАЙЛ 92/113: scripts/audit-coverage.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 83 | РАЗМЕР: 3.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32535,7 +33354,7 @@ if (process.argv.includes("--md")) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 91/111: scripts/audit-terms.mjs
+ФАЙЛ 93/113: scripts/audit-terms.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 68 | РАЗМЕР: 2.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32609,7 +33428,7 @@ console.log("Не встретились:", GLOSSARY.filter((g) => !used.has(g.i
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 92/111: scripts/export/build-guide-pdf.mjs
+ФАЙЛ 94/113: scripts/export/build-guide-pdf.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 865 | РАЗМЕР: 38.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -33480,7 +34299,7 @@ main().catch((err) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 93/111: scripts/export/build-pdf.mjs
+ФАЙЛ 95/113: scripts/export/build-pdf.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 64 | РАЗМЕР: 2.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -33550,7 +34369,7 @@ main().catch((err) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 94/111: scripts/export/capture-viz-shots.mjs
+ФАЙЛ 96/113: scripts/export/capture-viz-shots.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 122 | РАЗМЕР: 5.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -33678,7 +34497,7 @@ process.exit(0);
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 95/111: scripts/export/collect-code.mjs
+ФАЙЛ 97/113: scripts/export/collect-code.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 196 | РАЗМЕР: 7.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -33880,7 +34699,7 @@ main();
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 96/111: scripts/export/common.mjs
+ФАЙЛ 98/113: scripts/export/common.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 66 | РАЗМЕР: 2.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -33952,7 +34771,7 @@ export function imageMagickCmd() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 97/111: scripts/export/html-to-blocks.mjs
+ФАЙЛ 99/113: scripts/export/html-to-blocks.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 266 | РАЗМЕР: 9.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -34224,7 +35043,7 @@ export function htmlToPlainText(html) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 98/111: scripts/export/render-pages.mjs
+ФАЙЛ 100/113: scripts/export/render-pages.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 117 | РАЗМЕР: 4.0 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -34347,7 +35166,7 @@ main().catch((err) => {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 99/111: scripts/verify/browser-checks.tsx
+ФАЙЛ 101/113: scripts/verify/browser-checks.tsx
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 1065 | РАЗМЕР: 76.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -35418,7 +36237,7 @@ export const initTemplateOf = (id: string) => buildInitTemplate(id, chapters.fin
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 100/111: scripts/verify/check-links.mjs
+ФАЙЛ 102/113: scripts/verify/check-links.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 199 | РАЗМЕР: 10.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -35494,7 +36313,7 @@ for (const [id, tickets] of Object.entries(chapterTopics)) {
   ok(chapterIds.has(id), `chapterTopics ссылается на несуществующую страницу «${id}»`);
   tickets.forEach((n) => covered.add(n));
 }
-for (let n = 1; n <= 24; n += 1) {
+for (let n = 1; n <= 25; n += 1) {
   ok(covered.has(n), `билет ${n} не закрыт ни одной страницей`);
 }
 
@@ -35543,7 +36362,7 @@ for (const chapter of chapters) {
     const to = m[2] ? Number(m[2]) : from;
     mentionsHere += 1;
     for (let n = from; n <= to; n += 1) {
-      ok(n >= 1 && n <= 24 && covered.has(n), `«${chapter.id}»: упоминание «${m[0]}» ведёт в никуда — билета ${n} нет в пособии`);
+      ok(n >= 1 && n <= 25 && covered.has(n), `«${chapter.id}»: упоминание «${m[0]}» ведёт в никуда — билета ${n} нет в пособии`);
     }
   }
   ticketMentions += mentionsHere;
@@ -35623,7 +36442,7 @@ console.log("\nвсе ссылки целы: 0 битых переходов");
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 101/111: scripts/verify/check-reference-code.mjs
+ФАЙЛ 103/113: scripts/verify/check-reference-code.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 133 | РАЗМЕР: 6.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -35762,7 +36581,7 @@ process.exit(problems > 0 ? 1 : 0);
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 102/111: scripts/verify/dom-env.mjs
+ФАЙЛ 104/113: scripts/verify/dom-env.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 107 | РАЗМЕР: 3.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -35875,7 +36694,7 @@ export function createDom({ url = "http://localhost/?topic=segment-trees", onErr
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 103/111: scripts/verify/live-matrix.test.mjs
+ФАЙЛ 105/113: scripts/verify/live-matrix.test.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 103 | РАЗМЕР: 6.4 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -35984,7 +36803,7 @@ process.exit(failures.length ? 1 : 0);
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 104/111: scripts/verify/probe-compiler.tsx
+ФАЙЛ 106/113: scripts/verify/probe-compiler.tsx
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 121 | РАЗМЕР: 4.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36111,7 +36930,7 @@ export async function probe() {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 105/111: scripts/verify/README.md
+ФАЙЛ 107/113: scripts/verify/README.md
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 64 | РАЗМЕР: 6.5 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36181,7 +37000,7 @@ npm run verify:probe    # диагностика панели Python во вре
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 106/111: scripts/verify/run-browser-checks.mjs
+ФАЙЛ 108/113: scripts/verify/run-browser-checks.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 96 | РАЗМЕР: 4.1 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36283,7 +37102,7 @@ function log(message) {
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 107/111: scripts/verify/run-probe.mjs
+ФАЙЛ 109/113: scripts/verify/run-probe.mjs
 КАТЕГОРИЯ: Скрипты сборки и экспорта | СТРОК: 45 | РАЗМЕР: 1.6 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36338,7 +37157,7 @@ process.exit(0);
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 108/111: .github/workflows/deploy-pages.yml
+ФАЙЛ 110/113: .github/workflows/deploy-pages.yml
 КАТЕГОРИЯ: CI / автоматизация | СТРОК: 83 | РАЗМЕР: 2.9 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36427,7 +37246,7 @@ jobs:
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 109/111: .github/workflows/rebuild-pdf.yml
+ФАЙЛ 111/113: .github/workflows/rebuild-pdf.yml
 КАТЕГОРИЯ: CI / автоматизация | СТРОК: 155 | РАЗМЕР: 6.2 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36588,7 +37407,7 @@ jobs:
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 110/111: .github/workflows/verify.yml
+ФАЙЛ 112/113: .github/workflows/verify.yml
 КАТЕГОРИЯ: CI / автоматизация | СТРОК: 71 | РАЗМЕР: 2.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36669,7 +37488,7 @@ jobs:
 ==========================================================================================================================================
 
 ------------------------------------------------------------------------------------------------------------------------------------------
-ФАЙЛ 111/111: .ai_skills/universal_guide_authoring/SKILL.md
+ФАЙЛ 113/113: .ai_skills/universal_guide_authoring/SKILL.md
 КАТЕГОРИЯ: Прочее | СТРОК: 252 | РАЗМЕР: 13.3 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36927,5 +37746,5 @@ export const myChapters: Chapter[] = [
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 111 файлов • сгенерировано 15.09.2026, 21:26:51
+КОНЕЦ ДОКУМЕНТА • 113 файлов • сгенерировано 16.09.2026, 10:57:01
 ==========================================================================================================================================
