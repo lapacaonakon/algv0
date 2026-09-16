@@ -3,7 +3,7 @@
             ПОЛНЫЙ ИСХОДНЫЙ КОД ПРОЕКТА (ВСЕ ФАЙЛЫ, ВСЕ СТРАНИЦЫ)
 ==========================================================================================================================================
 
-Дата генерации:            16.09.2026, 10:57:01
+Дата генерации:            16.09.2026, 11:18:21
 Файлов исходного кода:     113
 Суммарный объём кода:      2.02 MB
 Глав/билетов в пособии:    37
@@ -7354,7 +7354,7 @@ for _ in range(n):
     seen.add(x)
 
     for y in edges[x]:
-        if min_way[x] + y[1] < min_way[y[0]]:
+        if y[0] not in seen and min_way[x] + y[1] < min_way[y[0]]:
             min_way[y[0]] = min_way[x] + y[1]
 
 print("min_way:", min_way)`,
@@ -10184,7 +10184,7 @@ export const ticket25Cheatsheet: Chapter = {
 
         # Проверяем дороги из выбранной вершины
         for y in edges[x]:
-            if min_way[x] + y[1] &lt; min_way[y[0]]:
+            if y[0] not in seen and min_way[x] + y[1] &lt; min_way[y[0]]:
                 min_way[y[0]] = min_way[x] + y[1]
 
     return min_way</pre>
@@ -12595,7 +12595,7 @@ export const ChapterView: React.FC<Props> = ({ chapter, prev, next, index, total
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 ФАЙЛ 39/113: src/components/CheatSheetViz.tsx
-КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 437 | РАЗМЕР: 17.6 KB
+КАТЕГОРИЯ: Интерактивные компоненты и симуляторы | СТРОК: 439 | РАЗМЕР: 17.7 KB
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 import { useState, useEffect } from 'react';
@@ -12681,19 +12681,21 @@ export function CheatSheetViz() {
         });
 
         for (const [neighbor, w] of adjList[x]) {
-          simSteps.push({
-            x, checkingEdge: { u: x, v: neighbor, w },
-            minWay: [...minWay], seen: Array.from(seen),
-            log: `👀 Проверяем ребро (${x} ➔ ${neighbor}, w=${w}). Сравниваем min_way[${x}] + ${w} = ${minWay[x] + w} с min_way[${neighbor}] = ${minWay[neighbor] === 999 ? '∞' : minWay[neighbor]}.`
-          });
-
-          if (minWay[x] + w < minWay[neighbor]) {
-            minWay[neighbor] = minWay[x] + w;
+          if (!seen.has(neighbor)) {
             simSteps.push({
               x, checkingEdge: { u: x, v: neighbor, w },
               minWay: [...minWay], seen: Array.from(seen),
-              log: `⚡ Улучшение (полный чек)! min_way[${neighbor}] = ${minWay[neighbor]}.`
+              log: `👀 Проверяем ребро (${x} ➔ ${neighbor}, w=${w}). Сравниваем min_way[${x}] + ${w} = ${minWay[x] + w} с min_way[${neighbor}] = ${minWay[neighbor] === 999 ? '∞' : minWay[neighbor]}.`
             });
+
+            if (minWay[x] + w < minWay[neighbor]) {
+              minWay[neighbor] = minWay[x] + w;
+              simSteps.push({
+                x, checkingEdge: { u: x, v: neighbor, w },
+                minWay: [...minWay], seen: Array.from(seen),
+                log: `⚡ Улучшение (полный чек)! min_way[${neighbor}] = ${minWay[neighbor]}.`
+              });
+            }
           }
         }
       }
@@ -37746,5 +37748,5 @@ export const myChapters: Chapter[] = [
 
 
 ==========================================================================================================================================
-КОНЕЦ ДОКУМЕНТА • 113 файлов • сгенерировано 16.09.2026, 10:57:01
+КОНЕЦ ДОКУМЕНТА • 113 файлов • сгенерировано 16.09.2026, 11:18:21
 ==========================================================================================================================================
