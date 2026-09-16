@@ -81,19 +81,21 @@ export function CheatSheetViz() {
         });
 
         for (const [neighbor, w] of adjList[x]) {
-          simSteps.push({
-            x, checkingEdge: { u: x, v: neighbor, w },
-            minWay: [...minWay], seen: Array.from(seen),
-            log: `👀 Проверяем ребро (${x} ➔ ${neighbor}, w=${w}). Сравниваем min_way[${x}] + ${w} = ${minWay[x] + w} с min_way[${neighbor}] = ${minWay[neighbor] === 999 ? '∞' : minWay[neighbor]}.`
-          });
-
-          if (minWay[x] + w < minWay[neighbor]) {
-            minWay[neighbor] = minWay[x] + w;
+          if (!seen.has(neighbor)) {
             simSteps.push({
               x, checkingEdge: { u: x, v: neighbor, w },
               minWay: [...minWay], seen: Array.from(seen),
-              log: `⚡ Улучшение (полный чек)! min_way[${neighbor}] = ${minWay[neighbor]}.`
+              log: `👀 Проверяем ребро (${x} ➔ ${neighbor}, w=${w}). Сравниваем min_way[${x}] + ${w} = ${minWay[x] + w} с min_way[${neighbor}] = ${minWay[neighbor] === 999 ? '∞' : minWay[neighbor]}.`
             });
+
+            if (minWay[x] + w < minWay[neighbor]) {
+              minWay[neighbor] = minWay[x] + w;
+              simSteps.push({
+                x, checkingEdge: { u: x, v: neighbor, w },
+                minWay: [...minWay], seen: Array.from(seen),
+                log: `⚡ Улучшение (полный чек)! min_way[${neighbor}] = ${minWay[neighbor]}.`
+              });
+            }
           }
         }
       }

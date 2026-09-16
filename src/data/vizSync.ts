@@ -1002,7 +1002,7 @@ for _ in range(n):
     seen.add(x)
 
     for y in edges[x]:
-        if min_way[x] + y[1] < min_way[y[0]]:
+        if y[0] not in seen and min_way[x] + y[1] < min_way[y[0]]:
             min_way[y[0]] = min_way[x] + y[1]
 
 print("min_way:", min_way)`,

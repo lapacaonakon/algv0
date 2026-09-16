@@ -63,7 +63,7 @@ export const ticket25Cheatsheet: Chapter = {
 
         # Проверяем дороги из выбранной вершины
         for y in edges[x]:
-            if min_way[x] + y[1] &lt; min_way[y[0]]:
+            if y[0] not in seen and min_way[x] + y[1] &lt; min_way[y[0]]:
                 min_way[y[0]] = min_way[x] + y[1]
 
     return min_way</pre>
